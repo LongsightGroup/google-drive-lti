@@ -186,6 +186,40 @@ function getDriveFile(accessToken, fileId, callback, completeCallback) {
 	});
 }
 
+/**
+ * Returns one page of data from Google.  This uses Google paging to continue
+ * getting data after Google's initial response.
+ * 
+ * @param accessToken	Google Access Token for deleting this permission
+ * @param pageUrl URL containing data to retrieve from Google
+ * 		* this is likely data.nextPage from prior request
+ * @param callback function called when result is success
+ * @param errorCallback function called when request fails
+ * @param completeCallback function called when this AJAX call completes
+ */
+function getResponsePage(accessToken, pageUrl, callback, errorCallback, completeCallback) {
+	$.ajax({
+		url: pageUrl,
+		beforeSend: function(xhr) {
+			xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+		},
+		dataType: 'json',
+		data: {
+			'access_token' : accessToken
+		},
+		success: function(data, textStatus, jqXHR) {
+			if (typeof(callback) === 'function') {
+				callback(data, textStatus, jqXHR);
+			}
+		},
+		complete: function(jqXHR, textStatus) {
+			if (typeof(completeCallback) === 'function') {
+				completeCallback(jqXHR, textStatus, accessToken, query, callback);
+			}
+		}
+	});
+}
+
 function listCurrentFilePermissions(accessToken, fileId, fileTitle, callback, completeCallback) {
 	if (!verifyAllArgumentsNotEmpty(accessToken, fileId)) {
 		return;	// Quick return to simplify code
