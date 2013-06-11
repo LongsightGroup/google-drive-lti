@@ -369,7 +369,7 @@ function getGoogleAccessToken(responseType) {
 	if ($.trim(accessTokenHandler.accessToken) === '') {
 		// Get's email address from the form.
 		userEmail = getUserEmailAddress();
-		accessTokenHandler.accessToken = makeGoogleLinksRequest('accessToken', responseType, userEmail);
+		accessTokenHandler.accessToken = requestGoogleAccessToken(userEmail);
 		if ($.trim(accessTokenHandler.accessToken) !== '') {
 			accessTokenHandler.userEmail = userEmail;
 		} else {
@@ -380,38 +380,24 @@ function getGoogleAccessToken(responseType) {
 }
 
 /**
- * This function makes call to prototype server to make requests to Google Apps.
- *
- * If Google requests can be made on browser, or using Proxy, this function will
- * not be used for those.
+ * Removes permissions for people in the roster to the given folder.
+ * Permissions for the instructor and owners of the folder are not affected.
  */
-function makeGoogleLinksRequest(requestType, responseType, userEmail) {
+function requestGoogleAccessToken(userEmail) {
 	var result = null;
 	if ($.trim(userEmail) !== '') {
-		var result = $.ajax({
-				url: GOOGLE_AUTHORIZE_URL,
-				data: getGoogleLinksData(requestType, responseType, userEmail),
-				dataType: 'text',
-				async: false
+		result = $.ajax({
+			url: '/google-drive-lti/service',
+			async: false,
+			type: 'GET',
+			data: {
+				"requested_action" : "getAccessToken",
+				"user_email_address" : userEmail
+			}
 		}).responseText;
-		if (result === '') {
-			alert('Failed to authorize "' + userEmail + '": error will be in the server\'s log.');
-		}
 	} else {
 		// Do nothing, as blank email address cannot be authorized
 	}
-	return result;
-}
-
-/**
- * Returns parameters to send to GoogleLinks web servlet, including requestType,
- * responseType, userEmailAddress, and userPassword.
- */
-function getGoogleLinksData(requestType, responseType, userEmail) {
-	var result =
-			'requestType=' + encodeUrlData(requestType)
-			+ '&responseType=' + encodeUrlData(responseType)
-			+ '&userEmailAddress=' + encodeUrlData(userEmail);
 	return result;
 }
 

@@ -39,6 +39,8 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.Permission;
 
 import edu.umich.its.google.oauth.GoogleSecurity;
+import edu.umich.its.google.oauth.GoogleServiceAccount;
+
 
 /**
  * Servlet with doGet() that will return some Google data to the browser, and
@@ -84,6 +86,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final Logger M_log =
 			Logger.getLogger(GoogleLtiServlet.class.toString());
 
+	private static final String GOOGLE_SERVICE_ACCOUNT_PROPS_PREFIX =
+			"googleDriveLti";
 	private static final String HTTP_POST_JSP_PAGE = "/googleDriveLti.jsp";
 	private static final String EXPECTED_LTI_MESSAGE_TYPE =
 			"basic-lti-launch-request";
@@ -91,10 +95,12 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON =
 			"GoogleDriveConfigJson";
 	private static final String PARAMETER_ACTION = "requested_action";
-	private static final String PARAM_GIVE_ROSTER_ACCESS_READ_ONLY_ACTION =
+	private static final String PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY =
 			"giveRosterAccessReadOnly";
-	private static final String PARAM_REMOVE_ROSTER_ACCESS_ACTION =
+	private static final String PARAM_ACTION_REMOVE_ROSTER_ACCESS =
 			"removeRosterAccess";
+	private static final String PARAM_ACTION_GET_ACCESS_TOKEN =
+			"getAccessToken";
 	private static final String PARAM_ACCESS_TOKEN = "access_token";
 	private static final String PARAM_USER_EMAIL_ADDRESS = "user_email_address";
 	private static final String PARAM_FILE_ID = "file_id";
@@ -150,10 +156,12 @@ public class GoogleLtiServlet extends HttpServlet {
 	throws ServletException, IOException
 	{
 		String requestedAction = request.getParameter(PARAMETER_ACTION);
-		if (PARAM_GIVE_ROSTER_ACCESS_READ_ONLY_ACTION.equals(requestedAction)) {
+		if (PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY.equals(requestedAction)) {
 			insertPermissions(request, response);
-		} else if (PARAM_REMOVE_ROSTER_ACCESS_ACTION.equals(requestedAction)) {
+		} else if (PARAM_ACTION_REMOVE_ROSTER_ACCESS.equals(requestedAction)) {
 			removePermissions(request, response);
+		} else if (PARAM_ACTION_GET_ACCESS_TOKEN.equals(requestedAction)) {
+			getGoogleAccessToken(request, response);
 		} else {
 			M_log.warning(
 					"Request action unknown: \"" + requestedAction + "\"");
@@ -500,6 +508,39 @@ public class GoogleLtiServlet extends HttpServlet {
 		} catch (Exception err) {
 			M_log.log(Level.FINER, "Error insertPermissions()", err);
 		}
+	}
+
+	/**
+	 * Returns access token for Google Drive and the given user to the browser.
+	 */
+	private void getGoogleAccessToken(
+			HttpServletRequest request,
+			HttpServletResponse response)
+	throws IOException
+	{
+		String userEmailAddress =
+				request.getParameter(PARAM_USER_EMAIL_ADDRESS);
+		if (getIsEmpty(request.getParameter(PARAM_USER_EMAIL_ADDRESS))) {
+			logError(
+					response,
+					"Error: unable to get access token - the request did no "
+					+ "specify the user.");
+			return;
+		}
+		String accessToken = GoogleSecurity.getGoogleAccessToken(
+				getGoogleServiceAccount(),
+				userEmailAddress);
+		if (accessToken != null) {
+			response.getWriter().print(accessToken);
+		} else {
+			logError(
+					response,
+					"Error: unable to get access token.");
+		}
+	}
+
+	private GoogleServiceAccount getGoogleServiceAccount() {
+		return new GoogleServiceAccount(GOOGLE_SERVICE_ACCOUNT_PROPS_PREFIX);
 	}
 
 	private boolean validatePermissionsRequiredParams(

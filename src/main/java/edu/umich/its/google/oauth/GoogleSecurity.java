@@ -1,5 +1,7 @@
 package edu.umich.its.google.oauth;
 
+import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -21,6 +23,75 @@ public class GoogleSecurity {
 
 
 	// Static public methods ----------------------------------------
+
+	/** Authorizes the service account to access user's protected data. */
+	static public GoogleCredential authorize(
+			GoogleServiceAccount serviceAccount,
+			String emailAddress)
+	throws Exception
+	{
+		if (serviceAccount == null) {
+			M_log.warning("GoogleServiceAccount must not be null");
+			return null;
+		}
+		if (emailAddress == null) {
+			M_log.warning("User's email address must not be null");
+			return null;
+		}
+		GoogleCredential result = null;
+		try {
+			// check for valid setup
+			File privateKeyFile =
+					new File(serviceAccount.getPrivateKeyFilePath());
+			// Get service account credential
+			String[] scopes = serviceAccount.getScopesArray();
+			result = new GoogleCredential.Builder()
+					.setTransport(HTTP_TRANSPORT)
+					.setJsonFactory(JSON_FACTORY)
+					.setServiceAccountId(serviceAccount.getEmailAddress())
+					.setServiceAccountScopes(scopes)
+					.setServiceAccountPrivateKeyFromP12File(
+							privateKeyFile)
+					.setServiceAccountUser(emailAddress)
+					.build();
+		} catch (Exception err) {
+			M_log.log(
+					Level.FINEST,
+					"Failed to Google Authorize " + emailAddress,
+					err);
+		}
+		return result;
+	}
+
+	/**
+	 * Creates calendar client from GoogleCredential and opens the calendar with
+	 * the given ID, returning accessToken for that.
+	 * 
+	 * @param userEmailAddress	User's full email address
+	 * @param gcalId	Google ID for the calendar to open
+	 * @return
+	 */
+	static public String getGoogleAccessToken(
+			GoogleServiceAccount serviceAccount,
+			String userEmailAddress)
+	{
+		String result = null;
+		try {
+			GoogleCredential credential =
+					authorize(serviceAccount, userEmailAddress);
+			credential.refreshToken();
+			result = credential.getAccessToken();
+		} catch (Exception err) {
+			M_log.log(
+					Level.ALL,
+					"Failed to get access token for user \""
+					+ userEmailAddress
+					+ "\" and service account "
+					+ serviceAccount,
+					err);
+		}
+		return result;
+	}
 
 	static public Drive getGoogleDrive(GoogleCredential credential) {
 		Drive result = new Drive
