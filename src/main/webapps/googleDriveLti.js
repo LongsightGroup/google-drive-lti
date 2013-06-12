@@ -39,7 +39,6 @@ if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
 }
 
 var DEBUG_MODE = true;
-var MAX_RESULTS_PER_PAGE = 100;
 var GOOGLE_AUTHORIZE_URL = '/google-integration-prototype/googleLinks';
 var FILTER_FOR_FOLDERS = 'mimeType = \'application/vnd.google-apps.folder\'';
 var SELECTED_FOLDER_INPUT_NAME = 'folderSelectRadio';
