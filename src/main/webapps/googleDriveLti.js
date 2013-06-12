@@ -48,10 +48,6 @@ var accessTokenHandler = {
 		"userEmail" : null
 	};
 
-$(document).ready(function() {
-	getGoogleFolder();
-});
-
 function clearGoogleControls() {
 	getDriveViewTopList().empty();
 	getDriveFolderController().hide();
@@ -62,7 +58,7 @@ function clearGoogleControls() {
  * Retrieves and displays folders linked with this site, with functions
  * allowing the user to interact with the Google resources.
  * 
- * The results of the query are handled by callback getGoogleFolderCallback().
+ * The results of the query are handled by callback showGoogleFoldersCallback().
  * If there are no folders linked with the site, the callback handles that
  * based on the user's position in the site:
  *   For non-instructors:
@@ -74,13 +70,19 @@ function clearGoogleControls() {
  * - The page allows the instructor to create a new folder, linked with the
  * site, and as child of "My Drive" or any other folder they own.
  */
-function getGoogleFolder() {
+function showGoogleFolders() {
 	var googleDriveFolder = googleDriveConfig.folder;
 	if (googleDriveFolder != null) {
 		var query = 'fullText contains \'' + getConfigCourseId() + '\'';
 		// Filter to only get a folder
 		query = query + ' AND ' + FILTER_FOR_FOLDERS;
-		queryDriveFilesNotTrashed(getGoogleAccessToken(), query, getGoogleFolderCallback);
+		var depth = 0;
+		queryDriveFilesNotTrashed(
+				getGoogleAccessToken(),
+				query,
+				function(data) {
+					showGoogleFoldersCallback(data, depth);
+				});
 	}
 }
 
@@ -88,24 +90,15 @@ function getGoogleFolder() {
  * Displays the given folders on the page, so the user can open them in another
  * window.
  * 
- * See getGoogleFolder() for description of this function's responsibilities.
+ * See showGoogleFolders() for description of this function's responsibilities.
  */
-function getGoogleFolderCallback(data) {
+function showGoogleFoldersCallback(data, depth) {
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0)) {
-		var files = data.items;
+		var files = sortFiles(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
-			var $list = createFileListForFileFromTemplate(getDriveViewTopList(), file, false, true);
-			getFoldersChildren(file, $list);
-		}
-	} else {
-		if (getIsInstructor()) {
-			$('#Welcome').text('Welcome Instructor ' + getUserName());
-			var $folderController = getDriveFolderController();
-			$folderController.show();
-			listMyFolders();
-		} else {
-			$('#DriveFolderController').show();
+			addFileToFileTreeTable(file, null, depth);
+			getFoldersChildren(file, depth);//, $list);
 		}
 	}
 }
@@ -120,10 +113,10 @@ function getGoogleFolderCallback(data) {
  * @param folder	The parent folder to search
  * @param $parentList		The <ul> on the page for the parent folder
  */
-function getFoldersChildren(folder, $parentList) {
+function getFoldersChildren(folder, depth) {
 	var query = '\'' + folder.id + '\' in parents';
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {
-		getFoldersChildrenCallback(data, folder, $parentList);
+		getFoldersChildrenCallback(data, folder, depth);
 	});
 }
 
@@ -135,19 +128,49 @@ function getFoldersChildren(folder, $parentList) {
  * @param parentFolder Google object for the parent folder 
  * @param $parentList The <ul> on the page for the parent folder
  */
-function getFoldersChildrenCallback(data, parentFolder, $parentList) {
-//	alert('Found ' + ((data == null) ? 0 : data.items.length) + ' children.');
+function getFoldersChildrenCallback(data, parentFolder, parentDepth) {
+	var childDepth = parentDepth + 1;
 	if ((data != null) && (typeof(data.items) !== 'undefined')) {
-		var files = data.items;
+		var files = sortFiles(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
-			var $list = createFileListForFileFromTemplate($parentList, file, false, false);
+			addFileToFileTreeTable(file, parentFolder.id, childDepth);
 			// If folder, search for its children (recursively)
 			if (file.mimeType === 'application/vnd.google-apps.folder') {
-				getFoldersChildren(file, $list);
+				getFoldersChildren(file, childDepth);
 			}
 		}
 	}
+}
+
+function sortFiles(files) {
+	var result = [];
+	for (var fileIdx in files) {
+		var file = files[fileIdx];
+		var added = false;
+		for (var resultIdx in result) {
+			var resultFile = result[resultIdx];
+			if (file.title.toLowerCase() <= resultFile.title.toLowerCase()) {
+				result.splice(resultIdx, 0, file);
+//lc('' + resultIdx, result);
+				added = true;
+				break;
+			}
+		}
+		if (!added) {
+			result.push(file);
+//lc('end', result);
+		}
+	}
+	return result;
+}
+
+function lc(prefix, arr) {
+	var msg = prefix + ': ';
+	for (var idx in arr) {
+		msg = msg + '"' + arr[idx].title + '", ';
+	}
+	console.log(msg);
 }
 
 /**
@@ -155,23 +178,30 @@ function getFoldersChildrenCallback(data, parentFolder, $parentList) {
  * the folder for this course, or as the parent for a new folder.
  */
 function listMyFolders() {
-	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
-	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, listMyFoldersCallback);
+	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS
+			+ ' AND NOT fullText contains \'' + getConfigCourseId() + '\'';
+	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
+			function(data) {
+				listMyFoldersCallback(data, getConfigCourseId());
+			});
 }
 
 /**
  * When called as result of AJAX call, this displays the folders on the screen:
  * see listMyFolders() for details.
  */
-function listMyFoldersCallback(data) {
+function listMyFoldersCallback(data, courseId) {
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
 	{
 		// Show span that explains purpose of selecting an existing folder
 		$('#MessageForFolderSelect').show();
-		var files = data.items;
+		var files = sortFiles(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
-			createFileListForFileFromTemplate(getDriveViewTopList(), file, true, false);
+			// Filter out folders that are already linked
+			if ((typeof(file.description) != 'undefined') && (file.description.indexOf(courseId) == -1)) {
+				addFolderToLinkFolderTable(file);
+			}
 		}
 	} else {
 		$('#MessageForFolderNoParents').show();
@@ -193,16 +223,6 @@ function enableButtonsActingOnSeectedFolder() {
 function clearFolderSelection() {
 	$('input[name="' + SELECTED_FOLDER_INPUT_NAME + '"]:checked').prop('checked', false);
 	getButtonsActingOnSelectedFolder().prop('disabled', true);
-}
-
-/**
- * 
- */
-function assignSelectedFolder() {
-	var folderId = getSelectedFolderId();
-	if ($.trim(folderId) !== '') {
-		saveCourseIdInFolder(folderId, getConfigCourseId(), false);
-	}
 }
 
 /**
@@ -297,16 +317,12 @@ function notifyUserSiteLinkChangedWithFolder(folderData, newFolder, unlinked) {
 				+ '", and will give the roster access.  '
 				+ 'Send email to notify people about their new permissions?');
 		giveRosterReadOnlyPermissions(folderData, sendNotificationEmails);
-		clearGoogleControls();
-		getGoogleFolder();
 	} else {
 		removeRosterPermissions(folderData);
 		alert('Folder "'
 				+ folderData.title + '" was unlinked from the site: '
 				+ 'permissions were updated in Sakai, and are being removed in '
 				+ 'Google Drive.');
-		clearGoogleControls();
-		getGoogleFolder();
 	}
 }
 
@@ -566,7 +582,7 @@ function popupEditPermissions(me) {
 	$filePopupMenu.hide();
 }
 
-function openDialogToCreateFile($parentList, fileType, parentFolderId) {
+function openDialogToCreateFile(fileType, parentFolderId, depth) {
 	var $dialogRoot = $('#JqueryCreateFileDialogRoot');
 	$dialogRoot.find('input[name="fileMimeType"]').val('application/vnd.google-apps.' + fileType);
 	$dialogRoot.find('input[name="parentFolderId"]').val(parentFolderId);
@@ -577,8 +593,6 @@ function openDialogToCreateFile($parentList, fileType, parentFolderId) {
 			bgiframe: false,
 			autoOpen: false,
 			modal: true,
-			height: $(window).height() - 80,
-			width: '90%',
 			closeOnEscape: false,
 			position: 'center',
 			buttons: {
@@ -592,7 +606,7 @@ function openDialogToCreateFile($parentList, fileType, parentFolderId) {
 								$dialogRoot.find('input[name="description"]').val(),
 								$dialogRoot.find('input[name="fileMimeType"]').val(),
 								function(data) {
-									addFileToList(data, $parentList);
+//function addFileToFileTreeTable(file, parentFolderId, treeDepth) {
 								});
 						$(this).dialog('close');
 					}
@@ -847,7 +861,7 @@ function createFileListFromTemplate($parentList, fileId, fileTitle, fileUrl, ico
 	fileTitle = fileTitle.replace(/"/g, '&quot;');
 	var iconImage = '';
 	if ($.trim(iconLink) !== '') {
-		iconImage = '<img src="' + iconLink.replace(/"/g, '%22') + '"></img>';
+		iconImage = '<img src="' + iconLink.replace(/"/g, '%22') + '">';
 	}
 	var mimeTypeSuffix = '';
 	if ($.trim(mimeType) !== '') {
@@ -911,4 +925,142 @@ function create_iframe(parentId, iframeId, iframeName, sourceUrl) {
 function logToConsole() {
 	// Doing nothing now: main purpose is to allow code copied here to function
 	// without modifying the code
+}
+
+/**
+ * Sets the page's URL to one with query asking for a particular page.  Doing
+ * this while async() AJAX calls are in operation may cause AJAX calls and/or
+ * this function to fail.
+ * 
+ * @param page
+ */
+function openPage(page) {
+	document.location.href = getPageUrl() + '?requested_action=' + page;
+}
+
+/**
+ * Returns the page's URL with query trimmed off.
+ */
+function getPageUrl() {
+	var queryIdx = document.location.href.indexOf('?');
+	if (queryIdx > 0) {
+		return document.location.href.substr(0, queryIdx);
+	} else {
+		return document.location.href;
+	}
+}
+
+var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr> \
+	<td><a onclick="[OpenFileCall]"> \
+	  <img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
+	</a></td> \
+    <td> \
+      <a href="#" class="btn btn-primary btn-small" onclick="linkFolder(\'[FolderId]\');">Link Folder</a> \
+    </td> \
+	</tr>';
+
+/**
+ * Adds the given Google folder to table row, allowing the user to link it to
+ * the site.
+ * 
+ * @param folder Google folder available for linking
+ */
+function addFolderToLinkFolderTable(folder) {
+	var newEntry = LINK_FOLDER_TABLE_ROW_TEMPLATE
+			.replace(/\[FolderId\]/g, escapeSingleQuotes(folder.id))
+			.replace(/\[FolderTitle\]/g, folder.title)
+			.replace(/\[GoogleIconLink\]/g, folder.iconLink)
+			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder));
+	$(newEntry).appendTo('#LinkFolderTableTbody');
+}
+
+/**
+ * Returns JavaScript to caller that can be used (usually during onclick) to
+ * open the given Google file.
+ */
+function getFunctionCallToOpenFile(file) {
+	return "openFile("
+			+ "'" + escapeSingleQuotes(file.title)
+			+ "', '" + escapeSingleQuotes(file.alternateLink)
+			+ "', '" + escapeSingleQuotes(file.mimeType)
+			+ "');";
+}
+
+/**
+ * Links the given folder to the site.
+ * 
+ * @param folderId
+ */
+function linkFolder(folderId) {
+	saveCourseIdInFolder(folderId, getConfigCourseId(), false);
+}
+
+var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth]"> \
+	<td><a style="[FileIndentCss]" onclick="[OpenFileCall]"> \
+		<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FileTitle] \
+	</a></td> \
+	<td>[DropdownTemplate]</td> \
+	<td>[ActionTemplate]</td> \
+	<td></td> \
+	</tr>';
+
+var ACTION_BUTTON_TEMPLATE = '<a href="#" class="btn btn-primary btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
+
+/**
+ * Displays the given Google file on the screen, allowing the user to click on
+ * the file to open it.  It also gives instructor options to unlink a linked
+ * folder or to create subfolder or documents in the folder.
+ * 
+ * @param file
+ * @param treeDepth	Number of parents of this file including the linked folder.
+ */
+function addFileToFileTreeTable(file, parentFolderId, treeDepth) {
+	var fileIndentCss = '';
+	if (treeDepth > 0) {
+		fileIndentCss = 'padding-left: ' + (treeDepth * 10) + 'px;';
+	}
+	var dropdownTemplate = '';
+	var isFolder = (file.mimeType === 'application/vnd.google-apps.folder');
+	if (getIsInstructor() && isFolder) {
+		dropdownTemplate = $('#FolderDropdownTemplate').html();
+		dropdownTemplate = dropdownTemplate
+				.replace(/\[FolderId\]/g, escapeSingleQuotes(file.id))
+				.replace(/\[FolderDepth\]/g, treeDepth);
+	}
+	var actionTitle = null;
+	var actionOnClick = '';
+	if (getIsInstructor() && isFolder && (treeDepth === 0)) {
+		actionTitle = 'Unlink';
+		actionOnClick = 'unlinkFolderFromSite(\'' + escapeSingleQuotes(file.id) + '\', \'' + escapeSingleQuotes(file.title) + '\');';
+	} else {
+	}
+	var actionTemplate = '';
+	if (actionTitle !== null) {
+		actionTemplate = ACTION_BUTTON_TEMPLATE
+				.replace(/\[ActionTitle\]/g, actionTitle)
+				.replace(/\[ActionOnClick\]/g, actionOnClick);
+	}
+	var childOfParentId = 'child-of-' + $.trim(parentFolderId);
+	var newEntry = FILE_TREE_TABLE_ROW_TEMPLATE
+			.replace(/\[FileId\]/g, 'GoogleFile' + file.id)
+			.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
+			.replace(/\[FileTitle\]/g, file.title)
+			.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
+			.replace(/\[ActionTemplate\]/g, actionTemplate)
+			.replace(/\[GoogleIconLink\]/g, file.iconLink)
+			.replace(/\[FileIndentCss\]/g, fileIndentCss)
+			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file));
+	if (parentFolderId) {
+		var $parentRow = $('#GoogleFile' + parentFolderId);
+		if ($parentRow.length > 0) {
+			var $parentLastChild = $parentRow.siblings('.' + childOfParentId + ':last');
+			if ($parentLastChild.length === 1) {
+				$parentLastChild.after(newEntry);
+			} else {
+				$parentRow.after(newEntry);
+			}
+		}
+	} else {
+		$(newEntry).appendTo('#FileTreeTableTbody');
+	}
 }

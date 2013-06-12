@@ -101,6 +101,9 @@ public class GoogleLtiServlet extends HttpServlet {
 			"removeRosterAccess";
 	private static final String PARAM_ACTION_GET_ACCESS_TOKEN =
 			"getAccessToken";
+	private static final String PARAM_ACTION_LINK_GOOGLE_DRIVE = "linkFolder";
+	private static final String PARAM_ACTION_SHOW_LINKED_FILES =
+			"showLinkedFiles";
 	private static final String PARAM_ACCESS_TOKEN = "access_token";
 	private static final String PARAM_USER_EMAIL_ADDRESS = "user_email_address";
 	private static final String PARAM_FILE_ID = "file_id";
@@ -162,6 +165,10 @@ public class GoogleLtiServlet extends HttpServlet {
 			removePermissions(request, response);
 		} else if (PARAM_ACTION_GET_ACCESS_TOKEN.equals(requestedAction)) {
 			getGoogleAccessToken(request, response);
+		} else if (PARAM_ACTION_LINK_GOOGLE_DRIVE.equals(requestedAction)) {
+			loadJspPage(request, response, "pages/link-google-drive.jsp");
+		} else if (PARAM_ACTION_SHOW_LINKED_FILES.equals(requestedAction)) {
+			loadJspPage(request, response, "pages/show-google-drive.jsp");
 		} else {
 			M_log.warning(
 					"Request action unknown: \"" + requestedAction + "\"");
@@ -186,9 +193,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				getRosterDirect(request, response);
 			}
 			getGoogleDriveConfig(request);
-			getServletContext()
-					.getRequestDispatcher(HTTP_POST_JSP_PAGE)
-					.forward(request, response);
+			loadJspPage(request, response, "pages/show-google-drive.jsp");
 		}
 	}
 
@@ -323,6 +328,19 @@ public class GoogleLtiServlet extends HttpServlet {
 		request.setAttribute(
 				JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
 				result.toString());
+		request.getSession().setAttribute(
+				JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
+				result.toString());
+	}
+
+	private void retrieveGoogleDriveConfigFromSession(
+			HttpServletRequest request)
+	{
+		request.setAttribute(
+				JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
+				request
+						.getSession()
+						.getAttribute(JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON));
 	}
 
 	/**
@@ -744,5 +762,26 @@ public class GoogleLtiServlet extends HttpServlet {
 			String value)
 	{
 		nvps.add(new BasicNameValuePair(name, value));
+	}
+
+/*	private void openPageToLinkGoogleDrive(
+			HttpServletRequest request,
+			HttpServletResponse response)
+	{
+		redirectToJspPage()
+	}*/
+
+	private void loadJspPage(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			String page)
+	throws ServletException, IOException
+	{
+		request.setAttribute("pageFile", page);
+		retrieveGoogleDriveConfigFromSession(request);
+		getServletContext()
+				.getRequestDispatcher("/view/root.jsp")
+//		.getRequestDispatcher(HTTP_POST_JSP_PAGE)
+				.forward(request, response);
 	}
 }

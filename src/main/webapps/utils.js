@@ -1,10 +1,15 @@
-/*
+/* This relies upon jQuery library
+ * 
  * Author: Raymond Louis Naseef
  */
 
 
 function escapeJson(value) {
-	return (value == null) ? '' : value.replace(/"/g,'\\"');
+	return ($.trim(value) === '') ? '' : value.replace(/"/g,'\\"');
+}
+
+function escapeSingleQuotes(value) {
+	return ($.trim(value) === '') ? '' : value.replace(/'/g, "\\'");
 }
 
 function escapeUrl(value) {

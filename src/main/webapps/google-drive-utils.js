@@ -166,13 +166,13 @@ function getDriveFile(accessToken, fileId, callback, completeCallback) {
 		return;
 	}
 	$.ajax({
-		async: true,
 		timeout: 10000,	// Timeout (in ms) = 10sec
 		url: _getGoogleDriveUrl(fileId),
-		dataType: 'json',
-		data: {
-			'access_token' : accessToken
+		beforeSend: function(xhr) {
+			xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
 		},
+		type: 'GET',
+		dataType: 'json',
 		success: function(data, textStatus, jqXHR) {
 			if (typeof(callback) === 'function') {
 				callback(data, textStatus, jqXHR);
