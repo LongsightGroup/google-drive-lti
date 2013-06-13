@@ -955,7 +955,7 @@ var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParent
 	</a></td> \
 	<td>[DropdownTemplate]</td> \
 	<td>[ActionTemplate]</td> \
-	<td></td> \
+	<td>[LastModified]</td> \
 	</tr>';
 
 var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-primary btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
@@ -1010,7 +1010,8 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 			.replace(/\[ActionTemplate\]/g, actionTemplate)
 			.replace(/\[GoogleIconLink\]/g, file.iconLink)
 			.replace(/\[FileIndentCss\]/g, fileIndentCss)
-			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file));
+			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file))
+			.replace(/\[LastModified\]/g, getFileLastModified(file));
 	if (parentFolderId) {
 		var $parentRow = $('#' + getTableRowIdForFile(parentFolderId));
 		if ($parentRow.length > 0) {
@@ -1024,6 +1025,80 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	} else {
 		$(newEntry).appendTo('#FileTreeTableTbody');
 	}
+}
+
+/**
+ * 
+ * @param file
+ * @returns {String}
+ */
+function getFileLastModified(file) {
+	var result = '';
+	if (file) {
+		result = getGoogleDateOrTime(file.modifiedDate)
+				+ ' <span class="modified_by">'
+				+ file.lastModifyingUserName
+				+ "</span>";	
+	}
+	return result;
+}
+
+var MONTHS = [
+              'January',
+              'February',
+              'March',
+              'April',
+              'May',
+              'June',
+              'July',
+              'August',
+              'September',
+              'October',
+              'November',
+              'December'
+		];
+
+/**
+ * Returns given date/time as time of day for today, "May 5" if today is not
+ * "May 5".
+ * 
+ * @param googleDateIso
+ * @returns {String}
+ */
+function getGoogleDateOrTime(googleDateIso) {
+	var result = '';
+	if (googleDateIso) {
+		try {
+			var googleDate = Date.fromISOString(googleDateIso);
+			var todayStart = clearTime(new Date());
+			// Getting next midnight by adding 1 day in milliseconds, ignoring leap
+			// second
+			var todayEndTimeMs = todayStart.getTime() + ((86400000) - 10);
+			if ((googleDate.getTime() >= todayStart.getTime())
+					&& (googleDate.getTime() <= todayEndTimeMs))
+			{
+console.log(todayStart + ' < ' + googleDateIso + ' / ' + googleDate + ' < ' + new Date(todayEndTimeMs));
+				// Today, show hh:mm AM/PM
+				var hour = googleDate.getHours();
+				var min = googleDate.getMinutes();
+				var am_pm = (hour >= 12) ? "pm" : "am";
+				if (hour > 12) {
+					hour = hour - 12;
+				} else if (hour === 0) {
+					hour = 12;
+				}
+				result = hour + ':' + min + ' ' + am_pm;
+			} else {
+				// Not today, show "Month ##"
+				result = MONTHS[googleDate.getMonth() + 1]
+						+ ' '
+						+ googleDate.getDate();
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	}
+	return result;
 }
 
 /**
@@ -1064,3 +1139,9 @@ function getClassForLinkedFolder(linkedFolderId) {
 function getTableRowIdForFile(fileId) {
 	return 'FileTreeTableTrGoogleFile' + fileId;
 }
+
+/*$(document).ready(function() {
+	var todayStart = clearTime(new Date());
+	alert(getTimeIso(new Date(), false));
+
+});*/
