@@ -94,8 +94,6 @@ function getTimeIso(dt, useLocalTimezone) {
  * From: http://stackoverflow.com/questions/4450837/javascript-string-to-date-php-iso-string-format
  * Corrected to adjust for local time zone, so the resulting date/time is correct if string is GMZ
  */
-
-
 Date.fromISOString = (function(){
 	var tzoffset = (new Date).getTimezoneOffset();
 	function fastDateParse(y, m, d, h, i, s, ms){ // this -> tz
