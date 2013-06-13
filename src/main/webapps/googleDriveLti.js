@@ -1077,7 +1077,6 @@ function getGoogleDateOrTime(googleDateIso) {
 			if ((googleDate.getTime() >= todayStart.getTime())
 					&& (googleDate.getTime() <= todayEndTimeMs))
 			{
-console.log(todayStart + ' < ' + googleDateIso + ' / ' + googleDate + ' < ' + new Date(todayEndTimeMs));
 				// Today, show hh:mm AM/PM
 				var hour = googleDate.getHours();
 				var min = googleDate.getMinutes();
@@ -1095,7 +1094,7 @@ console.log(todayStart + ' < ' + googleDateIso + ' / ' + googleDate + ' < ' + ne
 						+ googleDate.getDate();
 			}
 		} catch (err) {
-			console.log(err);
+			logToConsole(err);
 		}
 	}
 	return result;
@@ -1139,9 +1138,3 @@ function getClassForLinkedFolder(linkedFolderId) {
 function getTableRowIdForFile(fileId) {
 	return 'FileTreeTableTrGoogleFile' + fileId;
 }
-
-/*$(document).ready(function() {
-	var todayStart = clearTime(new Date());
-	alert(getTimeIso(new Date(), false));
-
-});*/
