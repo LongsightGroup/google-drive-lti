@@ -1,8 +1,6 @@
 package edu.umich.its.lti.google;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -43,39 +41,13 @@ import edu.umich.its.google.oauth.GoogleServiceAccount;
 
 
 /**
- * Servlet with doGet() that will return some Google data to the browser, and
- * using doPost() to open web page that communicates with Google Drive to show
+ * Servlet with doGet() that allows browser to request an access token or to
+ * open a JSP page, and doPost() to get request from LTI Client to load the
  * resources associated with the client's site.
  * 
- * This is proof-of-concept implementation, and will make requests to the client
- * to retrieve it site's roster, if the client's request includes parameters for
- * that.
+ * NOTE: doGet() needs security to ensure the request is correct.  This can be
+ * done confirming details sent by the client server, client site ID and user. 
  * 
- * Here is list of request parameters handled by this LTI servlet:
- * <table>
- * 	<tr>
- * 		<th>Property</th>
- * 		<th>Purpose</th>
- * 	</tr>
- * 	<tr>
- * 		<td>custom_roster_direct=true</td>
- * 		<td>
- * 			Performs server-2-server request to get site's roster during
- * 			doPost(), reported in this server's log
- * 		</td>
- * 	</tr>
- * 	<tr>
- * 		<td><b>custom_show_parameters=true</b></td>
- * 		<td>
- * 			<b>
- * 			Adds HTML table showing all of the request's parameters to the user.
- * 			<br/>
- * 			! Sharing this with browser is improper in production: SECURITY !
- * 			</b>
- * 		</td>
- * 	</tr>
- * </table>
- *
  * @author Raymond Naseef
  *
  **/
@@ -128,7 +100,6 @@ public class GoogleLtiServlet extends HttpServlet {
 
 	private static final String GOOGLE_SERVICE_ACCOUNT_PROPS_PREFIX =
 			"googleDriveLti";
-	private static final String HTTP_POST_JSP_PAGE = "/googleDriveLti.jsp";
 	private static final String EXPECTED_LTI_MESSAGE_TYPE =
 			"basic-lti-launch-request";
 	private static final String EXPECTED_LTI_VERSION = "LTI-1p0";
@@ -227,11 +198,6 @@ public class GoogleLtiServlet extends HttpServlet {
 	throws ServletException, IOException 
 	{
 		if (verifyPost(request, response)) {
-			if ("true".equalsIgnoreCase(
-					request.getParameter("custom_roster_direct")))
-			{
-				getRosterDirect(request, response);
-			}
 			getGoogleDriveConfig(request);
 			loadJspPage(request, response, JspPage.HomePage);
 		}
@@ -381,47 +347,6 @@ public class GoogleLtiServlet extends HttpServlet {
 				request
 						.getSession()
 						.getAttribute(JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON));
-	}
-
-	/**
-	 * Makes direct server-to-server request to get the site's roster, and
-	 * displays the result in the server's log.
-	 */
-	private void getRosterDirect(
-			HttpServletRequest request,
-			HttpServletResponse response)
-	throws ServletException, IOException 
-	{
-		String sourceUrl = getRosterServerUrl(request);
-		try {
-			// Make post to get resource
-			HttpPost httpPost = new HttpPost(sourceUrl);
-			Map<String, String> ltiParams =
-					getLtiRosterParameters(request, sourceUrl);
-			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			for (Map.Entry<String, String> parameter : ltiParams.entrySet()) {
-				nvps.add(new BasicNameValuePair(
-						parameter.getKey(),
-						parameter.getValue()));
-			}
-	        httpPost.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-			HttpClient client = new DefaultHttpClient();
-			HttpResponse httpResponse = client.execute(httpPost);
-			HttpEntity httpEntity = httpResponse.getEntity();
-			if (httpEntity != null) {
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(httpEntity.getContent()));
-				StringBuilder contents = new StringBuilder();
-				String line = reader.readLine();
-				while (line != null) {
-					contents.append(line).append("\n");
-					line = reader.readLine();
-				}
-				M_log.log(Level.INFO, contents.toString());
-			}
-		} catch (Exception err) {
-			err.printStackTrace();
-		}
 	}
 
 	/**
