@@ -1,4 +1,7 @@
-            <p><a href="#" class="btn btn-primary btn-large" onclick="assignNewFolder();">New Google Folder</a></p>
+            <p>
+            	<a href="#" class="btn btn-primary btn-large" onclick="assignNewFolder();">New Google Folder</a>
+            	<a class="btn btn-primary btn-large" onclick="openPage('showLinkedFiles');">Back</a>
+            </p>
             
  			<p class="large-text">or</p>
             
