@@ -313,6 +313,34 @@ function queryDriveFilesNotTrashed(accessToken, query, callback) {
 }
 
 /**
+ * Returns array of files sorted by title (case-insensitive).
+ * 
+ * @param files Array of files to sort
+ * @returns {Array}
+ */
+function sortFilesByTitle(files) {
+	var result = [];
+	if (files) {
+		for (var fileIdx in files) {
+			var file = files[fileIdx];
+			var added = false;
+			for (var resultIdx in result) {
+				var resultFile = result[resultIdx];
+				if (file.title.toLowerCase() <= resultFile.title.toLowerCase()) {
+					result.splice(resultIdx, 0, file);
+					added = true;
+					break;
+				}
+			}
+			if (!added) {
+				result.push(file);
+			}
+		}
+	}
+	return result;
+}
+
+/**
  * Saves a current permission's local changes
  * 
  * @param accessToken	Google Access Token for deleting this permission

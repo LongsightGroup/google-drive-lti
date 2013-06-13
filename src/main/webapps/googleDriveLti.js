@@ -94,7 +94,7 @@ function showGoogleFolders() {
  */
 function showGoogleFoldersCallback(data, depth) {
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0)) {
-		var files = sortFiles(data.items);
+		var files = sortFilesByTitle(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
 			addFileToFileTreeTable(file, null, depth);
@@ -131,7 +131,7 @@ function getFoldersChildren(folder, depth) {
 function getFoldersChildrenCallback(data, parentFolder, parentDepth) {
 	var childDepth = parentDepth + 1;
 	if ((data != null) && (typeof(data.items) !== 'undefined')) {
-		var files = sortFiles(data.items);
+		var files = sortFilesByTitle(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
 			addFileToFileTreeTable(file, parentFolder.id, childDepth);
@@ -141,36 +141,6 @@ function getFoldersChildrenCallback(data, parentFolder, parentDepth) {
 			}
 		}
 	}
-}
-
-function sortFiles(files) {
-	var result = [];
-	for (var fileIdx in files) {
-		var file = files[fileIdx];
-		var added = false;
-		for (var resultIdx in result) {
-			var resultFile = result[resultIdx];
-			if (file.title.toLowerCase() <= resultFile.title.toLowerCase()) {
-				result.splice(resultIdx, 0, file);
-//lc('' + resultIdx, result);
-				added = true;
-				break;
-			}
-		}
-		if (!added) {
-			result.push(file);
-//lc('end', result);
-		}
-	}
-	return result;
-}
-
-function lc(prefix, arr) {
-	var msg = prefix + ': ';
-	for (var idx in arr) {
-		msg = msg + '"' + arr[idx].title + '", ';
-	}
-	console.log(msg);
 }
 
 /**
@@ -195,7 +165,7 @@ function listMyFoldersCallback(data, courseId) {
 	{
 		// Show span that explains purpose of selecting an existing folder
 		$('#MessageForFolderSelect').show();
-		var files = sortFiles(data.items);
+		var files = sortFilesByTitle(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
 			// Filter out folders that are already linked
