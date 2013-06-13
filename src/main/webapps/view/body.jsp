@@ -8,10 +8,10 @@
       <div class="row-fluid">
         <div class="span12">
           <div class="grey_container">
-          	<h2>Link Google Drive</h2>
+          	<h2>${requestScope.jspPage.pageTitle}</h2>
           	<p>Share Google Files With Your Site</p>
 
-          	<jsp:include page="${requestScope.pageFile}" flush="false"/>
+          	<jsp:include page="${requestScope.jspPage.pageFileUrl}" flush="false"/>
           </div>  <!-- .grey_container -->
         </div>  <!-- .span12 -->
       </div>  <!-- .row_fluid -->

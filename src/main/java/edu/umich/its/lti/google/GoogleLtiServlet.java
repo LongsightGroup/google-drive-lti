@@ -80,6 +80,46 @@ import edu.umich.its.google.oauth.GoogleServiceAccount;
  *
  **/
 public class GoogleLtiServlet extends HttpServlet {
+	// Enum ---------------------------------------------------------
+
+	// Specifications for different JSP pages used by the LTI.  This is passed
+	// to root JSP files with properties to manage display of the page contents.
+	public enum JspPage {
+		// Pages
+
+		// Home page shows Google Resources with functions to act upon them
+		HomePage("pages/show-google-drive.jsp", "Google Drive"),
+		// Link Folder page shows instructor folders they own, so they can link
+		// 1+ folders to the site
+		LinkFolderPage("pages/link-google-drive.jsp", "Link Google Drive");
+
+
+		// Instance variables -----------------------------
+
+		private String pageFileUrl;
+		private String pageTitle;
+
+
+		// Constructors -----------------------------------
+
+		private JspPage(String pageFileUrlValue, String pageTitleValue) {
+			pageTitle = pageTitleValue;
+			pageFileUrl = pageFileUrlValue;
+		}
+
+
+		// Public methods ---------------------------------
+
+		public String getPageFileUrl() {
+			return pageFileUrl;
+		}
+
+		public String getPageTitle() {
+			return pageTitle;
+		}
+	}
+
+
 	// Constants -----------------------------------------------------
 
 	private static final long serialVersionUID = -21239787L;
@@ -166,9 +206,9 @@ public class GoogleLtiServlet extends HttpServlet {
 		} else if (PARAM_ACTION_GET_ACCESS_TOKEN.equals(requestedAction)) {
 			getGoogleAccessToken(request, response);
 		} else if (PARAM_ACTION_LINK_GOOGLE_DRIVE.equals(requestedAction)) {
-			loadJspPage(request, response, "pages/link-google-drive.jsp");
+			loadJspPage(request, response, JspPage.LinkFolderPage);
 		} else if (PARAM_ACTION_SHOW_LINKED_FILES.equals(requestedAction)) {
-			loadJspPage(request, response, "pages/show-google-drive.jsp");
+			loadJspPage(request, response, JspPage.HomePage);
 		} else {
 			M_log.warning(
 					"Request action unknown: \"" + requestedAction + "\"");
@@ -193,7 +233,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				getRosterDirect(request, response);
 			}
 			getGoogleDriveConfig(request);
-			loadJspPage(request, response, "pages/show-google-drive.jsp");
+			loadJspPage(request, response, JspPage.HomePage);
 		}
 	}
 
@@ -767,10 +807,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void loadJspPage(
 			HttpServletRequest request,
 			HttpServletResponse response,
-			String page)
+			JspPage jspPage)
 	throws ServletException, IOException
 	{
-		request.setAttribute("pageFile", page);
+		request.setAttribute("jspPage", jspPage);
 		retrieveGoogleDriveConfigFromSession(request);
 		getServletContext()
 				.getRequestDispatcher("/view/root.jsp")
