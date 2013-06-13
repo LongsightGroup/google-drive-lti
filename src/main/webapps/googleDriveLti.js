@@ -70,18 +70,18 @@ function clearGoogleControls() {
  * - The page allows the instructor to create a new folder, linked with the
  * site, and as child of "My Drive" or any other folder they own.
  */
-function showGoogleFolders() {
+function showLinkedGoogleFolders() {
 	var googleDriveFolder = googleDriveConfig.folder;
 	if (googleDriveFolder != null) {
 		var query = 'fullText contains \'' + getConfigCourseId() + '\'';
 		// Filter to only get a folder
 		query = query + ' AND ' + FILTER_FOR_FOLDERS;
-		var depth = 0;
 		queryDriveFilesNotTrashed(
 				getGoogleAccessToken(),
 				query,
 				function(data) {
-					showGoogleFoldersCallback(data, depth);
+					// Linked folders are all depth 0 (no parents)
+					showLinkedGoogleFoldersCallback(data, 0);
 				});
 	}
 }
@@ -90,15 +90,15 @@ function showGoogleFolders() {
  * Displays the given folders on the page, so the user can open them in another
  * window.
  * 
- * See showGoogleFolders() for description of this function's responsibilities.
+ * See showLinkedGoogleFolders() for description of this function's responsibilities.
  */
-function showGoogleFoldersCallback(data, depth) {
+function showLinkedGoogleFoldersCallback(data, depth) {
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0)) {
 		var files = sortFilesByTitle(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
-			addFileToFileTreeTable(file, null, depth);
-			getFoldersChildren(file, depth);//, $list);
+			addFileToFileTreeTable(file, null, file.id, depth);
+			getFoldersChildren(file, file.id, depth);
 		}
 	}
 }
@@ -111,12 +111,13 @@ function showGoogleFoldersCallback(data, depth) {
  * even if I have rights to see the grand-children.
  * 
  * @param folder	The parent folder to search
+ * @param linkedFolderId ID of the linked folder this file belongs to
  * @param $parentList		The <ul> on the page for the parent folder
  */
-function getFoldersChildren(folder, depth) {
+function getFoldersChildren(folder, linkedFolderId, depth) {
 	var query = '\'' + folder.id + '\' in parents';
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {
-		getFoldersChildrenCallback(data, folder, depth);
+		getFoldersChildrenCallback(data, folder, linkedFolderId, depth);
 	});
 }
 
@@ -125,19 +126,20 @@ function getFoldersChildren(folder, depth) {
  * for explanation.
  * 
  * @param data	Child files for the parent folder
- * @param parentFolder Google object for the parent folder 
- * @param $parentList The <ul> on the page for the parent folder
+ * @param parentFolder Google object for the parent folder
+ * @param linkedFolderId ID of the linked folder this file belongs to
+ * @param parentDepth # of parents from this file's parent folder to linked folder
  */
-function getFoldersChildrenCallback(data, parentFolder, parentDepth) {
+function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDepth) {
 	var childDepth = parentDepth + 1;
 	if ((data != null) && (typeof(data.items) !== 'undefined')) {
 		var files = sortFilesByTitle(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
-			addFileToFileTreeTable(file, parentFolder.id, childDepth);
+			addFileToFileTreeTable(file, parentFolder.id, linkedFolderId, childDepth);
 			// If folder, search for its children (recursively)
 			if (file.mimeType === 'application/vnd.google-apps.folder') {
-				getFoldersChildren(file, childDepth);
+				getFoldersChildren(file, linkedFolderId, childDepth);
 			}
 		}
 	}
@@ -288,6 +290,7 @@ function notifyUserSiteLinkChangedWithFolder(folderData, newFolder, unlinked) {
 		giveRosterReadOnlyPermissions(folderData, sendNotificationEmails);
 	} else {
 		removeRosterPermissions(folderData);
+		removeUnlinkedFileTreeFromTable(folderData.id);
 		alert('Folder "'
 				+ folderData.title + '" was unlinked from the site: '
 				+ 'permissions were updated in Sakai, and are being removed in '
@@ -544,7 +547,8 @@ function popupEditPermissions(me) {
 	$filePopupMenu.hide();
 }
 
-function openDialogToCreateFile(fileType, parentFolderId, depth) {
+function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
+{
 	var title = prompt('Please enter title for the new ' + fileType, '');
 	if ($.trim(title) === '') {
 		return;	// Quick return to simplify code
@@ -555,7 +559,7 @@ function openDialogToCreateFile(fileType, parentFolderId, depth) {
 			'',
 			'application/vnd.google-apps.' + fileType,
 			function(file) {
-				addFileToFileTreeTable(file, parentFolderId, depth + 1);
+				addFileToFileTreeTable(file, parentFolderId, linkedFolderId, depth + 1);
 			});
 }
 
@@ -933,7 +937,7 @@ function linkFolder(folderId) {
 	saveCourseIdInFolder(folderId, getConfigCourseId(), false);
 }
 
-var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth]"> \
+var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \
 	<td><a style="[FileIndentCss]" onclick="[OpenFileCall]"> \
 		<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FileTitle] \
 	</a></td> \
@@ -949,10 +953,14 @@ var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-primary btn-small" onclick="[Act
  * the file to open it.  It also gives instructor options to unlink a linked
  * folder or to create subfolder or documents in the folder.
  * 
- * @param file
- * @param treeDepth	Number of parents of this file including the linked folder.
+ * @param file Google file being added to the table
+ * @param parentFolderId ID of the folder this file is child of
+ * @param linkedFolderId ID of the linked folder this file belongs to; null when
+ * this file is the linked folder
+ * @param treeDepth	Number of parents of this file including the linked folder
  */
-function addFileToFileTreeTable(file, parentFolderId, treeDepth) {
+function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
+{
 	var fileIndentCss = '';
 	if (treeDepth > 0) {
 		fileIndentCss = 'padding-left: ' + (treeDepth * 10) + 'px;';
@@ -963,6 +971,7 @@ function addFileToFileTreeTable(file, parentFolderId, treeDepth) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
 		dropdownTemplate = dropdownTemplate
 				.replace(/\[FolderId\]/g, escapeSingleQuotes(file.id))
+				.replace(/\[LinkedFolderId\]/g, escapeSingleQuotes(linkedFolderId))
 				.replace(/\[FolderDepth\]/g, treeDepth);
 	}
 	var actionTitle = null;
@@ -978,10 +987,12 @@ function addFileToFileTreeTable(file, parentFolderId, treeDepth) {
 				.replace(/\[ActionTitle\]/g, actionTitle)
 				.replace(/\[ActionOnClick\]/g, actionOnClick);
 	}
+	// Using trim so null/undefined id is empty string ('')
 	var childOfParentId = 'child-of-' + $.trim(parentFolderId);
 	var newEntry = FILE_TREE_TABLE_ROW_TEMPLATE
-			.replace(/\[FileId\]/g, 'GoogleFile' + file.id)
+			.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
 			.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
+			.replace(/\[LinkedFolderId\]/g, getClassForLinkedFolder(linkedFolderId))
 			.replace(/\[FileTitle\]/g, file.title)
 			.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
 			.replace(/\[ActionTemplate\]/g, actionTemplate)
@@ -989,7 +1000,7 @@ function addFileToFileTreeTable(file, parentFolderId, treeDepth) {
 			.replace(/\[FileIndentCss\]/g, fileIndentCss)
 			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file));
 	if (parentFolderId) {
-		var $parentRow = $('#GoogleFile' + parentFolderId);
+		var $parentRow = $('#' + getTableRowIdForFile(parentFolderId));
 		if ($parentRow.length > 0) {
 			var $parentLastChild = $parentRow.siblings('.' + childOfParentId + ':last');
 			if ($parentLastChild.length === 1) {
@@ -1001,4 +1012,27 @@ function addFileToFileTreeTable(file, parentFolderId, treeDepth) {
 	} else {
 		$(newEntry).appendTo('#FileTreeTableTbody');
 	}
+}
+
+/**
+ * Removes the unlinked folder and all its descendants from the table.
+ */
+function removeUnlinkedFileTreeFromTable(unlinkedFolderId) {
+	$('#FileTreeTableTbody').find('.' + getClassForLinkedFolder(unlinkedFolderId)).remove();
+	$('#' + getTableRowIdForFile(unlinkedFolderId)).remove();
+}
+
+/**
+ * Returns the class to be put into each <tr> showing a file that belongs to the
+ * linked folder with the given ID.
+ */
+function getClassForLinkedFolder(linkedFolderId) {
+	return 'linkedGoogleFolder' + linkedFolderId;
+}
+
+/**
+ * Returns ID of the <tr> for the file with the given ID.
+ */
+function getTableRowIdForFile(fileId) {
+	return 'GoogleFile' + fileId;
 }

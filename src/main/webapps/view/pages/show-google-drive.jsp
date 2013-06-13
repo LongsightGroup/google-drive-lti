@@ -4,12 +4,12 @@
          <a class="dropdown-toggle btn btn-primary btn-small" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="/page.html">Add<b class="caret"></b>
          </a>
          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-           <li><a tabindex="-1" onclick="openDialogToCreateFile('folder', '[FolderId]', [FolderDepth]);">Add Folder</a></li>
+           <li><a tabindex="-1" onclick="openDialogToCreateFile('folder', '[FolderId]', '[LinkedFolderId]', [FolderDepth]);">Add Folder</a></li>
            <li class="divider"></li>
-           <li><a tabindex="-1" onclick="openDialogToCreateFile('document', '[FolderId]', [FolderDepth]);">Add Document</a></li>
-           <li><a tabindex="-1" onclick="openDialogToCreateFile('presentation', '[FolderId]', [FolderDepth]);">Add Presentation</a></li>
-           <li><a tabindex="-1" onclick="openDialogToCreateFile('spreadsheet', '[FolderId]', [FolderDepth]);">Add Spreadsheet</a></li>
-           <li><a tabindex="-1" onclick="openDialogToCreateFile('drawing', '[FolderId]', [FolderDepth]);">Add Drawing</a></li>
+           <li><a tabindex="-1" onclick="openDialogToCreateFile('document', '[FolderId]', '[LinkedFolderId]', [FolderDepth]);">Add Document</a></li>
+           <li><a tabindex="-1" onclick="openDialogToCreateFile('presentation', '[FolderId]', '[LinkedFolderId]', [FolderDepth]);">Add Presentation</a></li>
+           <li><a tabindex="-1" onclick="openDialogToCreateFile('spreadsheet', '[FolderId]', '[LinkedFolderId]', [FolderDepth]);">Add Spreadsheet</a></li>
+           <li><a tabindex="-1" onclick="openDialogToCreateFile('drawing', '[FolderId]', '[LinkedFolderId]', [FolderDepth]);">Add Drawing</a></li>
          </ul>
        </div>
   </div>
@@ -28,7 +28,7 @@
 
 // On startup: display Google resources on the screen
 $(document).ready(function() {
-	showGoogleFolders();
+	showLinkedGoogleFolders();
 });
 
 </script>
