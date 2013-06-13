@@ -253,17 +253,16 @@ function saveCourseIdInFolderCallback(accessToken, folder, courseId, unlink) {
 }
 
 /**
- * 
+ * Creates new folder with "My Drive" as its parent. 
  */
 function assignNewFolder() {
-	var parentFolderId = getSelectedFolderId();
 	createFile(getGoogleAccessToken(),
-			parentFolderId,
+			'',
 			getConfigFolderTitle(),
 			getConfigCourseId(),
 			'application/vnd.google-apps.folder',
 			function(data) {
-				notifyUserSiteLinkChangedWithFolder(data, true);
+				notifyUserSiteLinkChangedWithFolder(data, true, false);
 			});
 }
 
@@ -294,13 +293,6 @@ function notifyUserSiteLinkChangedWithFolder(folderData, newFolder, unlinked) {
 				+ 'permissions were updated in Sakai, and are being removed in '
 				+ 'Google Drive.');
 	}
-}
-
-/**
- * @returns Value of selected folder: the value is the folder's Google ID
- */
-function getSelectedFolderId() {
-	return $('input[name="' + SELECTED_FOLDER_INPUT_NAME + '"]:checked').val();
 }
 
 function getConfigCourseId() {
