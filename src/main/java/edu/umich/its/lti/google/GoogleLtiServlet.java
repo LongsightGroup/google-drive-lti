@@ -764,13 +764,6 @@ public class GoogleLtiServlet extends HttpServlet {
 		nvps.add(new BasicNameValuePair(name, value));
 	}
 
-/*	private void openPageToLinkGoogleDrive(
-			HttpServletRequest request,
-			HttpServletResponse response)
-	{
-		redirectToJspPage()
-	}*/
-
 	private void loadJspPage(
 			HttpServletRequest request,
 			HttpServletResponse response,
@@ -781,7 +774,6 @@ public class GoogleLtiServlet extends HttpServlet {
 		retrieveGoogleDriveConfigFromSession(request);
 		getServletContext()
 				.getRequestDispatcher("/view/root.jsp")
-//		.getRequestDispatcher(HTTP_POST_JSP_PAGE)
 				.forward(request, response);
 	}
 }
