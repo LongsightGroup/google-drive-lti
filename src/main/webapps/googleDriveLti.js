@@ -25,6 +25,14 @@
  *
  * Items with '!' only exist for the instructor
  *
+ * ISSUES:
+ * 
+ *  A - Google files are only added to display once each, avoiding duplicate
+ *      entries in the display.  This can create inconsistent view, as the
+ *      winning location depends on timing of AJAX calls retrieving file tree
+ *      from Google.  This happens as each folder runs a async query to get its
+ *      direct children, so many threads may be running at the same time.
+ *
  * @author: Raymond Louis Naseef
  */
 if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
@@ -97,8 +105,10 @@ function showLinkedGoogleFoldersCallback(data, depth) {
 		var files = sortFilesByTitle(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
-			addFileToFileTreeTable(file, null, file.id, depth);
-			getFoldersChildren(file, file.id, depth);
+			if (!findFileInFileTreeTable(file.id)) {
+				addFileToFileTreeTable(file, null, file.id, depth);
+				getFoldersChildren(file, file.id, depth);
+			}
 		}
 	}
 }
@@ -136,10 +146,12 @@ function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDe
 		var files = sortFilesByTitle(data.items);
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
-			addFileToFileTreeTable(file, parentFolder.id, linkedFolderId, childDepth);
-			// If folder, search for its children (recursively)
-			if (file.mimeType === 'application/vnd.google-apps.folder') {
-				getFoldersChildren(file, linkedFolderId, childDepth);
+			if (!findFileInFileTreeTable(file.id)) {
+				addFileToFileTreeTable(file, parentFolder.id, linkedFolderId, childDepth);
+				// If folder, search for its children (recursively)
+				if (file.mimeType === 'application/vnd.google-apps.folder') {
+					getFoldersChildren(file, linkedFolderId, childDepth);
+				}
 			}
 		}
 	}
@@ -1015,6 +1027,22 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 }
 
 /**
+ * Returns true if table row for exists in the table for file with the given ID.
+ * 
+ * NOTE: this is being used to ensure the same folder is not included in the
+ * table multiple times, to keep display simple & to avoid duplicating "unique"
+ * table-row IDs.  If people really want folder to show 2+ times, it may be best
+ * to add rows that act as links where clicking on that row scrolls to show the
+ * folder's tree in the table.
+ * 
+ * @param fileId Id of Google File
+ * @returns {Boolean} true = table row exists
+ */
+function findFileInFileTreeTable(fileId) {
+	return $('#' + getTableRowIdForFile(fileId)).length > 0;
+}
+
+/**
  * Removes the unlinked folder and all its descendants from the table.
  */
 function removeUnlinkedFileTreeFromTable(unlinkedFolderId) {
@@ -1034,5 +1062,5 @@ function getClassForLinkedFolder(linkedFolderId) {
  * Returns ID of the <tr> for the file with the given ID.
  */
 function getTableRowIdForFile(fileId) {
-	return 'GoogleFile' + fileId;
+	return 'FileTreeTableTrGoogleFile' + fileId;
 }
