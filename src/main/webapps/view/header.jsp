@@ -57,9 +57,7 @@
     <script>
       ${requestScope.GoogleDriveConfigJson}
     </script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
-	<link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/south-street/jquery-ui.min.css" rel="stylesheet" type="text/css"></link>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" type="text/javascript"></script>
     <script src="utils.js" type="text/javascript"></script>
     <script src="google-drive-utils.js" type="text/javascript"></script>
     <script src="googleDriveLti.js" type="text/javascript"></script>

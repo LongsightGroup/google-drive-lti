@@ -553,42 +553,18 @@ function popupEditPermissions(me) {
 }
 
 function openDialogToCreateFile(fileType, parentFolderId, depth) {
-	var $dialogRoot = $('#JqueryCreateFileDialogRoot');
-	$dialogRoot.find('input[name="fileMimeType"]').val('application/vnd.google-apps.' + fileType);
-	$dialogRoot.find('input[name="parentFolderId"]').val(parentFolderId);
-	$dialogRoot.find('input[name="title"]').val('New');
-	$dialogRoot.find('input[name="description"]').val('');
-	if (!$dialogRoot.is(':data(dialog)')) {
-		$dialogRoot.dialog({
-			bgiframe: false,
-			autoOpen: false,
-			modal: true,
-			closeOnEscape: false,
-			position: 'center',
-			buttons: {
-				"OK" : function() {
-					if ($.trim($(this).find('input[name="title"]').val()) === '') {
-						alert('Please enter title.');
-					} else {
-						createFile(getGoogleAccessToken(),
-								$dialogRoot.find('input[name="parentFolderId"]').val(),
-								$dialogRoot.find('input[name="title"]').val(),
-								$dialogRoot.find('input[name="description"]').val(),
-								$dialogRoot.find('input[name="fileMimeType"]').val(),
-								function(data) {
-//function addFileToFileTreeTable(file, parentFolderId, treeDepth) {
-								});
-						$(this).dialog('close');
-					}
-				},
-				"Cancel" : function() {
-					$(this).dialog('close');
-				}
-			}
-		});
+	var title = prompt('Please enter title for the new ' + fileType, '');
+	if ($.trim(title) === '') {
+		return;	// Quick return to simplify code
 	}
-	$dialogRoot.dialog('option', 'title', 'Create ' + fileType);
-	$dialogRoot.dialog('open');
+	createFile(getGoogleAccessToken(),
+			parentFolderId,
+			title,
+			'',
+			'application/vnd.google-apps.' + fileType,
+			function(file) {
+				addFileToFileTreeTable(file, parentFolderId, depth + 1);
+			});
 }
 
 function addFileToList(data, $parentList) {
@@ -925,7 +901,7 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr> \
 	  <img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
     <td> \
-      <a href="#" class="btn btn-primary btn-small" onclick="linkFolder(\'[FolderId]\');">Link Folder</a> \
+      <a class="btn btn-primary btn-small" onclick="linkFolder(\'[FolderId]\');">Link Folder</a> \
     </td> \
 	</tr>';
 
@@ -974,7 +950,7 @@ var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParent
 	<td></td> \
 	</tr>';
 
-var ACTION_BUTTON_TEMPLATE = '<a href="#" class="btn btn-primary btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
+var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-primary btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
 
 /**
  * Displays the given Google file on the screen, allowing the user to click on
