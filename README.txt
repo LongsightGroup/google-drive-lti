@@ -50,7 +50,8 @@ Cases:
 ============
 1. svn co https://source.sakaiproject.org/contrib/umich/google/sandbox/google-drive-lti
 2. cd google-drive-lti
-3. mvn clean install sakai:deploy
+3. mvn clean install
+4. cp target/google-drive-lti.war $TOMCAT/webapps
 
 
 
@@ -155,8 +156,9 @@ googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
 * Replace /Users/ranaseef/...p12 with filename for your service account
 * Replace 505*.apps.googleusercontent.com and 505*@developer.gserviceaccount.com with entries for your Service Account.
 * You can find the matching entries at https://code.google.com/apis/console/
-4. Add property to JAVA_OPTS for Tomcat:
+4. Add properties to JAVA_OPTS for Tomcat:
 	-DgoogleServicePropsPath=$TOMCAT/googleServiceAccounts.properties
+	-DgoogleServiceStoragePath=/usr/local/ctools/google-drive
 
 
 
