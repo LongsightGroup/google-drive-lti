@@ -48,6 +48,8 @@ var DEBUG_MODE = true;
 var GOOGLE_AUTHORIZE_URL = '/google-integration-prototype/googleLinks';
 var FILTER_FOR_FOLDERS = 'mimeType = \'application/vnd.google-apps.folder\'';
 var SELECTED_FOLDER_INPUT_NAME = 'folderSelectRadio';
+// number of px is multiplied by the file's depth to pad the title
+var FILE_DEPTH_PADDING_PX = 20;
 
 var accessTokenHandler = {
 		"accessToken" : null,
@@ -944,7 +946,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 {
 	var fileIndentCss = '';
 	if (treeDepth > 0) {
-		fileIndentCss = 'padding-left: ' + (treeDepth * 10) + 'px;';
+		fileIndentCss = 'padding-left: ' + (treeDepth * FILE_DEPTH_PADDING_PX) + 'px;';
 	}
 	var dropdownTemplate = '';
 	var isFolder = (file.mimeType === 'application/vnd.google-apps.folder');
