@@ -160,21 +160,21 @@ function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDe
  * Gets folders I own and displays them on the screen, so I can select one as
  * the folder for this course, or as the parent for a new folder.
  */
-function listMyFolders() {
+function listUnlinkedFoldersOwnedByMe() {
 	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
 // This was not working, I check folders on the callback
 //			+ ' AND NOT fullText contains \'' + getConfigCourseId() + '\'';
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
 			function(data) {
-				listMyFoldersCallback(data, getConfigCourseId());
+				listUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
 			});
 }
 
 /**
  * When called as result of AJAX call, this displays the folders on the screen:
- * see listMyFolders() for details.
+ * see listUnlinkedFoldersOwnedByMe() for details.
  */
-function listMyFoldersCallback(data, courseId) {
+function listUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
 	{
 		// Show span that explains purpose of selecting an existing folder
