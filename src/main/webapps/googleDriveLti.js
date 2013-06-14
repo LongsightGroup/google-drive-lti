@@ -487,9 +487,10 @@ function logToConsole() {
  * 
  * @param page
  */
-function openPage(page) {
+function openPage(pageName) {
 	document.location.href = getPageUrl()
-			+ '?requested_action=' + page
+			+ '?requested_action=openPage'
+			+ '&pageName=' + escapeUrl(pageName)
 			+ '&tp_id=' + escapeUrl(getConfigTpId());
 }
 

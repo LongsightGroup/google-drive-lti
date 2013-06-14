@@ -58,10 +58,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	// to root JSP files with properties to manage display of the page contents.
 	public enum JspPage {
 		// Home page shows Google Resources with functions to act upon them
-		HomePage("pages/show-google-drive.jsp", "Google Drive"),
+		Home("pages/show-google-drive.jsp", "Google Drive"),
 		// Link Folder page shows instructor folders they own, so they can link
 		// 1+ folders to the site
-		LinkFolderPage("pages/link-google-drive.jsp", "Link Google Drive");
+		LinkFolder("pages/link-google-drive.jsp", "Link Google Drive");
 
 
 		// Instance variables -----------------------------
@@ -111,9 +111,10 @@ public class GoogleLtiServlet extends HttpServlet {
 			"removeRosterAccess";
 	private static final String PARAM_ACTION_GET_ACCESS_TOKEN =
 			"getAccessToken";
-	private static final String PARAM_ACTION_LINK_GOOGLE_DRIVE = "linkFolder";
-	private static final String PARAM_ACTION_SHOW_LINKED_FILES =
-			"showLinkedFiles";
+	private static final String PARAM_ACTION_OPEN_PAGE =
+			"openPage";
+	private static final String PARAM_OPEN_PAGE_NAME =
+			"pageName";
 	private static final String PARAM_ACCESS_TOKEN = "access_token";
 	private static final String PARAM_FILE_ID = "file_id";
 	private static final String PARAM_SEND_NOTIFICATION_EMAILS =
@@ -179,10 +180,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			removePermissions(request, response, tcSessionData);
 		} else if (PARAM_ACTION_GET_ACCESS_TOKEN.equals(requestedAction)) {
 			getGoogleAccessToken(request, response, tcSessionData);
-		} else if (PARAM_ACTION_LINK_GOOGLE_DRIVE.equals(requestedAction)) {
-			loadJspPage(request, response, tcSessionData, JspPage.LinkFolderPage);
-		} else if (PARAM_ACTION_SHOW_LINKED_FILES.equals(requestedAction)) {
-			loadJspPage(request, response, tcSessionData, JspPage.HomePage);
+		} else if (PARAM_ACTION_OPEN_PAGE.equals(requestedAction)) {
+			loadJspPage(request, response, tcSessionData);
 		} else {
 			M_log.warning(
 					"Request action unknown: \"" + requestedAction + "\"");
@@ -213,7 +212,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			request.getSession().setAttribute(
 					JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
 					googleConfigJson);
-			loadJspPage(request, response, tcSessionData, JspPage.HomePage);
+			loadJspPage(request, response, tcSessionData, JspPage.Home);
 		}
 	}
 
@@ -734,6 +733,34 @@ public class GoogleLtiServlet extends HttpServlet {
 		nvps.add(new BasicNameValuePair(name, value));
 	}
 
+	/**
+	 * Overload that gets JSP page to open from parameter in the request.
+	 */
+	private void loadJspPage(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
+	throws ServletException, IOException
+	{
+		String pageName = request.getParameter(PARAM_OPEN_PAGE_NAME);
+		loadJspPage(
+				request,
+				response,
+				tcSessionData,
+				JspPage.valueOf(pageName));
+	}
+
+	/**
+	 * Forwards the request to open owner (container) JSP /view/root.jsp,
+	 * loading the given JSP page as container's contents.
+	 * 
+	 * @param request HttpServletRequest storing the JSP page for use by owner
+	 * @param response HttpServletResponse for forward
+	 * @param tcSessionData 
+	 * @param jspPage JspPage enum containing page-specific settings
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	private void loadJspPage(
 			HttpServletRequest request,
 			HttpServletResponse response,
