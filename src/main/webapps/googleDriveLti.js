@@ -421,18 +421,6 @@ function getUpdateRosterParams(folderData, requestedAction, sendNotificationEmai
 			+ '&tp_id=' + escapeUrl(getConfigTpId());
 }
 
-function getDriveFolderController() {
-	return $('#DriveFolderController');
-}
-
-function getDriveFolderSelectionButtonsDiv() {
-	return $('#DriveFolderSelectionButtonsDiv');
-}
-
-function getDriveViewTopList() {
-	return $('#GoogleDriveTopList');
-}
-
 function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 {
 	var title = prompt('Please enter title for the new ' + fileType, '');
@@ -446,51 +434,6 @@ function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 			'application/vnd.google-apps.' + fileType,
 			function(file) {
 				addFileToFileTreeTable(file, parentFolderId, linkedFolderId, depth + 1);
-			});
-}
-
-/**
- * Deletes the given permission for a single file with the given fileId.
- */
-function deletePermission(me, fileId, permissionId, name) {
-	if (!confirm('Do you want to unlink this permission for ' + name + '?')) {
-		return;	// Quick return to simplify code
-	}
-	var accessToken = getGoogleAccessToken();
-	logToConsole('Deleting "' + permissionId + '" for file "' + fileId + '" and person "' + name + '"');
-	deleteFilePermission(accessToken, fileId, permissionId,
-			function(data) {
-				logToConsole('Deleted permission as ' + role + ' for ' + name);
-				alert('Permission was deleted.');
-				$(me).parents('tr:first').remove();
-			},
-			function(jqXHR, textStatus, errorThrown) {
-				logToConsole('Deleting permission failed: ' + textStatus + ' - ' + errorThrown + '\n\n----\n\n');
-				alert('Deleting the permission failed.');
-			},
-			function(jqXHR, textStatus) {
-				logToConsole('Deleted permission as ' + role + ' for ' + name + '\n\n----\n\n');
-			});
-}
-
-/**
- * Saves a current permission's local changes
- */
-function savePermission(me, fileId, permissionId, name) {
-	logToConsole('Save "' + permissionId + '"');
-	var accessToken = getGoogleAccessToken();
-	var newRole = $(me).parents('tr:first').find('.permissionRole').val();
-	updateFilePermission(accessToken, fileId, permissionId, newRole,
-			function(data) {
-				logToConsole('Changed permission for ' + name + ' to ' + role);
-				alert('Permission change was saved.');
-			},
-			function(jqXHR, textStatus, errorThrown) {
-				logToConsole('Changed permission failed: ' + textStatus + ' - ' + errorThrown + '\n\n----\n\n');
-				alert('The update failed.');
-			},
-			function(jqXHR, textStatus) {
-				logToConsole('Changed permission: ' + jqXHR.responseText + '\n\n----\n\n');
 			});
 }
 
@@ -522,22 +465,6 @@ function openFile(title, sourceUrl, googleFileMimeType, inDialog) {
 
 function openFolder(sourceUrl) {
 	window.open(sourceUrl, '_blank');
-}
-
-/**
- * Adds key to url for authentication.  Access token is not required for
- * file.alternateLink, but is for file.selfLink.  Best to not use token, and let
- * Google ensure security with user on the browser.
- */
-function keySourceUrl(sourceUrl) {
-	if (sourceUrl.indexOf('?') === -1) {
-		sourceUrl = sourceUrl
-				+ '?access_token=' + getGoogleAccessToken();
-	} else {
-		sourceUrl = sourceUrl
-				+ '&access_token=' + getGoogleAccessToken();
-	}
-	return sourceUrl
 }
 
 function create_iframe(parentId, iframeId, iframeName, sourceUrl) {
