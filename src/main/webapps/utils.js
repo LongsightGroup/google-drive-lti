@@ -111,3 +111,22 @@ Date.fromISOString = (function(){
 		return fastDateParse.apply(tz || 0, isoDateString.split(/\D/));
 	}
 })();
+
+/**
+ * Pads number so it displays with leading zeros (e.g., fixing minutes display
+ * from 10:3 => 10:03)
+ * 
+ * @param number
+ * @param len
+ * @returns {String}
+ */
+function padNumber(number, len) {
+	var result = '';
+	if (!isNaN(number)) {
+		result = '' + number;
+		while (result.length < len) {
+			result = '0' + result;
+		}
+	}
+	return result;
+}

@@ -300,6 +300,7 @@ function notifyUserSiteLinkChangedWithFolder(folderData, newFolder, unlinked) {
 				+ '", and will give the roster access.  '
 				+ 'Send email to notify people about their new permissions?');
 		giveRosterReadOnlyPermissions(folderData, sendNotificationEmails);
+		removeLinkedFolderFromLinkingTable(folderData.id);
 	} else {
 		removeRosterPermissions(folderData);
 		removeUnlinkedFileTreeFromTable(folderData.id);
@@ -875,7 +876,7 @@ function getPageUrl() {
 	}
 }
 
-var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr> \
+var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
 	<td><a onclick="[OpenFileCall]"> \
 	  <img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
@@ -892,6 +893,7 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr> \
  */
 function addFolderToLinkFolderTable(folder) {
 	var newEntry = LINK_FOLDER_TABLE_ROW_TEMPLATE
+			.replace(/\[TrFolderId\]/g, escapeSingleQuotes(getLinkingTableRowIdForFolder(folder.id)))
 			.replace(/\[FolderId\]/g, escapeSingleQuotes(folder.id))
 			.replace(/\[FolderTitle\]/g, folder.title)
 			.replace(/\[GoogleIconLink\]/g, folder.iconLink)
@@ -1057,7 +1059,7 @@ function getGoogleDateOrTime(googleDateIso) {
 				} else if (hour === 0) {
 					hour = 12;
 				}
-				result = hour + ':' + min + ' ' + am_pm;
+				result = hour + ':' + padNumber(min, 2) + ' ' + am_pm;
 			} else {
 				// Not today, show "Month ##"
 				result = MONTHS[googleDate.getMonth() + 1]
@@ -1088,6 +1090,14 @@ function findFileInFileTreeTable(fileId) {
 }
 
 /**
+ * Removes the newly linked folder from the linking table, so it does not look
+ * still unlinked.
+ */
+function removeLinkedFolderFromLinkingTable(linkedFolderId) {
+	$('#' + getLinkingTableRowIdForFolder(linkedFolderId)).remove();
+}
+
+/**
  * Removes the unlinked folder and all its descendants from the table.
  */
 function removeUnlinkedFileTreeFromTable(unlinkedFolderId) {
@@ -1108,4 +1118,11 @@ function getClassForLinkedFolder(linkedFolderId) {
  */
 function getTableRowIdForFile(fileId) {
 	return 'FileTreeTableTrGoogleFile' + fileId;
+}
+
+/**
+ * Returns ID of the linking table's <tr> for the folder with the given ID
+ */
+function getLinkingTableRowIdForFolder(folderId) {
+	return 'LinkedFolderTrGoogleFolder' + folderId;
 }
