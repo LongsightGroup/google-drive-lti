@@ -27,7 +27,7 @@ public class TcSiteToGoogleLinks implements Iterable<TcSiteToGoogleLink> {
 
 	// Public methods -----------------------------------------------
 
-	public boolean getIsNewer(File storageFile) {
+	public boolean getIsStorageFileNewer(File storageFile) {
 		return storageFile.lastModified() > lastUpdatedTimeMs;
 	}
 

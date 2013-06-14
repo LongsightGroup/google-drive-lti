@@ -64,13 +64,15 @@ public class TcSessionData {
 		result.append("\"tp_id\" : \"")
 				.append(escapeJson(getId()))
 				.append("\"");
+		result.append(", \"course_id\" : \"")
+				.append(escapeJson(getContextId()))
+				.append("\"");
+		result.append(", \"linkedFolders\" : ");
+		appendLinkedFolders(result);
 		result.append(", \"user\" : ");
 		appendUserJson(result);
 		result.append(", \"folder\" : ");
 		appendFolderJson(result);
-		result.append(", \"course_id\" : \"")
-				.append(escapeJson(getContextId()))
-				.append("\"");
 		// End the JSON object
 		result.append("}");
 		return result.toString();
@@ -237,6 +239,27 @@ public class TcSessionData {
 				.append("\"");
 		// 2 - End Adding the folder
 		result.append("}");
+	}
+
+	private void appendLinkedFolders(StringBuilder result) {
+		result.append("[");
+		try {
+			TcSiteToGoogleLinks links = TcSiteToGoogleStorage
+					.getLinkedGoogleFolders(getContextId());
+			boolean first = true;
+			for (TcSiteToGoogleLink link : links) {
+				if (!first) {
+					result.append(",");
+				}
+				result.append("\"")
+						.append(escapeJson(link.getFolderId()))
+						.append("\"");
+				first = false;
+			}
+		} catch (Exception err) {
+			err.printStackTrace();
+		}
+		result.append("]");
 	}
 
 	private void appendUserJson(StringBuilder result) {

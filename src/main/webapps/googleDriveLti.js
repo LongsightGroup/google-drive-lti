@@ -14,9 +14,10 @@
  * - <script> containing the following JSON object:
  * 	googleDriveConfig = {
  * 		"tp_id" : ""
- * 		"user" : { "name" : "", "roles" : [ "", "" ]}
- *  ,	"folder" : { "title" : "" },
  *  ,	"course_id" : "",
+ * 	,	"user" : { "name" : "", "roles" : [ "", "" ]}
+ *  ,	"folder" : { "title" : "" }
+ *  ,	"linkedFolders" : [ "", "" ]
  * 
  *  }
  *

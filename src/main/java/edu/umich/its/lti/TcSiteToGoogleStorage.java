@@ -67,8 +67,9 @@ public class TcSiteToGoogleStorage {
 		// Get from file if cache has null or out-dated copy
 		TcSiteToGoogleLinks result = 
 				TcSiteToGoogleCache.getInstance().getLinksForSite(siteId);
-		if ((result != null) && result.getIsNewer(storageFile)) {
-			loadLinks(siteId);
+		if ((result == null) || result.getIsStorageFileNewer(storageFile)) {
+			result = loadLinks(siteId);
+			TcSiteToGoogleCache.getInstance().setLinksForSite(siteId, result);
 		}
 		return result;
 	}
