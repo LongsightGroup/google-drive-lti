@@ -13,17 +13,15 @@
  * - <link href="/google-integration-prototype/google-integration-prototype.css" rel="stylesheet" type="text/css">
  * - <script> containing the following JSON object:
  * 	googleDriveConfig = {
- * 		"user" : { "name" : "", "emailAddress" : "", "roles" : [ "", "" ]}
+ * 		"tp_id" : ""
+ * 		"user" : { "name" : "", "roles" : [ "", "" ]}
  *  ,	"folder" : { "title" : "" },
  *  ,	"course_id" : "",
- * !,	"rosterRequestUrl" : "",
- * !,	"ltiMembershipsId" : "",
- * !,	"oauthCallback" : "",
- * !,	"oauthConsumerKey" : "",
  * 
  *  }
  *
- * Items with '!' only exist for the instructor
+ * Requests to LTI need to include "tp_id" as parameter, so the server can
+ * verify the request.
  *
  * ISSUES:
  * 
@@ -53,7 +51,6 @@ var SELECTED_FOLDER_INPUT_NAME = 'folderSelectRadio';
 
 var accessTokenHandler = {
 		"accessToken" : null,
-		"userEmail" : null
 	};
 
 function clearGoogleControls() {
@@ -162,8 +159,9 @@ function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDe
  * the folder for this course, or as the parent for a new folder.
  */
 function listMyFolders() {
-	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS
-			+ ' AND NOT fullText contains \'' + getConfigCourseId() + '\'';
+	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
+// This was not working, I check folders on the callback
+//			+ ' AND NOT fullText contains \'' + getConfigCourseId() + '\'';
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
 			function(data) {
 				listMyFoldersCallback(data, getConfigCourseId());
@@ -318,28 +316,12 @@ function getConfigFolderTitle() {
 	return googleDriveConfig.folder.title;
 }
 
-function getConfigRosterRequestUrl() {
-	return googleDriveConfig.rosterRequestUrl;
-}
-
-function getConfigLtiMembershipsId() {
-	return googleDriveConfig.ltiMembershipsId;
-}
-
-function getConfigOAuthCallback() {
-	return googleDriveConfig.oauthCallback;
-}
-
-function getConfigOAuthCosumerKey() {
-	return googleDriveConfig.oauthConsumerKey;
+function getConfigTpId() {
+	return googleDriveConfig.tp_id;
 }
 
 function getUserName() {
 	return googleDriveConfig.user.name;
-}
-
-function getUserEmailAddress() {
-	return googleDriveConfig.user.emailAddress;
 }
 
 function getIsInstructor() {
@@ -357,16 +339,9 @@ function getIsInstructor() {
 /**
  * Returns access token, retrieved from GoogleLinks server if the token is null.
  */
-function getGoogleAccessToken(responseType) {
+function getGoogleAccessToken() {
 	if ($.trim(accessTokenHandler.accessToken) === '') {
-		// Get's email address from the form.
-		userEmail = getUserEmailAddress();
-		accessTokenHandler.accessToken = requestGoogleAccessToken(userEmail);
-		if ($.trim(accessTokenHandler.accessToken) !== '') {
-			accessTokenHandler.userEmail = userEmail;
-		} else {
-			accessTokenHandler.userEmail = '';
-		}
+		accessTokenHandler.accessToken = requestGoogleAccessToken();
 	}
 	return accessTokenHandler.accessToken;
 }
@@ -375,21 +350,17 @@ function getGoogleAccessToken(responseType) {
  * Removes permissions for people in the roster to the given folder.
  * Permissions for the instructor and owners of the folder are not affected.
  */
-function requestGoogleAccessToken(userEmail) {
+function requestGoogleAccessToken() {
 	var result = null;
-	if ($.trim(userEmail) !== '') {
-		result = $.ajax({
-			url: '/google-drive-lti/service',
-			async: false,
-			type: 'GET',
-			data: {
-				"requested_action" : "getAccessToken",
-				"user_email_address" : userEmail
-			}
-		}).responseText;
-	} else {
-		// Do nothing, as blank email address cannot be authorized
-	}
+	result = $.ajax({
+		url: '/google-drive-lti/service',
+		async: false,
+		type: 'GET',
+		data: {
+			"requested_action" : "getAccessToken",
+			"tp_id" : getConfigTpId()
+		}
+	}).responseText;
 	return result;
 }
 
@@ -444,11 +415,7 @@ function getUpdateRosterParams(folderData, requestedAction, sendNotificationEmai
 			+ '&requested_action=' + requestedAction
 			+ '&send_notification_emails=' + sendNotificationEmails
 			+ '&file_id=' + escapeUrl(folderData.id)
-			+ '&ext_ims_lis_memberships_url=' + escapeUrl(getConfigRosterRequestUrl())
-			+ '&ext_ims_lis_memberships_id=' + escapeUrl(getConfigLtiMembershipsId())
-			+ '&oauth_callback=' + escapeUrl(getConfigOAuthCallback())
-			+ '&oauth_consumer_key=' + escapeUrl(getConfigOAuthCosumerKey())
-			+ '&user_email_address=' + escapeUrl(getUserEmailAddress());
+			+ '&tp_id=' + escapeUrl(getConfigTpId());
 }
 
 function getDriveFolderController() {
@@ -889,7 +856,9 @@ function logToConsole() {
  * @param page
  */
 function openPage(page) {
-	document.location.href = getPageUrl() + '?requested_action=' + page;
+	document.location.href = getPageUrl()
+			+ '?requested_action=' + page
+			+ '&tp_id=' + escapeUrl(getConfigTpId());
 }
 
 /**

@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -38,6 +37,7 @@ import com.google.api.services.drive.model.Permission;
 
 import edu.umich.its.google.oauth.GoogleSecurity;
 import edu.umich.its.google.oauth.GoogleServiceAccount;
+import edu.umich.its.lti.TcSessionData;
 
 
 /**
@@ -57,8 +57,6 @@ public class GoogleLtiServlet extends HttpServlet {
 	// Specifications for different JSP pages used by the LTI.  This is passed
 	// to root JSP files with properties to manage display of the page contents.
 	public enum JspPage {
-		// Pages
-
 		// Home page shows Google Resources with functions to act upon them
 		HomePage("pages/show-google-drive.jsp", "Google Drive"),
 		// Link Folder page shows instructor folders they own, so they can link
@@ -98,6 +96,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final Logger M_log =
 			Logger.getLogger(GoogleLtiServlet.class.toString());
 
+	private static final String SESSION_ATTR_TC_DATA = "TcSessionData";
 	private static final String GOOGLE_SERVICE_ACCOUNT_PROPS_PREFIX =
 			"googleDriveLti";
 	private static final String EXPECTED_LTI_MESSAGE_TYPE =
@@ -116,10 +115,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String PARAM_ACTION_SHOW_LINKED_FILES =
 			"showLinkedFiles";
 	private static final String PARAM_ACCESS_TOKEN = "access_token";
-	private static final String PARAM_USER_EMAIL_ADDRESS = "user_email_address";
 	private static final String PARAM_FILE_ID = "file_id";
 	private static final String PARAM_SEND_NOTIFICATION_EMAILS =
 			"send_notification_emails";
+	private static final String PARAM_TP_ID = "tp_id";
 
 
 	// Constructors --------------------------------------------------
@@ -170,16 +169,20 @@ public class GoogleLtiServlet extends HttpServlet {
 	throws ServletException, IOException
 	{
 		String requestedAction = request.getParameter(PARAMETER_ACTION);
+		TcSessionData tcSessionData = retrieveLockFromSession(request);
+		if (!verifyGet(request, response, tcSessionData, requestedAction)) {
+			return;	// Quick return to simplify code
+		}
 		if (PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY.equals(requestedAction)) {
-			insertPermissions(request, response);
+			insertPermissions(request, response, tcSessionData);
 		} else if (PARAM_ACTION_REMOVE_ROSTER_ACCESS.equals(requestedAction)) {
-			removePermissions(request, response);
+			removePermissions(request, response, tcSessionData);
 		} else if (PARAM_ACTION_GET_ACCESS_TOKEN.equals(requestedAction)) {
-			getGoogleAccessToken(request, response);
+			getGoogleAccessToken(request, response, tcSessionData);
 		} else if (PARAM_ACTION_LINK_GOOGLE_DRIVE.equals(requestedAction)) {
-			loadJspPage(request, response, JspPage.LinkFolderPage);
+			loadJspPage(request, response, tcSessionData, JspPage.LinkFolderPage);
 		} else if (PARAM_ACTION_SHOW_LINKED_FILES.equals(requestedAction)) {
-			loadJspPage(request, response, JspPage.HomePage);
+			loadJspPage(request, response, tcSessionData, JspPage.HomePage);
 		} else {
 			M_log.warning(
 					"Request action unknown: \"" + requestedAction + "\"");
@@ -198,9 +201,93 @@ public class GoogleLtiServlet extends HttpServlet {
 	throws ServletException, IOException 
 	{
 		if (verifyPost(request, response)) {
-			getGoogleDriveConfig(request);
-			loadJspPage(request, response, JspPage.HomePage);
+			TcSessionData tcSessionData = lockInSession(request);
+			if (tcSessionData.getIsInstructor()) {
+				// Pasting in notice so JSP can act differently for Instructor
+				request.setAttribute("Instructor", "true");
+			}
+			String googleConfigJson = tcSessionData.getGoogleDriveConfigJson();
+			request.setAttribute(
+					JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
+					googleConfigJson);
+			request.getSession().setAttribute(
+					JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
+					googleConfigJson);
+			loadJspPage(request, response, tcSessionData, JspPage.HomePage);
 		}
+	}
+
+	/**
+	 * This records data specific to this instance in the session, and returns
+	 * a unique key to be shared with the browser, ensuring requests coming from
+	 * the browser are for the correct instance.
+	 * 
+	 * @param request HttpServletRequest holding the session
+	 */
+	private TcSessionData lockInSession(HttpServletRequest request) {
+		// Store TC data in session.
+		TcSessionData result = new TcSessionData(request);
+		request.getSession().setAttribute(SESSION_ATTR_TC_DATA, result);
+		return result;
+	}
+
+	/**
+	 * 
+	 * @param request HttpServletRequest holding the session
+	 * @return TcSessionData for this session; null if there is none
+	 */
+	private TcSessionData retrieveLockFromSession(HttpServletRequest request) {
+		return (TcSessionData)request
+				.getSession()
+				.getAttribute(SESSION_ATTR_TC_DATA);
+	}
+
+	private boolean verifyGet(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			TcSessionData tcSessionData,
+			String requestedAction)
+	throws ServletException, IOException 
+	{
+		boolean result = false;
+		if (tcSessionData != null) {
+			String requestTpId = request.getParameter(PARAM_TP_ID);
+			if (
+					!getIsEmpty(requestTpId)
+					&& tcSessionData.matchTpId(requestTpId))
+			{
+				result = true;
+			} else {
+				M_log.log(
+						Level.FINER,
+						"A request \""
+						+ requestedAction
+						+ "\" was made to Google Drive LTI with unmatched "
+						+ " authority key: given \""
+						+ requestTpId
+						+ "\", expected \""
+						+ tcSessionData.getId()
+						+ "\".");
+				doError(
+						request,
+						response,
+						"The server failed to match the authority key for "
+						+ "this request.");
+			}
+		} else {
+			M_log.log(
+					Level.FINER,
+					"A request \""
+					+ requestedAction
+					+ "\" was made to Google Drive LTI, and there is no "
+					+ "data in the session from a post made by TC.");
+			doError(
+					request,
+					response,
+					"No action taken: the request could not be verified in "
+					+ "this session.");
+		}
+		return result;
 	}
 
 	/**
@@ -250,95 +337,11 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 
 	/**
-	 * This creates JSON with configuration of Google Drive, for use by the
-	 * browser to manage the site's Google Resources.
+	 * This puts the Google Configuration object into the request, for inserting
+	 * onto the HTML page.
+	 * 
+	 * @param request
 	 */
-	private void getGoogleDriveConfig(HttpServletRequest request)
-	throws IOException {
-		StringBuilder result = new StringBuilder("googleDriveConfig = {");
-		String courseId = request.getParameter("context_id");
-		if ((courseId == null) || courseId.trim().equals("")) {
-			M_log.warning("Google Drive LTI request made without context_id!");
-		}
-		// 1 - Begin Adding User
-		result.append(" \"user\" : {");
-		// 1a - full name
-		result.append(" \"name\" : '")
-				.append(escapeJson(
-						request.getParameter("lis_person_name_full")))
-				.append("'");
-		// 1b - email address
-		String userEmailAddress = escapeJson(
-				request.getParameter("lis_person_contact_email_primary"));
-		if ("".equals(userEmailAddress)) {
-			M_log.warning(
-					"Google Drive LTI was opened by user without email address:"
-					+ " please verify the tool is configured with"
-					+ " imsti.releaseemail = 'on' for course (context_id) '"
-					+ courseId
-					+ "'");
-		}
-		result.append(", \"emailAddress\" : '")
-				.append(userEmailAddress)
-				.append("'");
-		// 1c - roles
-		boolean isInstructor = false;
-		String roles = request.getParameter("roles");
-		String[] roleArray = roles.split(",");
-		result.append(", \"roles\" : [ ");
-		for (int idx = 0; idx < roleArray.length; idx++) {
-			if (idx > 0) {
-				result.append(",");
-			}
-			if ("Instructor".equals(roleArray[idx])) {
-				isInstructor = true;
-			}
-			result.append("'").append(escapeJson(roleArray[idx])).append("'");
-		}
-		result.append("]");
-		// 1 - End Adding User
-		result.append("}");
-		// 2 - Begin Adding the folder
-		result.append(", \"folder\" : {");
-		// 2a - Folder's title
-		result.append("\"title\" : \"")
-				.append(escapeJson(request.getParameter("context_title")))
-				.append("\"");
-		// 2 - End Adding the folder
-		result.append("}");
-		// 3 - Enter course
-		result.append(", \"course_id\" : \"");
-		result.append(escapeJson(courseId));
-		result.append("\"");
-		// 4 - Enter parameters for requesting roster
-		if (isInstructor) {
-			result.append(", \"rosterRequestUrl\" : \"")
-					.append(escapeJson(getRosterServerUrl(request)))
-					.append("\"");
-			result.append(", \"ltiMembershipsId\" : \"")
-					.append(escapeJson(
-							request.getParameter("ext_ims_lis_memberships_id")))
-					.append("\"");
-			result.append(", \"oauthCallback\" : \"")
-					.append(escapeJson(request.getParameter("oauth_callback")))
-					.append("\"");
-			result.append(", \"oauthConsumerKey\" : \"")
-					.append(escapeJson(
-							request.getParameter("oauth_consumer_key")))
-					.append("\"");
-			// Pasting in notice so JSP can act differently for Instructor
-			request.setAttribute("Instructor", "true");
-		}
-		// End the JSON object
-		result.append("}");
-		request.setAttribute(
-				JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
-				result.toString());
-		request.getSession().setAttribute(
-				JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
-				result.toString());
-	}
-
 	private void retrieveGoogleDriveConfigFromSession(
 			HttpServletRequest request)
 	{
@@ -360,15 +363,20 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private void insertPermissions(
 			HttpServletRequest request,
-			HttpServletResponse response)
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
 	throws ServletException, IOException 
 	{
 		try {
-			if (!validatePermissionsRequiredParams(request, response)) {
+			if (!validatePermissionsRequiredParams(
+					request,
+					response,
+					tcSessionData))
+			{
 				return;
 			}
 			String instructorEmailAddress =
-					request.getParameter(PARAM_USER_EMAIL_ADDRESS);
+					tcSessionData.getUserEmailAddress();
 			GoogleCredential googleCredential = getGoogleCredential(request);
 			String fileId = request.getParameter(PARAM_FILE_ID);
 			Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
@@ -383,7 +391,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			boolean sendNotificationEmails = Boolean.parseBoolean(
 					request.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each person in the roster
-			List<String> roster = getRoster(request);
+			List<String> roster = getRoster(request, tcSessionData);
 			int updateCount = 0;
 			for (int rosterIdx = 0; rosterIdx < roster.size(); rosterIdx++) {
 				String userEmailAddress = roster.get(rosterIdx);
@@ -429,15 +437,20 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private void removePermissions(
 			HttpServletRequest request,
-			HttpServletResponse response)
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
 	throws ServletException, IOException 
 	{
 		try {
-			if (!validatePermissionsRequiredParams(request, response)) {
+			if (!validatePermissionsRequiredParams(
+					request,
+					response,
+					tcSessionData))
+			{
 				return;
 			}
 			String instructorEmailAddress =
-					request.getParameter(PARAM_USER_EMAIL_ADDRESS);
+					tcSessionData.getUserEmailAddress();
 			GoogleCredential googleCredential = getGoogleCredential(request);
 			String fileId = request.getParameter(PARAM_FILE_ID);
 			Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
@@ -452,7 +465,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			boolean sendNotificationEmails = Boolean.parseBoolean(
 					request.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each person in the roster
-			List<String> roster = getRoster(request);
+			List<String> roster = getRoster(request, tcSessionData);
 			int updateCount = 0;
 			for (int rosterIdx = 0; rosterIdx < roster.size(); rosterIdx++) {
 				String userEmailAddress = roster.get(rosterIdx);
@@ -498,16 +511,17 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private void getGoogleAccessToken(
 			HttpServletRequest request,
-			HttpServletResponse response)
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
 	throws IOException
 	{
 		String userEmailAddress =
-				request.getParameter(PARAM_USER_EMAIL_ADDRESS);
-		if (getIsEmpty(request.getParameter(PARAM_USER_EMAIL_ADDRESS))) {
+				tcSessionData.getUserEmailAddress();
+		if (getIsEmpty(userEmailAddress)) {
 			logError(
 					response,
-					"Error: unable to get access token - the request did no "
-					+ "specify the user.");
+					"Error: unable to get access token - the TP server does "
+					+ "not know the user's email address.");
 			return;
 		}
 		String accessToken = GoogleSecurity.getGoogleAccessToken(
@@ -528,16 +542,23 @@ public class GoogleLtiServlet extends HttpServlet {
 
 	private boolean validatePermissionsRequiredParams(
 			HttpServletRequest request,
-			HttpServletResponse response)
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
 	throws IOException
 	{
 		boolean result = true;
-		if (getIsEmpty(request.getParameter(PARAM_USER_EMAIL_ADDRESS))) {
+		if (getIsEmpty(tcSessionData.getUserEmailAddress())) {
 			logError(
 					response,
 					"Error: unable to handle permissions - the request did "
 					+ "not specify the instructor.");
 			result = false;
+		}
+		if (!tcSessionData.getIsInstructor()) {
+			logError(
+					response,
+					"Error: the server failed to confirm you are the "
+					+ "instructor.");
 		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
 			logError(
@@ -574,16 +595,17 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * displays the result in the server's log.
 	 */
 	private List<String> getRoster(
-			HttpServletRequest request)
+			HttpServletRequest request,
+			TcSessionData tcSessionData)
 	throws ServletException, IOException 
 	{
 		List<String> result = new ArrayList<String>();
-		String sourceUrl = getRosterServerUrl(request);
+		String sourceUrl = tcSessionData.getMembershipsUrl();
 		try {
 			// Make post to get resource
 			HttpPost httpPost = new HttpPost(sourceUrl);
 			Map<String, String> ltiParams =
-					getLtiRosterParameters(request, sourceUrl);
+					getLtiRosterParameters(request, tcSessionData, sourceUrl);
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			for (Map.Entry<String, String> parameter : ltiParams.entrySet()) {
 				addParameter(nvps, parameter.getKey(), parameter.getValue());
@@ -680,38 +702,21 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private Map<String, String> getLtiRosterParameters(
 			HttpServletRequest request,
+			TcSessionData tcSessionData,
 			String sourceUrl)
 	{
 		Map<String, String> result = new HashMap<String, String>();
-		result.put("id", request.getParameter("ext_ims_lis_memberships_id"));
+		result.put("id", tcSessionData.getMembershipsId());
 		result.put("lti_message_type", "basic-lis-readmembershipsforcontext");
 		result.put("lti_version", "LTI-1p0");
-		result.put("oauth_callback", request.getParameter("oauth_callback"));
+		result.put("oauth_callback", "about:blank");
 		result = RequestSignatureManager.signParameters(
 				result,
 				sourceUrl,
 				"POST",
-				request.getParameter("oauth_consumer_key"),
+				tcSessionData.getConsumerKey(),
 				"secret");
 		return result;
-	}
-
-	/**
-	 * Convenient method to get URL from request coming in from client server.
-	 * 
-	 * @return URL for server to request rosters.  This is hard-coded, and does
-	 * not consider the client server that contacted this LTI.
-	 */
-	private String getRosterServerUrl(HttpServletRequest request) {
-		return request.getParameter("ext_ims_lis_memberships_url");
-	}
-
-	/**
-	 * Returns the value escaped properly for placement as value in JSON; null
-	 * is returned as ''
-	 */
-	private String escapeJson(String value) {
-		return (value == null) ? "" : StringEscapeUtils.escapeEcmaScript(value);
 	}
 
 	private void logError(HttpServletResponse response, String message)
@@ -732,6 +737,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void loadJspPage(
 			HttpServletRequest request,
 			HttpServletResponse response,
+			TcSessionData tcSessionData,
 			JspPage jspPage)
 	throws ServletException, IOException
 	{
