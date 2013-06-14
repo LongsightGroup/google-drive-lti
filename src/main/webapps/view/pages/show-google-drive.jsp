@@ -14,7 +14,7 @@
        </div>
   </div>
 </div>
-            <p><a href="#" class="btn btn-primary btn-large" onclick="openPage('linkFolder');">Link Google Folder</a></p>
+            <p><a class="btn btn-primary btn-large" onclick="openPage('linkFolder');">Link Google Folder</a></p>
             <hr />
             
              <table class="table table-striped table-bordered table-hover" width="100%">
