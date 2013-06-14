@@ -19,7 +19,7 @@ These permissions work for the folder's contents, so documents, sub folders, and
 	-- The page loads script "/library/htmlarea/jquery-plugin-xdr.js".  Instructions to deploy this JS library are in Sakai server module "google-service".  The instructions place the library into sub-module "reference/library", and this project is dependent upon Sakai module "reference/library" being deployed to the same domain.
 	-- IE is currently failing to associate a folder with the course, and failing to let instructor to detach the folder from the course.
 
-- If LTI is configured with "Send Email Addresses to the External Tool" FALSE (unchecked), the page will open with nothing showing on it, as it is unable to verify the user and request an access token without their email address.  The request for access token is being made to a local prototype service at URL "/google-integration-prototype/googleLinks".
+- If LTI is configured with "Send Email Addresses to the External Tool" FALSE (unchecked), the page will open with nothing showing on it, as it is unable to verify the user and request an access token without their email address.
 
 - Opening the LTI when logged in as a user that is not in the roster will open with "Google Drive LTI" and an empty box, and nothing more showing on the page.  The key is the user's email address is known by LTI
 
@@ -144,18 +144,36 @@ For adding to a new site, start with step 1.
 
 	[ C - Setting up Google Authorization ]
 	---------------------------------------
-As written 2013-06-01, the JavaScript file in this service makes AJAX request to URL for sibling project "google-integration-prototype".  If this sibling project is deployed to same server as this project, it will be able to handle these requests.  To build and install that:
+1. cd $TOMCAT
+2. touch googleServiceAccounts.properties
+3. Add the following properties to googleServiceAccounts.properties
+googleDriveLti.service.account.client.id=505339004686-6u695emetjek7bca8gvr7q14lbp5jbc4.apps.googleusercontent.com
+googleDriveLti.service.account.email.address=505339004686-6u695emetjek7bca8gvr7q14lbp5jbc4@developer.gserviceaccount.com
+googleDriveLti.service.account.private.key.file=/Users/ranaseef/googleKeys/e3f47d43c771825722360e4042cab76e4a3f9dd6-privatekey.p12
+googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
+* you will need to create service account with permissions to edit Google Drive, and to download .p12 file for it
+* Replace /Users/ranaseef/...p12 with filename for your service account
+* Replace 505*.apps.googleusercontent.com and 505*@developer.gserviceaccount.com with entries for your Service Account.
+* You can find the matching entries at https://code.google.com/apis/console/
+4. Add property to JAVA_OPTS for Tomcat:
+	-DgoogleServicePropsPath=$TOMCAT/googleServiceAccounts.properties
 
-1. svn co https://source.sakaiproject.org/contrib/umich/google/sandbox/google-integration-prototype/
-2. cd google-integration-prototype
-3. mvn clean install sakai:deploy
-4. Create Google Service Account with permissions to edit Google Drive, and download .p12 file for it
-5. Add the following properties to JAVA_OPTS:
-	 i. google.prototype.p12=<PathOnTheServerToP12File>
-	ii. google.prototype.service.account.email=<GoogleServiceAccountEmailAddress>
-  * Example properties as written on java command-line:
-	-Dgoogle.prototype.p12=/usr/local/ctools/m+google/e3f47d43c771825722360e4042cab76e4a3f9dd6-privatekey.p12
-	-Dgoogle.prototype.service.account.email=505339004686-6u695emetjek7bca8gvr7q14lbp5jbc4@developer.gserviceaccount.com
-6. Start Tomcat
 
+
+[ NOTES - Storage ]
+===================
+This currently stores linkings of Google folders to Sites in files.  Here is the configuration for that:
+
+- File name: "google-drive-lti-<context_id>.txt"
+- File location: retrieved from System property "googleDriveLtiDataFilesFolder=<path-to-folder>"
+- Contents:
+<site_id>,<user_id>,<user_email_address>,<google-folder-id>
+
+* Note: newlines are replaced with single space ' ', so each link remains on one line of the file
+* <user_id> is owner of the folder, and instructor that linked the folder to the TC site.
+
+- Example of Contents for site with 2 linked folders:
+
+c5e9c736-e8a0-41dc-aa28-d09676d044fe,769b4f4f-d302-449c-b614-9a759f1e37c0,test@collab.its.umich.edu,0B_G6RWXM0arpSlg3b2M4SU50ZUE,2 - Course with Google Drive
+c5e9c736-e8a0-41dc-aa28-d09676d044fe,769b4f4f-d302-449c-b614-9a759f1e37c0,test@collab.its.umich.edu,0B_G6RWXM0arpQ3JmOThzVFBtVFE,LTI Folders Parent
 
