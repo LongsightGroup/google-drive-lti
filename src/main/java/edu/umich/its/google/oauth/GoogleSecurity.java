@@ -28,7 +28,6 @@ public class GoogleSecurity {
 	static public GoogleCredential authorize(
 			GoogleServiceAccount serviceAccount,
 			String emailAddress)
-	throws Exception
 	{
 		if (serviceAccount == null) {
 			M_log.warning("GoogleServiceAccount must not be null");
@@ -55,10 +54,8 @@ public class GoogleSecurity {
 					.setServiceAccountUser(emailAddress)
 					.build();
 		} catch (Exception err) {
-			M_log.log(
-					Level.FINEST,
-					"Failed to Google Authorize " + emailAddress,
-					err);
+			M_log.warning("Failed to Google Authorize " + emailAddress);
+			err.printStackTrace();
 		}
 		return result;
 	}
