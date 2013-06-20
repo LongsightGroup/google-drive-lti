@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
+	<meta http-equiv="Cache-control" content="no-cache">
 
     <!-- Le styles -->
     <link href="assets/css/bootstrap.css" rel="stylesheet">

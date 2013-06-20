@@ -15,9 +15,7 @@ import org.apache.commons.logging.LogFactory;
 * 	<li>Service Account's email address</li>
 * 	<li>Service Account's private key file path (.p12)</li>
 * 	<li>
-* 		Scopes the service account will need; this may be removed, as scopes may
-* 		be specific to the request in hand (e.g., one person may need read-write
-* 		access, while another may only request read access)
+* 		Scopes the service account will need
 * 	</li>
 * </ul>
 * 

@@ -1,3 +1,4 @@
+<%@page import="edu.umich.its.lti.TcSessionData"%>
 <div style="display: none;">
   <div id="FolderDropdownTemplate">
        <div class="dropdown">
@@ -14,7 +15,13 @@
        </div>
   </div>
 </div>
+<%
+	if (((TcSessionData)request.getAttribute("TcSessionData")).getIsInstructor()) {
+%>
             <p><a class="btn btn-primary btn-large" onclick="openPage('LinkFolder');">Link Google Folder</a></p>
+<%
+	}
+%>
             <hr />
             
              <table class="table table-striped table-bordered table-hover" width="100%">

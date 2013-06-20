@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -38,6 +38,9 @@ import com.google.api.services.drive.model.Permission;
 import edu.umich.its.google.oauth.GoogleSecurity;
 import edu.umich.its.google.oauth.GoogleServiceAccount;
 import edu.umich.its.lti.TcSessionData;
+import edu.umich.its.lti.TcSiteToGoogleLink;
+import edu.umich.its.lti.TcSiteToGoogleLinks;
+import edu.umich.its.lti.TcSiteToGoogleStorage;
 
 
 /**
@@ -58,23 +61,32 @@ public class GoogleLtiServlet extends HttpServlet {
 	// to root JSP files with properties to manage display of the page contents.
 	public enum JspPage {
 		// Home page shows Google Resources with functions to act upon them
-		Home("pages/show-google-drive.jsp", "Google Drive"),
+		Home("pages/show-google-drive.jsp", "Google Drive", null),
 		// Link Folder page shows instructor folders they own, so they can link
 		// 1+ folders to the site
-		LinkFolder("pages/link-google-drive.jsp", "Link Google Drive");
+		LinkFolder(
+				"pages/link-google-drive.jsp",
+				"Link Google Drive",
+				new String[] {"Instructor"});
 
 
 		// Instance variables -----------------------------
 
 		private String pageFileUrl;
 		private String pageTitle;
+		private String[] roles;
 
 
 		// Constructors -----------------------------------
 
-		private JspPage(String pageFileUrlValue, String pageTitleValue) {
+		private JspPage(
+				String pageFileUrlValue,
+				String pageTitleValue,
+				String[] rolesValue)
+		{
 			pageTitle = pageTitleValue;
 			pageFileUrl = pageFileUrlValue;
+			roles = rolesValue;
 		}
 
 
@@ -86,6 +98,40 @@ public class GoogleLtiServlet extends HttpServlet {
 
 		public String getPageTitle() {
 			return pageTitle;
+		}
+
+		public String[] getRoles() {
+			return roles;
+		}
+
+		public boolean verifyAllowedRoles(String[] userRoles) {
+			boolean result = false;
+			String[] allowedRoles = getRoles();
+			if (allowedRoles != null) {
+				// Only proceed if there are user roles to check; otherwise,
+				// user does not have any allowed role
+				if (userRoles != null) {
+					for (
+							int allowedRoleIdx = 0;
+							!result && (allowedRoleIdx < allowedRoles.length);
+							allowedRoleIdx++)
+					{
+						String allowedRole = allowedRoles[allowedRoleIdx];
+						for (
+								int userRoleIdx = 0;
+								!result && (userRoleIdx < userRoles.length); 
+								userRoleIdx++)
+						{
+							String userRole = userRoles[userRoleIdx];
+							result = userRole.equals(allowedRole);
+						}
+					}
+				}
+			} else {
+				// Page with null roles are open to all
+				result = true;
+			}
+			return result;
 		}
 	}
 
@@ -105,8 +151,14 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON =
 			"GoogleDriveConfigJson";
 	private static final String PARAMETER_ACTION = "requested_action";
+	private static final String PARAM_ACTION_LINK_GOOGLE_FOLDER =
+			"linkGoogleFolder";
+	private static final String PARAM_ACTION_UNLINK_GOOGLE_FOLDER =
+			"unlinkGoogleFolder";
 	private static final String PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY =
 			"giveRosterAccessReadOnly";
+	private static final String PARAM_ACTION_GIVE_CURRENT_USER_ACCESS_READ_ONLY
+			= "giveCurrentUserAccessReadOnly";
 	private static final String PARAM_ACTION_REMOVE_ROSTER_ACCESS =
 			"removeRosterAccess";
 	private static final String PARAM_ACTION_GET_ACCESS_TOKEN =
@@ -174,8 +226,18 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (!verifyGet(request, response, tcSessionData, requestedAction)) {
 			return;	// Quick return to simplify code
 		}
-		if (PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY.equals(requestedAction)) {
-			insertPermissions(request, response, tcSessionData);
+		if (PARAM_ACTION_LINK_GOOGLE_FOLDER.equals(requestedAction)) {
+			linkGoogleFolder(request, response, tcSessionData);
+		} else if (PARAM_ACTION_UNLINK_GOOGLE_FOLDER.equals(requestedAction)) {
+			unlinkGoogleFolder(request, response, tcSessionData);
+		} else if (PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY
+				.equals(requestedAction))
+		{
+			insertRosterPermissions(request, response, tcSessionData);
+		} else if (PARAM_ACTION_GIVE_CURRENT_USER_ACCESS_READ_ONLY
+				.equals(requestedAction))
+		{
+			insertCurrentUserPermissions(request, response, tcSessionData);
 		} else if (PARAM_ACTION_REMOVE_ROSTER_ACCESS.equals(requestedAction)) {
 			removePermissions(request, response, tcSessionData);
 		} else if (PARAM_ACTION_GET_ACCESS_TOKEN.equals(requestedAction)) {
@@ -201,18 +263,55 @@ public class GoogleLtiServlet extends HttpServlet {
 	{
 		if (verifyPost(request, response)) {
 			TcSessionData tcSessionData = lockInSession(request);
-			if (tcSessionData.getIsInstructor()) {
-				// Pasting in notice so JSP can act differently for Instructor
-				request.setAttribute("Instructor", "true");
-			}
-			String googleConfigJson = tcSessionData.getGoogleDriveConfigJson();
+			String googleConfigJson =
+					tcSessionData.getGoogleDriveConfigJsonScript();
 			request.setAttribute(
 					JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
 					googleConfigJson);
-			request.getSession().setAttribute(
-					JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
-					googleConfigJson);
 			loadJspPage(request, response, tcSessionData, JspPage.Home);
+		}
+	}
+
+
+	// Private methods ----------------------------------------------
+
+	/**
+	 * Saves relationship of folder and site in database, and returns the
+	 * updated Google Drive Configuration json to the browser.
+	 */
+	private void linkGoogleFolder(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
+	throws IOException
+	{
+		String folderId = request.getParameter(PARAM_FILE_ID);
+		TcSiteToGoogleLink newLink = new TcSiteToGoogleLink(
+				tcSessionData.getContextId(),
+				tcSessionData.getUserEmailAddress(),
+				tcSessionData.getUserId(),
+				folderId);
+		TcSiteToGoogleStorage.addLink(newLink);
+		response.getWriter().print(tcSessionData.getGoogleDriveConfigJson());
+	}
+
+
+	/**
+	 * Removes relationship of folder and site from the database, and returns
+	 * the updated Google Drive Configuration json to the browser.
+	 */
+	private void unlinkGoogleFolder(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
+	throws IOException
+	{
+		String folderId = request.getParameter(PARAM_FILE_ID);
+		if (TcSiteToGoogleStorage
+				.removeLink(tcSessionData.getContextId(), folderId))
+		{
+			response.getWriter().print(
+					tcSessionData.getGoogleDriveConfigJson());
 		}
 	}
 
@@ -226,6 +325,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private TcSessionData lockInSession(HttpServletRequest request) {
 		// Store TC data in session.
 		TcSessionData result = new TcSessionData(request);
+		request.setAttribute(SESSION_ATTR_TC_DATA, result);
 		request.getSession().setAttribute(SESSION_ATTR_TC_DATA, result);
 		return result;
 	}
@@ -236,9 +336,11 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * @return TcSessionData for this session; null if there is none
 	 */
 	private TcSessionData retrieveLockFromSession(HttpServletRequest request) {
-		return (TcSessionData)request
+		TcSessionData result = (TcSessionData)request
 				.getSession()
 				.getAttribute(SESSION_ATTR_TC_DATA);
+		request.setAttribute(SESSION_ATTR_TC_DATA, result);
+		return result;
 	}
 
 	private boolean verifyGet(
@@ -257,9 +359,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			{
 				result = true;
 			} else {
-				M_log.log(
-						Level.FINER,
-						"A request \""
+				M_log.warning("A request \""
 						+ requestedAction
 						+ "\" was made to Google Drive LTI with unmatched "
 						+ " authority key: given \""
@@ -274,9 +374,7 @@ public class GoogleLtiServlet extends HttpServlet {
 						+ "this request.");
 			}
 		} else {
-			M_log.log(
-					Level.FINER,
-					"A request \""
+			M_log.warning("A request \""
 					+ requestedAction
 					+ "\" was made to Google Drive LTI, and there is no "
 					+ "data in the session from a post made by TC.");
@@ -342,85 +440,194 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * @param request
 	 */
 	private void retrieveGoogleDriveConfigFromSession(
+			TcSessionData tcSessionData,
 			HttpServletRequest request)
+	throws IOException
 	{
 		request.setAttribute(
 				JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
-				request
-						.getSession()
-						.getAttribute(JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON));
+				tcSessionData.getGoogleDriveConfigJsonScript());
 	}
 
-	/**
-	 * Gives people in the roster read-only access to the given folder.  The
-	 * instructor will be owner of the folder and their permissions are not
-	 * touched.
-	 * 
-	 * If people already have higher permissions, this will not affect that.
-	 * This would be the case because the instructor already gave them those
-	 * permissions.
-	 */
-	private void insertPermissions(
+	private void insertRosterPermissions(
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
 	throws ServletException, IOException 
 	{
+		List<String> emailAddresses = getRoster(request, tcSessionData);
+		int count = insertPermissions(
+				request,
+				response,
+				tcSessionData,
+				emailAddresses);
+		// Title set in request by insertPermissions: get and clear it
+		String folderTitle = (String)request.getAttribute("folderTitle");
+		request.removeAttribute("folderTitle");
+		StringBuilder sbResponse = new StringBuilder();
+		sbResponse.append("Added permissions for folder \"")
+				.append(folderTitle)
+				.append("\" to ")
+				.append(count)
+				.append((count == 1) ? " person" : " people")
+				.append(" in the roster");
+		if (tcSessionData.getIsInstructor()) {
+			sbResponse.append(" (you already have permissions)");
+		}
+		sbResponse.append(".");
+		response.getWriter().print(sbResponse.toString());
+	}
+
+	private void insertCurrentUserPermissions(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
+	throws ServletException, IOException 
+	{
+		String emailAddress = tcSessionData.getUserEmailAddress();
+		if (getIsEmpty(emailAddress)) {
+			logError(
+					response,
+					"Error: unable to handle permissions - the TC did "
+					+ "not sent the current user's email address.");
+			return;
+		}
+		List<String> emailAddresses = new ArrayList<String>();
+		emailAddresses.add(emailAddress);
+		if (insertPermissions(request, response, tcSessionData, emailAddresses)
+				== 1)
+		{
+			response.getWriter().print("SUCCESS");
+		}
+	}
+
+	/**
+	 * Gives people with the given email addresses read-only access to the given
+	 * folder.  The instructor is expected to be the owner of the folder and
+	 * their permissions are not touched.
+	 * 
+	 * If people already have higher permissions, this will not affect that.
+	 * This would be the case because the instructor already gave them those
+	 * permissions.
+	 * 
+	 * @return Number of permissions that were successfully inserted
+	 */
+	private int insertPermissions(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			TcSessionData tcSessionData,
+			List<String> emailAddresses)
+	throws ServletException, IOException 
+	{
+		int result = 0;
 		try {
 			if (!validatePermissionsRequiredParams(
 					request,
 					response,
 					tcSessionData))
 			{
-				return;
+				return 0;
 			}
-			String instructorEmailAddress =
-					tcSessionData.getUserEmailAddress();
-			GoogleCredential googleCredential = getGoogleCredential(request);
-			String fileId = request.getParameter(PARAM_FILE_ID);
-			Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
-			File file = getFile(drive, fileId);
+			FolderPermissionsHandler handler =
+					getHandler(request, response, tcSessionData);
+			File file = handler.getFile();
 			if (file == null) {
 				logError(
 						response,
 						"Error: unable to modify Google Folder permissions, as "
 						+ "the folder was not retrieved from Google Drive.");
-				return;	// Quick return to simplify code
+				return 0;	// Quick return to simplify code
 			}
+			// Ugly way to pass title to the calling method
+			request.setAttribute("folderTitle", file.getTitle());
 			boolean sendNotificationEmails = Boolean.parseBoolean(
 					request.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
-			// Insert permission for each person in the roster
-			List<String> roster = getRoster(request, tcSessionData);
-			int updateCount = 0;
-			for (int rosterIdx = 0; rosterIdx < roster.size(); rosterIdx++) {
-				String userEmailAddress = roster.get(rosterIdx);
+			// Insert permission for each given person
+			for (
+					int rosterIdx = 0;
+					rosterIdx < emailAddresses.size();
+					rosterIdx++)
+			{
+				String userEmailAddress = emailAddresses.get(rosterIdx);
 				// TODO: consider doing formal check this is valid email address
 				if (
 						!getIsEmpty(userEmailAddress)
-						&& !instructorEmailAddress.equalsIgnoreCase(
-								userEmailAddress))
+						&& !handler.getIsInstructor(userEmailAddress))
 				{
 					// If result not null, the user has permission >= inserted
-					if (insertPermission(
-							drive,
-							fileId,
+					if (null != handler.insertPermission(
 							userEmailAddress,
-							sendNotificationEmails) != null)
+							sendNotificationEmails))
 					{
-						updateCount++;
+						result++;
 					}
 				}
 			}
-			response.getWriter().print(
-					"Added permissions for folder \""
-					+ file.getTitle()
-					+ "\" to "
-					+ updateCount
-					+ ((updateCount == 1) ? " person" : " people")
-					+ " in the roster (you already have permissions).");
 		} catch (Exception err) {
-			M_log.log(Level.FINER, "Error insertPermissions()", err);
+			M_log.warning("Error insertPermissions():");
+			err.printStackTrace();
 		}
+		return result;
+	}
+
+	private FolderPermissionsHandler getHandler(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			TcSessionData tcSessionData)
+	throws ServletException, IOException 
+	{
+		FolderPermissionsHandler result = null;
+		String siteId = tcSessionData.getContextId();
+		String fileId = request.getParameter(PARAM_FILE_ID);
+		TcSiteToGoogleLinks links =
+				TcSiteToGoogleStorage.getLinkedGoogleFolders(siteId);
+		TcSiteToGoogleLink link = null;
+		if (links != null) {
+			link = links.getLinkForFolder(fileId);
+			if (link == null) {
+				link = links.getRemovedLinkForFolder(fileId);
+			}
+			if (link == null) {
+				M_log.warning(
+						"Error: cannot modify permissions to folder #"
+						+ fileId
+						+ " - did not find link with course #"
+						+ tcSessionData.getContextId());
+				logError(
+						response,
+						"Server failed to find link to this Google folder.");
+				return null;
+			}
+		} else {
+			if (link == null) {
+				M_log.warning(
+						"Error: cannot modify permissions to folder #"
+						+ fileId
+						+ " - did not find any links with course #"
+						+ tcSessionData.getContextId());
+				logError(
+						response,
+						"Server failed to find link to this Google folder.");
+				return null;
+			}
+		}
+		String instructorEmailAddress = link.getUserEmailAddress();
+		GoogleCredential googleCredential = null;
+		if (instructorEmailAddress.equalsIgnoreCase(
+				tcSessionData.getUserEmailAddress()))
+		{
+			// Logged in user is instructor: use their access token
+			googleCredential = getGoogleCredential(request);
+		} else {
+			// This is unlikely to happen for whole roster, but will be
+			// useful for code modifying a single student's permissions
+			googleCredential = GoogleSecurity.authorize(
+					getGoogleServiceAccount(),
+					instructorEmailAddress);
+		}
+		Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
+		result = new FolderPermissionsHandler(link, drive, fileId);
+		return result;
 	}
 
 	/**
@@ -448,12 +655,9 @@ public class GoogleLtiServlet extends HttpServlet {
 			{
 				return;
 			}
-			String instructorEmailAddress =
-					tcSessionData.getUserEmailAddress();
-			GoogleCredential googleCredential = getGoogleCredential(request);
-			String fileId = request.getParameter(PARAM_FILE_ID);
-			Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
-			File file = getFile(drive, fileId);
+			FolderPermissionsHandler handler =
+					getHandler(request, response, tcSessionData);
+			File file = handler.getFile();
 			if (file == null) {
 				logError(
 						response,
@@ -461,6 +665,7 @@ public class GoogleLtiServlet extends HttpServlet {
 						+ "the folder was not retrieved from Google Drive.");
 				return;	// Quick return to simplify code
 			}
+			// Get credential for the instructor owning the folder
 			boolean sendNotificationEmails = Boolean.parseBoolean(
 					request.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each person in the roster
@@ -471,23 +676,14 @@ public class GoogleLtiServlet extends HttpServlet {
 				// TODO: consider doing formal check this is valid email address
 				if (
 						!getIsEmpty(userEmailAddress)
-						&& !instructorEmailAddress.equalsIgnoreCase(
-								userEmailAddress))
+						&& !handler.getIsInstructor(userEmailAddress))
 				{
 					// If result not null, the user has permission >= inserted
-					Permission permission = insertPermission(
-							drive,
-							fileId,
+					Permission permission = handler.insertPermission(
 							userEmailAddress,
 							sendNotificationEmails);
-					if (permission != null)
-					{
-						if (removePermission(
-								drive,
-								fileId,
-								userEmailAddress,
-								permission.getId()))
-						{
+					if (permission != null) {
+						if (handler.removePermission(permission.getId())) {
 							updateCount++;
 						}
 					}
@@ -501,7 +697,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					+ ((updateCount == 1) ? " person" : " people")
 					+ " in the roster (you already have permissions).");
 		} catch (Exception err) {
-			M_log.log(Level.FINER, "Error insertPermissions()", err);
+			err.printStackTrace();
 		}
 	}
 
@@ -553,12 +749,6 @@ public class GoogleLtiServlet extends HttpServlet {
 					+ "not specify the instructor.");
 			result = false;
 		}
-		if (!tcSessionData.getIsInstructor()) {
-			logError(
-					response,
-					"Error: the server failed to confirm you are the "
-					+ "instructor.");
-		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
 			logError(
 					response,
@@ -585,13 +775,9 @@ public class GoogleLtiServlet extends HttpServlet {
 		return result;
 	}
 
-	private File getFile(Drive drive, String fileId) throws IOException {
-		return drive.files().get(fileId).execute();
-	}
-
 	/**
 	 * Makes direct server-to-server request to get the site's roster, and
-	 * displays the result in the server's log.
+	 * returns list of users' email addresses.
 	 */
 	private List<String> getRoster(
 			HttpServletRequest request,
@@ -631,61 +817,6 @@ public class GoogleLtiServlet extends HttpServlet {
 			}
 		} catch (Exception err) {
 			err.printStackTrace();
-		}
-		return result;
-	}
-
-	private Permission insertPermission(
-			Drive drive,
-			String fileId,
-			String userEmailAddress,
-			boolean sendNotificationEmails)
-	{
-		Permission result = null;
-		try {
-			Permission newPermission = new Permission();
-			newPermission.setValue(userEmailAddress);
-			newPermission.setType("user");
-			newPermission.setRole("reader");
-			result =
-					drive.permissions().insert(fileId, newPermission)
-					.setSendNotificationEmails(sendNotificationEmails)
-					.execute();
-		} catch (Exception err) {
-			M_log.log(
-					Level.FINER,
-					"Failed to insert permission for user \""
-					+ userEmailAddress
-					+ "\" on file \""
-					+ fileId
-					+ "\"",
-					err);
-		}
-		return result;
-	}
-
-	private boolean removePermission(
-			Drive drive,
-			String fileId,
-			String userEmailAddress,
-			String permissionId)
-	{
-		boolean result = false;
-		try {
-			drive.permissions().delete(fileId, permissionId).execute();
-			// No errors indicates this operation succeeded
-			result = true;
-		} catch (Exception err) {
-			M_log.log(
-					Level.FINER,
-					"Failed to remove permission "
-					+ permissionId
-					+ " for user \""
-					+ userEmailAddress
-					+ "\" on file \""
-					+ fileId
-					+ "\"",
-					err);
 		}
 		return result;
 	}
@@ -768,10 +899,138 @@ public class GoogleLtiServlet extends HttpServlet {
 			JspPage jspPage)
 	throws ServletException, IOException
 	{
-		request.setAttribute("jspPage", jspPage);
-		retrieveGoogleDriveConfigFromSession(request);
-		getServletContext()
-				.getRequestDispatcher("/view/root.jsp")
-				.forward(request, response);
+		if (jspPage.verifyAllowedRoles(tcSessionData.getUserRoleArray())) {
+			request.setAttribute("jspPage", jspPage);
+			retrieveGoogleDriveConfigFromSession(tcSessionData, request);
+			getServletContext()
+					.getRequestDispatcher("/view/root.jsp")
+					.forward(request, response);
+		} else {
+			M_log.warning(
+					"Unauthorized attempt to acces JSP page "
+					+ jspPage
+					+ " requiring roles "
+					+ Arrays.toString(jspPage.getRoles())
+					+ " by "
+					+ tcSessionData.getUserNameFull()
+					+ " <"
+					+ tcSessionData.getUserEmailAddress()
+					+ "> with roles "
+					+ Arrays.toString(tcSessionData.getUserRoleArray()));
+			loadJspPage(request, response, tcSessionData, JspPage.Home);
+		}
+	}
+
+
+	// Inner classes ------------------------------------------------
+
+
+	private class FolderPermissionsHandler {
+		// Instance variables ---------------------------------------
+
+		private TcSiteToGoogleLink link;
+		private Drive drive;
+		private String fileId;
+
+
+		// Constructors ---------------------------------------------
+
+		FolderPermissionsHandler(
+				TcSiteToGoogleLink link,
+				Drive drive,
+				String fileId)
+		{
+			setLink(link);
+			setDrive(drive);
+			setFileId(fileId);
+		}
+
+
+		// Public methods -------------------------------------------
+
+		private File getFile() throws IOException {
+			return getDrive().files().get(getFileId()).execute();
+		}
+
+		public boolean getIsInstructor(String userEmailAddress) {
+			return getLink().getUserEmailAddress().equals(userEmailAddress);
+		}
+
+		private Permission insertPermission(
+				String userEmailAddress,
+				boolean sendNotificationEmails)
+		{
+			Permission result = null;
+			try {
+				Permission newPermission = new Permission();
+				newPermission.setValue(userEmailAddress);
+				newPermission.setType("user");
+				newPermission.setRole("reader");
+				result =
+						getDrive()
+								.permissions()
+								.insert(getFileId(), newPermission)
+						.setSendNotificationEmails(sendNotificationEmails)
+						.execute();
+			} catch (Exception err) {
+				M_log.warning("Failed to insert permission for user \""
+						+ getLink().getUserEmailAddress()
+						+ "\" on file \""
+						+ getFileId()
+						+ "\"");
+						err.printStackTrace();
+			}
+			return result;
+		}
+
+		private boolean removePermission(String permissionId)
+		{
+			boolean result = false;
+			try {
+				getDrive()
+						.permissions()
+						.delete(getFileId(), permissionId).execute();
+				// No errors indicates this operation succeeded
+				result = true;
+			} catch (Exception err) {
+				M_log.warning(
+						"Failed to remove permission "
+						+ permissionId
+						+ " for user \""
+						+ getLink().getUserEmailAddress()
+						+ "\" on file \""
+						+ getFileId()
+						+ "\"");
+						err.printStackTrace();
+			}
+			return result;
+		}
+
+
+		// Public accessory methods ---------------------------------
+
+		public TcSiteToGoogleLink getLink() {
+			return link;
+		}
+
+		public void setLink(TcSiteToGoogleLink value) {
+			link = value;
+		}
+
+		public Drive getDrive() {
+			return drive;
+		}
+
+		public void setDrive(Drive value) {
+			drive = value;
+		}
+
+		public String getFileId() {
+			return fileId;
+		}
+
+		public void setFileId(String value) {
+			fileId = value;
+		}
 	}
 }

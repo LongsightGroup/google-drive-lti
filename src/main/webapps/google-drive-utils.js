@@ -1,9 +1,8 @@
 if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
-	if ((typeof(console) !== 'undefined') && (typeof(console.log) === 'function')) {
+	if (getHasConsoleLogFunction()) {
 		console.log('WARNING: google-drive-utils.js relies upon sibling library utils.js');
 	}
 }
-//$.getScript('utils.js');
 
 var MAX_RESULTS_PER_PAGE = 100;
 
@@ -114,6 +113,43 @@ function createFile(accessToken, parentFolderId, fileTitle, fileDescription, goo
 }
 
 /**
+ * Gets Google File Object retrieved by AJAX query to get the file by its ID,
+ * and gives the file to the given callback.
+ * 
+ * Using async AJAX with callback, as synchronous AJAX call fails in IE8.
+ */
+function deleteDriveFile(accessToken, fileId, callback, errorCallback, completeCallback) {
+	// Return if parameters for Google AJAX request are not valid
+	if (!verifyAllArgumentsNotEmpty(accessToken, fileId)) {
+		return;
+	}
+	$.ajax({
+		timeout: 10000,	// Timeout (in ms) = 10sec
+		url: _getGoogleDriveUrl(fileId),
+		beforeSend: function(xhr) {
+			xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+		},
+		type: 'DELETE',
+		dataType: 'json',
+		success: function(data, textStatus, jqXHR) {
+			if (typeof(callback) === 'function') {
+				callback(data, textStatus, jqXHR);
+			}
+		},
+		error: function(data, textStatus, jqXHR) {
+			if (typeof(errorCallback) === 'function') {
+				errorCallback(data, textStatus, jqXHR);
+			}
+		},
+		complete: function(jqXHR, textStatus) {
+			if (typeof(completeCallback) === 'function') {
+				completeCallback(jqXHR, textStatus);
+			}
+		}
+	});
+}
+
+/**
  * Deletes the given permission for a single file with the given fileId.
  * 
  * @param accessToken	Google Access Token for deleting this permission
@@ -160,7 +196,7 @@ function deleteFilePermission(accessToken, fileId, permissionId, callback, error
  * 
  * Using async AJAX with callback, as synchronous AJAX call fails in IE8.
  */
-function getDriveFile(accessToken, fileId, callback, completeCallback) {
+function getDriveFile(accessToken, fileId, callback, errorCallback, completeCallback) {
 	// Return if parameters for Google AJAX request are not valid
 	if (!verifyAllArgumentsNotEmpty(accessToken, fileId)) {
 		return;
@@ -178,12 +214,21 @@ function getDriveFile(accessToken, fileId, callback, completeCallback) {
 				callback(data, textStatus, jqXHR);
 			}
 		},
+		error: function(data, textStatus, jqXHR) {
+			if (typeof(errorCallback) === 'function') {
+				errorCallback(data, textStatus, jqXHR);
+			}
+		},
 		complete: function(jqXHR, textStatus) {
 			if (typeof(completeCallback) === 'function') {
 				completeCallback(jqXHR, textStatus);
 			}
 		}
 	});
+}
+
+function getIsFolder(fileMimeType) {
+	return (fileMimeType === 'application/vnd.google-apps.folder');
 }
 
 /**

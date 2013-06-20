@@ -24,9 +24,22 @@ implements Comparable<TcSiteToGoogleLink>
 	public TcSiteToGoogleLink() {
 	}
 
+	public TcSiteToGoogleLink(
+			String siteId,
+			String userEmailAddress,
+			String userId,
+			String folderId)
+	{
+		setSiteId(siteId);
+		setUserEmailAddress(userEmailAddress);
+		setUserId(userId);
+		setFolderId(folderId);
+	}
+
 
 	// Public methods -----------------------------------------------
 
+	@Override
 	public int compareTo(TcSiteToGoogleLink other) {
 		int result = 0;
 		if (other == null) {
@@ -47,6 +60,7 @@ implements Comparable<TcSiteToGoogleLink>
 		return 0;
 	}
 
+	@Override
 	public boolean equals(Object other) {
 		if (other instanceof TcSiteToGoogleLink) {
 			return (compareTo((TcSiteToGoogleLink)other) == 0);
@@ -87,6 +101,7 @@ implements Comparable<TcSiteToGoogleLink>
 		userEmailAddress = value;
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append(encodeField(getSiteId()))

@@ -12,6 +12,10 @@ function escapeSingleQuotes(value) {
 	return ($.trim(value) === '') ? '' : value.replace(/'/g, "\\'");
 }
 
+function escapeAllQuotes(value) {
+	return ($.trim(value) === '') ? '' : value.replace(/'/g, "\\'").replace(/"/g,'&quot;');
+}
+
 function escapeUrl(value) {
 	return encodeURIComponent(value);
 }
@@ -129,4 +133,11 @@ function padNumber(number, len) {
 		}
 	}
 	return result;
+}
+
+/**
+ * @returns {Boolean} true if console is object with function console.log()
+ */
+function getHasConsoleLogFunction() {
+	return ((typeof(console) === 'object') && (console !== null) && (typeof(console.log) === 'function'));
 }

@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * This class manages persistence of relationships between TC sites and Google
  * folders.  Storage is done in one file for each TC site, listing its linked
@@ -20,6 +23,9 @@ import java.util.List;
 public class TcSiteToGoogleStorage {
 	// Constants ----------------------------------------------------
 
+	private static final Log M_log =
+			LogFactory.getLog(TcSiteToGoogleStorage.class);
+
 	private static String STORAGE_FOLDER_PROPERTY = "googleServiceStoragePath";
 
 
@@ -30,11 +36,121 @@ public class TcSiteToGoogleStorage {
 
 	// Static public methods ----------------------------------------
 
-	public synchronized static void addLink(TcSiteToGoogleLink newLink)
+	/**
+	 * Adds link of site with Google folder, iff there is no otherLink where
+	 * link.equals(otherLink).
+	 * 
+	 * @param newLink Link to add
+	 * @return TcSiteToGoogleLinks holding links for the new link's site
+	 * @throws IOException If saving to storage file fails
+	 */
+	public synchronized static TcSiteToGoogleLinks addLink(
+			TcSiteToGoogleLink newLink)
+	throws IOException
+	{
+		TcSiteToGoogleLinks result = loadLinks(newLink.getSiteId());
+		if (result != null) {
+			addLink(result, newLink);
+		} else {
+			List<TcSiteToGoogleLink> linkList =
+					new ArrayList<TcSiteToGoogleLink>();
+			linkList.add(newLink);
+			// Sets time -1, as the storage file DNE
+			result = new TcSiteToGoogleLinks(linkList, -1);
+			saveLinks(newLink.getSiteId(), result);
+			TcSiteToGoogleCache.getInstance().setLinksForSite(
+					newLink.getSiteId(), 
+					result);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns holder of all links for a given site.
+	 * 
+	 * @param siteId
+	 * @return
+	 * @throws IOException
+	 */
+	public static TcSiteToGoogleLinks getLinkedGoogleFolders(
+			String siteId)
+	throws IOException
+	{
+		// Get from cache
+		File storageFile = getStorageFile(siteId);
+		// Get from file if cache has null or out-dated copy
+		TcSiteToGoogleLinks result = 
+				TcSiteToGoogleCache.getInstance().getLinksForSite(siteId);
+		if ((result == null) || result.getIsStorageFileNewer(storageFile)) {
+			result = loadLinks(siteId);
+			if (result != null) {
+				TcSiteToGoogleCache
+						.getInstance()
+						.setLinksForSite(siteId, result);
+			}
+		}
+		return result;
+	}
+
+	public static File getStorageFile(String siteId) {
+		return new File(getStorageFolder(), siteId + ".lti.txt");
+	}
+
+	public static String getStorageFolder() {
+		if (storageFolder == null) {
+			storageFolder = System.getProperty(STORAGE_FOLDER_PROPERTY);
+		}
+		return storageFolder;
+	}
+
+	/**
+	 * Removes link for the given site and folder.  Returns false if not removed
+	 * (e.g., the site has no links).
+	 * 
+	 * @param siteId
+	 * @param folderId
+	 * @return
+	 * @throws IOException
+	 */
+	public synchronized static boolean removeLink(
+			String siteId,
+			String folderId)
+	throws IOException
+	{
+		boolean result = false;
+		TcSiteToGoogleLinks links = loadLinks(siteId);
+		TcSiteToGoogleLink trashed = links.removeLink(siteId, folderId);
+		if (trashed != null) {
+			try {
+				saveLinks(siteId, links);
+				TcSiteToGoogleCache
+						.getInstance()
+						.setLinksForSite(siteId, links);
+				result = true;
+			} catch (Exception err) {
+				// Failed to unlink: for consistency, putting the link back into
+				// the cache
+				links.addLink(trashed);
+				throw new RuntimeException(
+						"Failed to unlink folder #"
+						+ folderId
+						+ " from site #"
+						+ siteId,
+						err);
+			}
+		}
+		return result;
+	}
+
+
+	// Static private methods ---------------------------------------
+
+	private static void addLink(
+			TcSiteToGoogleLinks links,
+			TcSiteToGoogleLink newLink)
 	throws IOException
 	{
 		String siteId = newLink.getSiteId();
-		TcSiteToGoogleLinks links = loadLinks(newLink.getSiteId());
 		// Replace or add the new link
 		boolean added = false;
 		for (int linkIdx = 0; !added && (linkIdx < links.size()); linkIdx++) {
@@ -43,7 +159,9 @@ public class TcSiteToGoogleStorage {
 			if (link.getFolderId().equals(newLink.getFolderId())) {
 				// Already in the file: let's only continue if they differ
 				if (newLink.equals(link)) {
-					return;	// Quick return as there is no need to duplicate
+					// The link already exists: consider done
+					added = true;
+					break;
 				} else {
 					// Replace the old entry for the folder
 					links.addLink(linkIdx, newLink);
@@ -58,41 +176,14 @@ public class TcSiteToGoogleStorage {
 		TcSiteToGoogleCache.getInstance().setLinksForSite(siteId, links);
 	}
 
-	public static TcSiteToGoogleLinks getLinkedGoogleFolders(
-			String siteId)
-	throws IOException
-	{
-		// Get from cache
-		File storageFile = getStorageFile(siteId);
-		// Get from file if cache has null or out-dated copy
-		TcSiteToGoogleLinks result = 
-				TcSiteToGoogleCache.getInstance().getLinksForSite(siteId);
-		if ((result == null) || result.getIsStorageFileNewer(storageFile)) {
-			result = loadLinks(siteId);
-			TcSiteToGoogleCache.getInstance().setLinksForSite(siteId, result);
-		}
-		return result;
-	}
-
-	public static File getStorageFile(String siteId) {
-		return new File(getStorageFileName(siteId));
-	}
-
-	public static String getStorageFileName(String siteId) {
-		return getStorageFolder() + siteId + ".lti.txt";
-	}
-
-	// TODO: File path needs to be retrieved from properties
-	public static String getStorageFolder() {
-		if (storageFolder == null) {
-			storageFolder = System.getProperty(STORAGE_FOLDER_PROPERTY);
-		}
-		return "/Users/ranaseef/googleLtiDb/";
-	}
-
-
-	// Static private methods ---------------------------------------
-
+	/**
+	 * Reads and returns all the links from the site's storage file.
+	 * 
+	 * @param siteId TC ID for the site
+	 * @return TcSiteToGoogleLinks if there are links; null = there storage file
+	 * DNE (links will be returned if storage file exists with no links)
+	 * @throws IOException If reading the file fails
+	 */
 	private static TcSiteToGoogleLinks loadLinks(String siteId)
 	throws IOException
 	{
@@ -119,7 +210,12 @@ public class TcSiteToGoogleStorage {
 						line = reader.readLine();
 					}
 				} catch (Exception err) {
-					err.printStackTrace();
+					M_log.error(
+							"Failed to parse link for site "
+							+ siteId
+							+ ": "
+							+ line,
+							err);
 				}
 			}
 		} finally {
@@ -127,8 +223,10 @@ public class TcSiteToGoogleStorage {
 				try {
 					reader.close();
 				} catch (Exception err) {
-					// TODO: Log the error
-					err.printStackTrace();
+					M_log.error(
+							"Warning: reader failed to close properly; may be "
+							+ "due to another IOException.",
+							err);
 				}
 			}
 		}
@@ -142,9 +240,9 @@ public class TcSiteToGoogleStorage {
 	throws IOException
 	{
 		BufferedWriter writer = null;
+		File storageFile = getStorageFile(siteId);
 		try {
-			writer = new BufferedWriter(
-					new FileWriter(getStorageFileName(siteId)));
+			writer = new BufferedWriter(new FileWriter(storageFile));
 			writer.write(getHeaderLine());
 			writer.newLine();
 			for (TcSiteToGoogleLink link : links) {
@@ -160,6 +258,8 @@ public class TcSiteToGoogleStorage {
 				}
 			}
 		}
+		// Set last updated time after the write has been closed.
+		links.setLastUpdatedTimeMs(storageFile.lastModified());
 	}
 
 	private static String getHeaderLine() {
