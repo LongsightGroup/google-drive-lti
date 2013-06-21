@@ -115,7 +115,7 @@ function showLinkedGoogleFolder(folderId) {
  * See showLinkedGoogleFolders() for description of this function's responsibilities.
  */
 function showLinkedGoogleFolderCallback(file, depth) {
-	if ((typeof(file) === 'object') && (file !== null) && (typeof(file.id) === 'function')) {
+	if ((typeof(file) === 'object') && (file !== null) && (typeof(file.id) === 'string')) {
 		if (!findFileInFileTreeTable(file.id)) {
 			addFileToFileTreeTable(file, null, file.id, depth);
 			getFoldersChildren(file, file.id, depth);
@@ -220,7 +220,7 @@ function getIsFolderLinked(folder) {
  */
 function unlinkFolderFromSite(folderId, folderTitle) {
 	if ($.trim(folderId) !== '') {
-		if (confirm('Please confirm unlinking folder "' + folderTitle + ' from the course.'))
+		if (confirm('Please confirm unlinking folder "' + folderTitle + '" from the course.'))
 		{
 			unlinkFolderToSite(folderId, function() {
 				notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, false, true);
@@ -676,19 +676,19 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	if (getIsInstructor() && isFolder) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
 		dropdownTemplate = dropdownTemplate
-				.replace(/\[FolderId\]/g, escapeSingleQuotes(file.id))
-				.replace(/\[LinkedFolderId\]/g, escapeSingleQuotes(linkedFolderId))
-				.replace(/\[FolderDepth\]/g, treeDepth);
+				.replace(/\[FolderIdParam\]/g, escapeAllQuotes(file.id))
+				.replace(/\[LinkedFolderIdParam\]/g, escapeAllQuotes(linkedFolderId))
+				.replace(/\[FolderDepthParam\]/g, treeDepth);
 	}
 	var actionTitle = null;
 	var actionOnClick = '';
 	if (getIsInstructor() && isFolder && (treeDepth === 0)) {
 		actionTitle = 'Unlink';
-		actionOnClick = 'unlinkFolderFromSite(\'' + escapeSingleQuotes(file.id) + '\', \'' + escapeSingleQuotes(file.title) + '\');';
+		actionOnClick = 'unlinkFolderFromSite(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\');';
 	} else {
 		if (getIsInstructor()) {
 			actionTitle = 'Delete';
-			actionOnClick = 'deleteGoogleFile(\'' + escapeSingleQuotes(file.id) + '\', \'' + escapeSingleQuotes(file.title) + '\', \'' + escapeSingleQuotes(file.mimeType) + '\');';
+			actionOnClick = 'deleteGoogleFile(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\', \'' + escapeAllQuotes(file.mimeType) + '\');';
 		}
 	}
 	var actionTemplate = '';
