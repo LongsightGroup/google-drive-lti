@@ -2,7 +2,6 @@ This is README.txt for project google-drive-lti
 Developed by Raymond Naseef (developer) under leadership of John Johnston, Catherine Crouch, Chris Kretler, Beth Kirschner, and the entire CTools Development Team, for University of Michigan.
 
 
-
 [ PURPOSE ]
 ===========
 This project will run as LTI interacting with Google Drive and Sakai LTI client, and may also operate well with other LTI compliant systems.
@@ -15,6 +14,10 @@ These permissions work for the folder's contents, so documents, sub folders, and
 
 [ ISSUES ]
 ==========
+- Storing Links: This is written to keep track of linked Google Folders in a single file listing Google Folders for a single site.  For this to work, the file would need to be maintained local to the LTI server, or placed on a drive managed for access and editing by multiple servers.  It is critical all users for a single site interact with server(s) accessing a single file.  The simplest solution is to have all access to a single site being handled by a single web application server.  If there is need to use multiple servers due to traffic over many sites, again the simplest would be to connect each site to a single server.  This could be done by assigning server-specific URL to each TC site's LTI "Remote Tool URL" (a.k.a. imsti.launch).
+
+For example, university could handle Google Drive LTI for all Engineering courses in URL https://ourEgrDomain/google-drive-lti/service, and all Math courses in URL https://ourMathDomain/google-drive-lti/service.  If each URL points to a single server, handling storage will not be complex.
+
 - Internet Explorer [ IE8/IE9 ]:
 	-- The page loads script "/library/htmlarea/jquery-plugin-xdr.js".  Instructions to deploy this JS library are in Sakai server module "google-service".  The instructions place the library into sub-module "reference/library", and this project is dependent upon Sakai module "reference/library" being deployed to the same domain.
 	-- IE is currently failing to associate a folder with the course, and failing to let instructor to detach the folder from the course.
@@ -55,12 +58,12 @@ Cases:
 
 
 
-[ INSTALLING ]
-==============
+[ Deploying ]
+=============
 Do each of the following:
 	A - Enabling Basic LTI
-	B - Installing LTI into a Site
-	C - Setting up Google Authorization
+	B - Installing LTI into a (new) Site
+	C - Setting up Google Authorization & Site-to-Google Link Storage
 
 
 	[ A - Enabling Basic LTI ]
@@ -87,7 +90,7 @@ basiclti.outcomes.enabled=true
 
 
 	[ B - Installing LTI into a Site ]
-	--------------------------------
+	----------------------------------
 For adding to an existing site, continue from step "!!! 13."
 For adding to a new site, start with step 1.
 
@@ -114,7 +117,7 @@ For adding to a new site, start with step 1.
   * Page opens with list of sites
 !!! 13. Click on "Sites" (left-side menu)
   ! If step number !!! ... changes, change note at top of this installation step to match this step's correct number
-14. Click on ID for the new site
+14. Click on ID for the site
   * Page opens with editor for site's information
 15. Click on button "Pages"
   * Page opens with list of site's pages
@@ -143,8 +146,8 @@ For adding to a new site, start with step 1.
 
 
 
-	[ C - Setting up Google Authorization ]
-	---------------------------------------
+	[ C - Setting up Google Authorization & Site-to-Google Link Storage ]
+	---------------------------------------------------------------------
 1. cd $TOMCAT
 2. touch googleServiceAccounts.properties
 3. Add the following properties to googleServiceAccounts.properties
@@ -157,8 +160,8 @@ googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
 * Replace 505*.apps.googleusercontent.com and 505*@developer.gserviceaccount.com with entries for your Service Account.
 * You can find the matching entries at https://code.google.com/apis/console/
 4. Add properties to JAVA_OPTS for Tomcat:
-	-DgoogleServicePropsPath=$TOMCAT/googleServiceAccounts.properties
-	-DgoogleServiceStoragePath=/usr/local/ctools/google-drive
+	-DgoogleServicePropsPath=$TOMCAT/google/googleServiceAccounts.properties
+	-DDgoogleServiceStoragePath=$TOMCAT/google/ltidb
 
 
 
