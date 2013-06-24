@@ -141,3 +141,57 @@ function padNumber(number, len) {
 function getHasConsoleLogFunction() {
 	return ((typeof(console) === 'object') && (console !== null) && (typeof(console.log) === 'function'));
 }
+
+/**
+ * See: http://stackoverflow.com/questions/487073/check-if-element-is-visible-after-scrolling
+ * 
+ * This one checks if the whole height of the element is showing; this does not
+ * work for iframes (see getDistanceFromBottomOfScroll() for how to fix this)
+ */
+function isScrolledIntoView($elem)
+{
+    var docViewTop = $(window).scrollTop();
+    var docViewBottom = docViewTop + $(window).height();
+
+    var elemTop = $elem.offset().top;
+    var elemBottom = elemTop + $elem.height();
+
+    return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
+      && (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
+}
+
+/**
+ * @returns <iframe> this window belongs to; null if this window is top.
+ */
+function findMyIframe() {
+	var result = null;
+	var $window = $(window);
+	var parentWindow = window.parent;
+	if (parentWindow != null) {
+		$(parentWindow.document).find('iframe').each(function () {
+			if ($(this).contents()[0] === window.document) {
+				result = this;
+				return false;
+			}
+		});
+	}
+	return result;
+}
+
+/**
+ * Returns true if scrollbar is near to the bottom, counting for this as top
+ * window or iframe.
+ * 
+ * @param offset Buffer from exact bottom to count for
+ * @returns {Boolean}
+ */
+function getDistanceFromBottomOfScroll() {
+	var frameHeight = 0;
+	var myIframe = findMyIframe();
+	if (myIframe != null) {
+		frameHeight = $(myIframe).height();
+	}
+	// Could subtract from window height instead of from document height: they were equal in my testing
+	return ($(document).height() - ($(window).scrollTop() + frameHeight));
+}
+
