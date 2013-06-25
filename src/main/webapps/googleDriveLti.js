@@ -170,20 +170,28 @@ function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDe
 /**
  * Gets folders I own and displays them on the screen, so I can select one as
  * the folder for this course, or as the parent for a new folder.
+ * 
+ * This makes new call to Google, and should only be called when the page is
+ * first loaded.  Paging will be handled when user scrolls down to the bottom
+ * of the page, and will use the same callback function to proceed the results.
  */
-function listUnlinkedFoldersOwnedByMe() {
+function listUnlinkedFoldersOwnedByMeInitial() {
 	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
+	unlinkedFoldersOwnedByMeNextPageUrl = null;
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
 			function(data) {
 				listUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
 			});
 }
 
+var unlinkedFoldersOwnedByMeNextPageUrl = null;
+
 /**
  * When called as result of AJAX call, this displays the folders on the screen:
- * see listUnlinkedFoldersOwnedByMe() for details.
+ * see listUnlinkedFoldersOwnedByMeInitial() for details.
  */
 function listUnlinkedFoldersOwnedByMeCallback(data, courseId) {
+	unlinkedFoldersOwnedByMeNextPageUrl = null;
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
 	{
 		var files = sortFilesByTitle(data.items);
@@ -193,7 +201,52 @@ function listUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 				addFolderToLinkFolderTable(file);
 			}
 		}
+		// Only setting variable after adding all the received files, so
+		// scrollbar events do not consider launching request for more data
+		// before the table is complete
+		if (typeof(data.nextLink) === 'string') {
+			unlinkedFoldersOwnedByMeNextPageUrl = data.nextLink;
+		}
+		// Checking right away, in case scroll bar is already very close to the
+		// bottom
+		setTimeout(handleNeedToGetMoreUnlinkedFolders(), 500);
 	}
+}
+
+/**
+ * This function checks if scrollbar is near bottom, and launches request for
+ * more Google folders in that case.
+ */
+function handleNeedToGetMoreUnlinkedFolders() {
+	if (getIsCloseToBottomOfUnlinkedTable()) {
+		listUnlinkedFoldersOwnedByMeNextPage();
+	}
+}
+
+/**
+ * Convenient method for checking if the scrollbar is close enough to the bottom
+ * to cause loading more data with paging
+ * 
+ * @returns {Boolean} true if the page's scrollbar is close to the bottom
+ */
+function getIsCloseToBottomOfUnlinkedTable() {
+	return getDistanceFromBottomOfScroll() < 40;
+}
+
+/**
+ * Makes request to Google to get additional unlinked folders, if the variable
+ * unlinkedFoldersOwnedByMeNextPageUrl is not null.
+ */
+function listUnlinkedFoldersOwnedByMeNextPage() {
+	if (unlinkedFoldersOwnedByMeNextPageUrl === null) {
+		return; // No next page to request: quick return
+	}
+	var url = unlinkedFoldersOwnedByMeNextPageUrl;
+	unlinkedFoldersOwnedByMeNextPageUrl = null;
+	getResponsePage(getGoogleAccessToken(), url,
+			function(data) {
+				listUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
+			});
 }
 
 /**
@@ -607,6 +660,10 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
  * @param folder Google folder available for linking
  */
 function addFolderToLinkFolderTable(folder) {
+	// Only add the row if row for same file DNE
+	if ($('#' + getLinkingTableRowIdForFolder(folder.id)).length > 0) {
+		return;
+	}
 	var newEntry = LINK_FOLDER_TABLE_ROW_TEMPLATE
 			.replace(/\[TrFolderId\]/g, escapeSingleQuotes(getLinkingTableRowIdForFolder(folder.id)))
 			.replace(/\[FolderIdOnclickParam\]/g, escapeAllQuotes(folder.id))

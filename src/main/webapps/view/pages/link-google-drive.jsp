@@ -17,7 +17,8 @@
                   </div>
                 </form>
               </div>
-              <div class="span5 offset1">
+              <!-- TODO: Remove this div : page layout will need to be fixed -->
+              <div class="span5 offset1" style="visibility: hidden;">
               	<div class="pagination">
                   <ul>
                     <li><a href="#">Prev</a></li>
@@ -41,7 +42,10 @@
 <script type="text/javascript">
 
 	$(document).ready(function() {
-		listUnlinkedFoldersOwnedByMe();
+		listUnlinkedFoldersOwnedByMeInitial();
+		$(window).scroll(function(e) {
+			handleNeedToGetMoreUnlinkedFolders();
+		});
 	});
 
 </script>
