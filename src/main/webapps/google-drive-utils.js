@@ -237,7 +237,7 @@ function getIsFolder(fileMimeType) {
  * 
  * @param accessToken	Google Access Token for deleting this permission
  * @param pageUrl URL containing data to retrieve from Google
- * 		* this is likely data.nextPage from prior request
+ * 		* this is likely data.nextLink from prior request
  * @param callback function called when result is success
  * @param errorCallback function called when request fails
  * @param completeCallback function called when this AJAX call completes
