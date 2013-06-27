@@ -5,30 +5,15 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.drive.Drive;
@@ -41,6 +26,8 @@ import edu.umich.its.lti.TcSessionData;
 import edu.umich.its.lti.TcSiteToGoogleLink;
 import edu.umich.its.lti.TcSiteToGoogleLinks;
 import edu.umich.its.lti.TcSiteToGoogleStorage;
+import edu.umich.its.lti.utils.RequestSignatureUtils;
+import edu.umich.its.lti.utils.RosterClientUtils;
 
 
 /**
@@ -263,8 +250,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	{
 		if (verifyPost(request, response)) {
 			TcSessionData tcSessionData = lockInSession(request);
-			String googleConfigJson =
-					tcSessionData.getGoogleDriveConfigJsonScript();
+			String googleConfigJson = GoogleConfigJsonWriter
+					.getGoogleDriveConfigJsonScript(tcSessionData);
 			request.setAttribute(
 					JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
 					googleConfigJson);
@@ -292,7 +279,8 @@ public class GoogleLtiServlet extends HttpServlet {
 				tcSessionData.getUserId(),
 				folderId);
 		TcSiteToGoogleStorage.addLink(newLink);
-		response.getWriter().print(tcSessionData.getGoogleDriveConfigJson());
+		response.getWriter().print(
+				GoogleConfigJsonWriter.getGoogleDriveConfigJson(tcSessionData));
 	}
 
 
@@ -310,8 +298,8 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (TcSiteToGoogleStorage
 				.removeLink(tcSessionData.getContextId(), folderId))
 		{
-			response.getWriter().print(
-					tcSessionData.getGoogleDriveConfigJson());
+			response.getWriter().print(GoogleConfigJsonWriter
+					.getGoogleDriveConfigJson(tcSessionData));
 		}
 	}
 
@@ -325,6 +313,14 @@ public class GoogleLtiServlet extends HttpServlet {
 	private TcSessionData lockInSession(HttpServletRequest request) {
 		// Store TC data in session.
 		TcSessionData result = new TcSessionData(request);
+		if (getIsEmpty(result.getUserEmailAddress())) {
+			throw new IllegalStateException(
+					"Google Drive LTI was opened by user without email address:"
+					+ " please verify the tool is configured with"
+					+ " imsti.releaseemail = 'on' for course (context_id) '"
+					+ result.getContextId()
+					+ "'");
+		}
 		request.setAttribute(SESSION_ATTR_TC_DATA, result);
 		request.getSession().setAttribute(SESSION_ATTR_TC_DATA, result);
 		return result;
@@ -413,7 +409,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					+ "missing or invalid.");
 		}
 		// 2 - verify signature
-		result = RequestSignatureManager.verifySignature(
+		result = RequestSignatureUtils.verifySignature(
 				request,
 				request.getParameter("oauth_consumer_key"),
 				"secret");
@@ -446,7 +442,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	{
 		request.setAttribute(
 				JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
-				tcSessionData.getGoogleDriveConfigJsonScript());
+				GoogleConfigJsonWriter
+						.getGoogleDriveConfigJsonScript(tcSessionData));
 	}
 
 	private void insertRosterPermissions(
@@ -784,69 +781,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			TcSessionData tcSessionData)
 	throws ServletException, IOException 
 	{
-		List<String> result = new ArrayList<String>();
-		String sourceUrl = tcSessionData.getMembershipsUrl();
-		try {
-			// Make post to get resource
-			HttpPost httpPost = new HttpPost(sourceUrl);
-			Map<String, String> ltiParams =
-					getLtiRosterParameters(request, tcSessionData, sourceUrl);
-			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			for (Map.Entry<String, String> parameter : ltiParams.entrySet()) {
-				addParameter(nvps, parameter.getKey(), parameter.getValue());
-			}
-	        httpPost.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-			HttpClient client = ClientSslWrapper.wrapClient(new DefaultHttpClient());
-			HttpResponse httpResponse = client.execute(httpPost);
-			HttpEntity httpEntity = httpResponse.getEntity();
-			if (httpEntity != null) {
-				// See: http://www.mkyong.com/java/how-to-read-xml-file-in-java-dom-parser/
-				DocumentBuilderFactory dbFactory =
-						DocumentBuilderFactory.newInstance();
-				DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();
-				Document doc = docBuilder.parse(httpEntity.getContent());
-				//optional, but recommended
-				//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-				doc.getDocumentElement().normalize();
-				NodeList nodes = doc
-						.getElementsByTagName("person_contact_email_primary");
-				for (int nodeIdx = 0; nodeIdx < nodes.getLength(); nodeIdx++) {
-					Node node = nodes.item(nodeIdx);
-					result.add(node.getTextContent());
-				}
-			}
-		} catch (Exception err) {
-			err.printStackTrace();
-		}
-		return result;
-	}
-
-	/**
-	 * Creates map of the request's parameters, including a signature the client
-	 * server will verify matches with the request.
-	 * 
-	 * @param request Incoming request containing some of the ID of the client's
-	 * site, so that roster may be retrieved.
-	 * @param sourceUrl Client server's URL for requesting rosters.
-	 * @return
-	 */
-	private Map<String, String> getLtiRosterParameters(
-			HttpServletRequest request,
-			TcSessionData tcSessionData,
-			String sourceUrl)
-	{
-		Map<String, String> result = new HashMap<String, String>();
-		result.put("id", tcSessionData.getMembershipsId());
-		result.put("lti_message_type", "basic-lis-readmembershipsforcontext");
-		result.put("lti_version", "LTI-1p0");
-		result.put("oauth_callback", "about:blank");
-		result = RequestSignatureManager.signParameters(
-				result,
-				sourceUrl,
-				"POST",
-				tcSessionData.getConsumerKey(),
-				"secret");
-		return result;
+		return RosterClientUtils.getRoster(tcSessionData);
 	}
 
 	private void logError(HttpServletResponse response, String message)
@@ -854,14 +789,6 @@ public class GoogleLtiServlet extends HttpServlet {
 	{
 		M_log.warning(message);
 		response.getWriter().print(message);
-	}
-
-	private void addParameter(
-			List<NameValuePair> nvps,
-			String name,
-			String value)
-	{
-		nvps.add(new BasicNameValuePair(name, value));
 	}
 
 	/**
