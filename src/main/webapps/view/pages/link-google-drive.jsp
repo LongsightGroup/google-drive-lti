@@ -12,8 +12,8 @@
               <br />
               	<form class="form-search">
                   <div class="input-append">
-                    <input type="text" class="span12 search-query">
-                    <button type="submit" class="btn">Search</button>
+                    <input id="UnlinkedFolderSearchInput" type="text" class="span12 search-query">
+                    <button type="button" class="btn" onclick="searchUnlinkedFoldersOwnedByMe();">Search</button>
                   </div>
                 </form>
               </div>

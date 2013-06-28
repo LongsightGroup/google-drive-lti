@@ -214,6 +214,35 @@ function listUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 }
 
 /**
+ * Performs Google search for folders, retrieving all of them if the search
+ * value is blank.  When it succeeds, it replaces contents in the table with the
+ * results.
+ * 
+ * Not using local filtering to find all matching Google folders (using "paging"
+ * means the page does not have all the matching folders).
+ */
+function searchUnlinkedFoldersOwnedByMe() {
+	var searchValue = $('#UnlinkedFolderSearchInput').val();
+	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
+	if ($.trim(searchValue) !== '') {
+		query = query + " AND title contains '" + escapeSingleQuotes(searchValue) + "'";
+	}
+	unlinkedFoldersOwnedByMeNextPageUrl = null;
+	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
+			function(data) {
+				emptyUnlinkedFoldersTable();
+				listUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
+			});
+}
+
+/**
+ * Removes all folders currently in the table for unlinked folders.
+ */
+function emptyUnlinkedFoldersTable() {
+	$('#LinkFolderTableTbody').empty();
+}
+
+/**
  * This function checks if scrollbar is near bottom, and launches request for
  * more Google folders in that case.
  */
