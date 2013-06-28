@@ -304,9 +304,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 
 	/**
-	 * This records data specific to this instance in the session, and returns
-	 * a unique key to be shared with the browser, ensuring requests coming from
-	 * the browser are for the correct instance.
+	 * This records TcSessionData holding LTI session specific data, and returns
+	 * it for sharing it's unique key with the browser, ensuring requests coming
+	 * from the browser carrying this key are for the correct LTI session.
 	 * 
 	 * @param request HttpServletRequest holding the session
 	 */
