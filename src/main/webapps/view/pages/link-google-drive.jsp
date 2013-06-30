@@ -43,7 +43,7 @@
 
 	$(document).ready(function() {
 		getAncestorsForLinkedFolders();
-		listUnlinkedFoldersOwnedByMeInitial();
+		searchUnlinkedFoldersOwnedByMe();
 		$(window).scroll(function(e) {
 			handleNeedToGetMoreUnlinkedFolders();
 		});

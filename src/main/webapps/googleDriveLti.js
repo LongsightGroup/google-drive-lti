@@ -208,19 +208,24 @@ function listAncestorsForFileRecursive(currentFileId, parentFileId, rootParent) 
 }
 
 /**
- * Gets folders I own and displays them on the screen, so I can select one as
- * the folder for this course, or as the parent for a new folder.
+ * Performs Google search for folders, retrieving all of them if the search
+ * value is blank.  When it succeeds, it replaces contents in the table with the
+ * results.
  * 
- * This makes new call to Google, and should only be called when the page is
- * first loaded.  Paging will be handled when user scrolls down to the bottom
- * of the page, and will use the same callback function to proceed the results.
+ * Not using local filtering to find all matching Google folders (using "paging"
+ * means the page does not have all the matching folders).
  */
-function listUnlinkedFoldersOwnedByMeInitial() {
+function searchUnlinkedFoldersOwnedByMe() {
+	var searchValue = $('#UnlinkedFolderSearchInput').val();
 	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
+	if ($.trim(searchValue) !== '') {
+		query = query + " AND title contains '" + escapeSingleQuotes(searchValue) + "'";
+	}
 	unlinkedFoldersOwnedByMeNextPageUrl = null;
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
 			function(data) {
-				listUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
+				emptyUnlinkedFoldersTable();
+				searchUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
 			});
 }
 
@@ -228,9 +233,9 @@ var unlinkedFoldersOwnedByMeNextPageUrl = null;
 
 /**
  * When called as result of AJAX call, this displays the folders on the screen:
- * see listUnlinkedFoldersOwnedByMeInitial() for details.
+ * see searchUnlinkedFoldersOwnedByMe() for details.
  */
-function listUnlinkedFoldersOwnedByMeCallback(data, courseId) {
+function searchUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 	unlinkedFoldersOwnedByMeNextPageUrl = null;
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
 	{
@@ -254,28 +259,6 @@ function listUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 		// bottom
 		setTimeout(handleNeedToGetMoreUnlinkedFolders(), 500);
 	}
-}
-
-/**
- * Performs Google search for folders, retrieving all of them if the search
- * value is blank.  When it succeeds, it replaces contents in the table with the
- * results.
- * 
- * Not using local filtering to find all matching Google folders (using "paging"
- * means the page does not have all the matching folders).
- */
-function searchUnlinkedFoldersOwnedByMe() {
-	var searchValue = $('#UnlinkedFolderSearchInput').val();
-	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
-	if ($.trim(searchValue) !== '') {
-		query = query + " AND title contains '" + escapeSingleQuotes(searchValue) + "'";
-	}
-	unlinkedFoldersOwnedByMeNextPageUrl = null;
-	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
-			function(data) {
-				emptyUnlinkedFoldersTable();
-				listUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
-			});
 }
 
 /**
@@ -317,7 +300,7 @@ function listUnlinkedFoldersOwnedByMeNextPage() {
 	unlinkedFoldersOwnedByMeNextPageUrl = null;
 	getResponsePage(getGoogleAccessToken(), url,
 			function(data) {
-				listUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
+				searchUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
 			});
 }
 
