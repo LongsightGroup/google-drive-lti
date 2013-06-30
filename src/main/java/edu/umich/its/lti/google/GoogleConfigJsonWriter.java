@@ -7,6 +7,22 @@ import edu.umich.its.lti.TcSiteToGoogleLink;
 import edu.umich.its.lti.TcSiteToGoogleLinks;
 import edu.umich.its.lti.TcSiteToGoogleStorage;
 
+/**
+ * This generates JSON object sent to the browser containing user name & roles,
+ * and list of linked folders
+ * <pre>
+ * 	googleDriveConfig = {
+ * 		  "tp_id" : ""
+ * 		, "course" : { "id" : "", title: "" }
+ * 		, "user" : { "name" : "", "roles" : [ "", "" ]}
+ * 		, "linkedFolders" : [ "", "" ]
+ * 
+ * 	}
+ * </pre>
+ *  
+ * @author Raymond Naseef
+ *
+ */
 public class GoogleConfigJsonWriter {
 
 	/**
@@ -25,15 +41,12 @@ public class GoogleConfigJsonWriter {
 		result.append("\"tp_id\" : \"")
 				.append(escapeJson(tcSessionData.getId()))
 				.append("\"");
-		result.append(", \"course_id\" : \"")
-				.append(escapeJson(tcSessionData.getContextId()))
-				.append("\"");
+		result.append(", \"course\" : ");
+		appendCourseJson(tcSessionData, result);
 		result.append(", \"linkedFolders\" : ");
 		appendLinkedFolders(tcSessionData, result);
 		result.append(", \"user\" : ");
 		appendUserJson(tcSessionData, result);
-		result.append(", \"folder\" : ");
-		appendFolderJson(tcSessionData, result);
 		// End the JSON object
 		result.append("}");
 		return result.toString();
@@ -53,14 +66,16 @@ public class GoogleConfigJsonWriter {
 
 	// Static private methods ---------------------------------------
 
-	static private void appendFolderJson(
+	static private void appendCourseJson(
 			TcSessionData tcSessionData,
 			StringBuilder result)
 	{
 		// 2 - Begin Adding the folder
-		result.append("{");
+		result.append("{ \"id\" : \"")
+				.append(escapeJson(tcSessionData.getContextId()))
+				.append("\"");
 		// 2a - Folder's title
-		result.append("\"title\" : \"")
+		result.append(", \"title\" : \"")
 				.append(escapeJson(tcSessionData.getContextTitle()))
 				.append("\"");
 		// 2 - End Adding the folder
@@ -73,9 +88,6 @@ public class GoogleConfigJsonWriter {
 	{
 		result.append("[");
 		try {
-/*			TcSiteToGoogleLinks links =
-					tcSessionData.getLinkedGoogleFolders();
-*/
 			TcSiteToGoogleLinks links = TcSiteToGoogleStorage
 					.getLinkedGoogleFolders(tcSessionData.getContextId());
 			boolean first = true;

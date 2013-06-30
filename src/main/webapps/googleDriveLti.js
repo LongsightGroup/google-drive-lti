@@ -11,15 +11,7 @@
  * - <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
  * - <script src="/google-integration-prototype/google-integration-prototype.js" type="text/javascript"></script>
  * - <link href="/google-integration-prototype/google-integration-prototype.css" rel="stylesheet" type="text/css">
- * - <script> containing the following JSON object:
- * 	googleDriveConfig = {
- * 		"tp_id" : ""
- *  ,	"course_id" : "",
- * 	,	"user" : { "name" : "", "roles" : [ "", "" ]}
- *  ,	"folder" : { "title" : "" }
- *  ,	"linkedFolders" : [ "", "" ]
- * 
- *  }
+ * - <script> containing the JSON object defined in GoogleConfigJsonWriter.java </script>
  *
  * Requests to LTI need to include "tp_id" as parameter, so the server can
  * verify the request.
@@ -331,7 +323,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
  * Creates new folder with "My Drive" as its parent. 
  */
 function assignNewFolder() {
-	var folderTitle = getConfigFolderTitle();
+	var folderTitle = getConfigCourseTitle();
 	// This would be the place to avoid duplicate existing file names.
 	if (confirm('Please confirm linking new folder "' + folderTitle + '" with the course.'))
 	{
@@ -386,11 +378,11 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 }
 
 function getConfigCourseId() {
-	return googleDriveConfig.course_id;
+	return googleDriveConfig.course.id;
 }
 
-function getConfigFolderTitle() {
-	return googleDriveConfig.folder.title;
+function getConfigCourseTitle() {
+	return googleDriveConfig.course.title;
 }
 
 function getConfigTpId() {
