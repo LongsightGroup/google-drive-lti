@@ -329,9 +329,18 @@ function listDriveFileParents(accessToken, fileId, callback, errorCallback, comp
 }
 
 /**
+ * This will send given updates to a Google file (was used by googleDriveLti.js
+ * v83984 2013-06-14, to modify description of a folder to include site's ID, to
+ * persist link of Google folders with TC sites in that way).
  * 
+ * Example requestData JSON:
+ * <pre>
+ * 	{ 
+ * 		"description" : "new description"
+ * 	}
+ * </pre>
  */
-function putDriveFileChanges(accessToken, folderId, requestData, callback, completeCallback)
+function putDriveFileChanges(accessToken, fileId, requestData, callback, completeCallback)
 {
 	$.ajax({
 		url : _getGoogleDriveUrl(folderId),
