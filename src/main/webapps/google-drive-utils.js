@@ -292,6 +292,43 @@ function listCurrentFilePermissions(accessToken, fileId, fileTitle, callback, co
 }
 
 /**
+ * Returns list of Google File Object's parents retrieved by AJAX query to list
+ * from the child file's ID, and gives the data to the given callback.
+ * 
+ * Using async AJAX with callback, as synchronous AJAX call fails in IE8.
+ */
+function listDriveFileParents(accessToken, fileId, callback, errorCallback, completeCallback) {
+	// Return if parameters for Google AJAX request are not valid
+	if (!verifyAllArgumentsNotEmpty(accessToken, fileId)) {
+		return;
+	}
+	$.ajax({
+		timeout: 10000,	// Timeout (in ms) = 10sec
+		url: _getGoogleDriveUrl(fileId) +'/parents',
+		beforeSend: function(xhr) {
+			xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+		},
+		type: 'GET',
+		dataType: 'json',
+		success: function(data, textStatus, jqXHR) {
+			if (typeof(callback) === 'function') {
+				callback(data, textStatus, jqXHR);
+			}
+		},
+		error: function(data, textStatus, jqXHR) {
+			if (typeof(errorCallback) === 'function') {
+				errorCallback(data, textStatus, jqXHR);
+			}
+		},
+		complete: function(jqXHR, textStatus) {
+			if (typeof(completeCallback) === 'function') {
+				completeCallback(jqXHR, textStatus);
+			}
+		}
+	});
+}
+
+/**
  * 
  */
 function putDriveFileChanges(accessToken, folderId, requestData, callback, completeCallback)

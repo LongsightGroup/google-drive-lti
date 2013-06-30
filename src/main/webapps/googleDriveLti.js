@@ -45,6 +45,10 @@ var FILTER_FOR_FOLDERS = 'mimeType = \'application/vnd.google-apps.folder\'';
 var SELECTED_FOLDER_INPUT_NAME = 'folderSelectRadio';
 // number of px is multiplied by the file's depth to pad the title
 var FILE_DEPTH_PADDING_PX = 20;
+// Array listing ID of each file's parents, keyed by the child file.  Finding
+// all a file's ancestors can be done by finding file's parent, then finding
+// entry for each parent's parent.
+var googleFileParents = [];
 
 var accessTokenHandler = {
 		"accessToken" : null,
@@ -160,6 +164,50 @@ function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDe
 }
 
 /**
+ * Looks up ancestors for all the linked folders.  If the googleFileParents
+ * array already has keys for folders, it will not request them again.  To
+ * refresh, the caller will need to remove those keys from the array.
+ */
+function getAncestorsForLinkedFolders() {
+	var folders = getConfigLinkedFolders();
+	if (typeof(folders) !== 'undefined') {
+		for (var idx = 0, count = folders.length; idx < count; idx++) {
+			var linkedFolderId = folders[idx];
+			listAncestorsForFileRecursive(linkedFolderId, linkedFolderId, false);
+		}
+	}
+}
+
+/**
+ * 
+ * 
+ * @param linkedFolderId
+ * @param currentFolderId
+ * @param rootParent true = the parent folder is known to be root, so no need to make call for its parents
+ */
+function listAncestorsForFileRecursive(currentFileId, parentFileId, rootParent) {
+	// Handle results of last AJAX call (equal ID is request to start looking for parents, so this will make 1st AJAX call)
+	if (currentFileId !== parentFileId) {
+		var ancestors = null;
+		if (!(currentFileId in googleFileParents)) {
+			googleFileParents[currentFileId] = [];
+		}
+		googleFileParents[currentFileId].push(parentFileId);
+	}
+	// "Recursive" - make call to get parent folder's parents
+	// Skip finding grand-parents if they were already retrieved
+	if (!rootParent && !(parentFileId in googleFileParents)) {
+		listDriveFileParents(getGoogleAccessToken(), parentFileId, function(data) {
+			// Find each parent folder's grand-parents
+			for (var grandParentIdx = 0, grandParentCount = data.items.length; grandParentIdx < grandParentCount; grandParentIdx++) {
+				var grandParent = data.items[grandParentIdx];
+				listAncestorsForFileRecursive(parentFileId, grandParent.id, grandParent.isRoot);
+			}
+		});
+	}
+}
+
+/**
  * Gets folders I own and displays them on the screen, so I can select one as
  * the folder for this course, or as the parent for a new folder.
  * 
@@ -190,6 +238,9 @@ function listUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
 			if (!getIsFolderLinked(file)) {
+				// Get folder's ancestors (specifying root=false, as Google response does not indicate).
+				listAncestorsForFileRecursive(file.id, file.id, false);
+				// Add to the table
 				addFolderToLinkFolderTable(file);
 			}
 		}
@@ -713,12 +764,103 @@ function getFunctionCallToOpenFile(file) {
  * @param folderId
  */
 function linkFolder(folderId, folderTitle) {
-	if (confirm('Please confirm linking folder ' + folderTitle + ' with the course.'))
+	var folderRelationship = getFileRelationshipWithLinkedFolders(folderId);
+	if (folderRelationship !== null) {
+		getDriveFile(getGoogleAccessToken(), folderRelationship.linked.id, function(data) {
+			if ((typeof(data) === 'object') && (typeof(data.title) !== 'undefined')) {
+				notifyUserFolderCannotBeLinked(folderTitle, 'this is ' + folderRelationship.type + ' of linked folder ' + data.title + '.');
+			} else {
+				notifyUserFolderCannotBeLinked(folderTitle, 'this is ' + folderRelationship.type + ' of a linked folder.');
+			}
+		},
+		function() {
+			// Error getting linked folder...
+			notifyUserFolderCannotBeLinked(folderTitle, 'this is ' + folderRelationship.type + ' of a linked folder.');
+		})
+	} else if (confirm('Please confirm linking folder ' + folderTitle + ' with the course.'))
 	{
 		linkFolderToSite(folderId, function() {
 			notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, false, false);
 		});
 	}
+}
+
+/**
+ * 
+ * @param reason
+ */
+function notifyUserFolderCannotBeLinked(folderTitle, reason) {
+	alert('Unable to link folder ' + folderTitle + ': ' + reason);
+}
+
+/**
+ * Returns object, with the following format, specifying the given file is
+ * ancestor or descendant of a linked folder; null if there is no relationship.
+ * 
+ * Returns the first relationship found, and what relationship is returned may
+ * be inconsistent if multiple such relationships exist with this file.
+ * 
+ * result.me.id     (file's ID)
+ * result.linked.id (linked folder's ID)
+ * result.type      (I am "ascendant" or "descendant" of linked)
+ * 
+ * @param fileId Google ID of file to check with linked folders
+ * @returns {Object} As desribed above; null if there are no such relationships
+ */
+function getFileRelationshipWithLinkedFolders(fileId) {
+	var result = null;
+	var linkedFolders = getConfigLinkedFolders();
+	if (typeof(linkedFolders) !== 'undefined') {
+		for (var idx = 0, count = linkedFolders.length; (result === null) && (idx < count); idx++) {
+			var linkedFolderId = linkedFolders[idx];
+			if (getLatterIsAncestor(fileId, linkedFolderId)) {
+				result = {};
+				result.me = {};
+				result.me.id = fileId;
+				result.type = 'descendant';
+				result.linked = {};
+				result.linked.id = linkedFolderId;
+			} else if (getLatterIsAncestor(linkedFolderId, fileId)) {
+				result = {};
+				result.me = {};
+				result.me.id = fileId;
+				result.type = 'ascendant';
+				result.linked = {};
+				result.linked.id = linkedFolderId;
+			}
+		}
+	}
+	return result;
+}
+
+/**
+ * Performs recursive check of given file's parents, and the parent's parents,
+ * until the ancestor is found or all parents have been checked.  It is possible
+ * the same grand-parents will be checked multiple times (e.g., if a file has 2
+ * parents with same grand-parent).
+ * 
+ * @param childFileId File to check on its behalf or that of its child
+ * @param ancestorFolderId File being checked as ancestor to this child
+ * @returns {Boolean}
+ */
+function getLatterIsAncestor(childFileId, ancestorFolderId) {
+	var result = false;
+	if (childFileId in googleFileParents) {
+		// Check child's parents
+		var parentFolders = googleFileParents[childFileId];
+		for (var parentIdx = 0, count = parentFolders.length; !result && (parentIdx < count); parentIdx++) {
+			var parentFolderId = parentFolders[parentIdx];
+			result = (parentFolderId === ancestorFolderId);
+		}
+		// Recursive check parent's grand-parents
+		if (!result) {
+			for (var parentIdx = 0, count = parentFolders.length; !result && (parentIdx < count); parentIdx++) {
+				var parentFolderId = parentFolders[parentIdx];
+				result = getLatterIsAncestor(parentFolderId, ancestorFolderId);
+			}
+		}
+	}
+	return result;
 }
 
 var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \

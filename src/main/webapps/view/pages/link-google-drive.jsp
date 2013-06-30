@@ -42,6 +42,7 @@
 <script type="text/javascript">
 
 	$(document).ready(function() {
+		getAncestorsForLinkedFolders();
 		listUnlinkedFoldersOwnedByMeInitial();
 		$(window).scroll(function(e) {
 			handleNeedToGetMoreUnlinkedFolders();
