@@ -33,7 +33,7 @@ if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
 }
 if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
 	if (getHasConsoleLogFunction()) {
-		console.log('WARNING: google-drive-utils.js relies upon sibling library utils.js');
+		console.log('WARNING: googleDriveLit.js relies upon sibling library utils.js');
 	}
 }
 
