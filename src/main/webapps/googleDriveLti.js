@@ -49,6 +49,8 @@ var FILE_DEPTH_PADDING_PX = 20;
 // all a file's ancestors can be done by finding file's parent, then finding
 // entry for each parent's parent.
 var googleFileParents = [];
+var EXPAND_TEXT = '+';
+var SHRINK_TEXT = '-';
 
 var accessTokenHandler = {
 		"accessToken" : null,
@@ -847,7 +849,7 @@ function getLatterIsAncestor(childFileId, ancestorFolderId) {
 }
 
 var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \
-	<td><a style="[FileIndentCss]" onclick="[OpenFileCall]"> \
+	<td style="[FileIndentCss]">[ExpandShrink]<a onclick="[OpenFileCall]"> \
 		<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;<span class="title">[FileTitle]</span> \
 	</a></td> \
 	<td>[DropdownTemplate]</td> \
@@ -876,6 +878,14 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	}
 	var dropdownTemplate = '';
 	var isFolder = (getIsFolder(file.mimeType));
+	var expandShrinkOption = '<span style="margin-left: 2px; margin-right: 4px; width: 20px;">&nbsp;</span>';
+	if (isFolder) {
+		expandShrinkOption = '<span style="margin-left: 2px; margin-right: 4px; width: 20px;" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');">&nbsp;</span>';
+	}
+	// Add text to parent folder for expanding/shrinking functionality
+	if ($.trim(parentFolderId) !== '') {
+		$('#' + getTableRowIdForFile(parentFolderId)).find('span.expandShrink:not(.shrinkable)').addClass('shrinkable').html(SHRINK_TEXT);
+	}
 	if (getIsInstructor() && isFolder) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
 		dropdownTemplate = dropdownTemplate
@@ -910,6 +920,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 			.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
 			.replace(/\[ActionTemplate\]/g, actionTemplate)
 			.replace(/\[GoogleIconLink\]/g, file.iconLink)
+			.replace(/\[ExpandShrink\]/g, expandShrinkOption)
 			.replace(/\[FileIndentCss\]/g, fileIndentCss)
 			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file))
 			.replace(/\[LastModified\]/g, getFileLastModified(file));
@@ -931,6 +942,51 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 			$(newEntry).appendTo('#FileTreeTableTbody');
 		}
 	}
+}
+
+/**
+ * This is called when user clicks on icon to expand or shrink the folder.  It
+ * marks the folder's span with class 'shrunk' and showing text to indicate the
+ * change can be reverted.  Then this calls recursive function
+ * expandOrShrinkChildren() to update its children.
+ * 
+ * @param folderId
+ */
+function toggleExpandShrink(folderId) {
+	var $expandShrinkSpan = $('#' + getTableRowIdForFile(folderId)).find('span.expandShrink.shrinkable');
+	var expand = false;
+	if ($expandShrinkSpan.hasClass('shrunk')) {
+		$expandShrinkSpan.removeClass('shrunk');
+		expand = true;
+		$expandShrinkSpan.html(SHRINK_TEXT);
+		expandOrShrinkChildren(folderId, false);
+	} else {
+		$expandShrinkSpan.addClass('shrunk');
+		$expandShrinkSpan.html(EXPAND_TEXT);
+		expandOrShrinkChildren(folderId, true);
+	}
+}
+
+/**
+ * Shows/Hides the children rows for the current folder, recursively closing
+ * their children (call is made for non-folders: that should have no effect
+ * since those will not have children).
+ * 
+ * @param folderId
+ * @param shrinking
+ */
+function expandOrShrinkChildren(folderId, shrinking) {
+	$('tr.' + getClassForFoldersChildren(folderId)).each(function() {
+		var $this = $(this);
+		if ($this.find('span.shrunk').length === 0) {
+			expandOrShrinkChildren(getFileIdFromTableRowId($this.attr('id')), shrinking);
+		}
+		if (shrinking) {
+			$this.fadeOut();
+		} else {
+			$this.fadeIn();
+		}
+	});
 }
 
 /**
