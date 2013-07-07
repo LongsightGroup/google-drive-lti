@@ -138,6 +138,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON =
 			"GoogleDriveConfigJson";
 	private static final String PARAMETER_ACTION = "requested_action";
+	// Special request to monitor this service is alive: this returns "Hi"
+	private static final String PARAM_ACTION_VERIFY_SERVICE_IS_ALIVE =
+			"checkServiceIsAlive";
 	private static final String PARAM_ACTION_LINK_GOOGLE_FOLDER =
 			"linkGoogleFolder";
 	private static final String PARAM_ACTION_UNLINK_GOOGLE_FOLDER =
@@ -209,6 +212,11 @@ public class GoogleLtiServlet extends HttpServlet {
 	throws ServletException, IOException
 	{
 		String requestedAction = request.getParameter(PARAMETER_ACTION);
+		// This is used to monitor this service is alive: return "Hi"
+		if (PARAM_ACTION_VERIFY_SERVICE_IS_ALIVE.equals(requestedAction)) {
+			response.getWriter().print("Hi");
+			return;
+		}
 		TcSessionData tcSessionData = retrieveLockFromSession(request);
 		if (!verifyGet(request, response, tcSessionData, requestedAction)) {
 			return;	// Quick return to simplify code
