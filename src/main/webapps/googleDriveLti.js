@@ -462,7 +462,7 @@ function getGoogleAccessToken() {
 function requestGoogleAccessToken() {
 	var result = null;
 	result = $.ajax({
-		url: '/google-drive-lti/service',
+		url: getPageUrl(),
 		async: false,
 		type: 'GET',
 		data: {
@@ -478,7 +478,7 @@ function requestGoogleAccessToken() {
  */
 function linkFolderToSite(folderId, callback) {
 	$.ajax({
-		url: '/google-drive-lti/service',
+		url: getPageUrl(),
 		type: 'GET',
 		dataType: 'json',
 		data: getUpdateLtiParams(
@@ -503,7 +503,7 @@ function linkFolderToSite(folderId, callback) {
  */
 function unlinkFolderToSite(folderId, callback) {
 	$.ajax({
-		url: '/google-drive-lti/service',
+		url: getPageUrl(),
 		type: 'GET',
 		data: getUpdateLtiParams(
 				folderId,
@@ -529,7 +529,7 @@ function unlinkFolderToSite(folderId, callback) {
  */
 function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
 	$.ajax({
-		url: '/google-drive-lti/service',
+		url: getPageUrl(),
 		type: 'GET',
 		data: getUpdateLtiParams(
 				folderId,
@@ -552,7 +552,7 @@ function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
  */
 function giveCurrentUserReadOnlyPermissions(folderId) {
 	$.ajax({
-		url: '/google-drive-lti/service',
+		url: getPageUrl(),
 		type: 'GET',
 		data: getUpdateLtiParams(
 				folderId,
@@ -581,7 +581,7 @@ function giveCurrentUserReadOnlyPermissions(folderId) {
  */
 function removeRosterPermissions(folderId) {
 	$.ajax({
-		url: '/google-drive-lti/service',
+		url: getPageUrl(),
 		type: 'GET',
 		data: getUpdateLtiParams(
 				folderId,
