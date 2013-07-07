@@ -40,8 +40,15 @@ public class GoogleSecurity {
 		GoogleCredential result = null;
 		try {
 			// check for valid setup
-			File privateKeyFile =
-					new File(serviceAccount.getPrivateKeyFilePath());
+			String filePath = serviceAccount.getPrivateKeyFilePath();
+			// If this path is in classpath, get the file's path from it
+			if (serviceAccount.getPrivateKeyFileClasspath()) {
+				filePath = GoogleSecurity.class
+						.getClassLoader()
+						.getResource(filePath)
+						.getFile();
+			}
+			File privateKeyFile = new File(filePath);
 			// Get service account credential
 			String[] scopes = serviceAccount.getScopesArray();
 			result = new GoogleCredential.Builder()

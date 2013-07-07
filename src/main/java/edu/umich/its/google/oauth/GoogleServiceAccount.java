@@ -35,6 +35,8 @@ public class GoogleServiceAccount {
 			".service.account.email.address";
 	private static final String PROPERTY_SUFFIX_PRIVATE_KEY_FILE_PATH =
 			".service.account.private.key.file";
+	private static final String PROPERTY_SUFFIX_PRIVATE_KEY_FILE_CLASSPATH =
+			".service.account.private.key.file.classpath";
 	private static final String PROPERTY_SUFFIX_SCOPES =
 			".service.account.scopes";
 	// These constants are used for loading properties from system files
@@ -111,6 +113,9 @@ public class GoogleServiceAccount {
 	private String clientId;
 	private String emailAddress;
 	private String privateKeyFilePath;
+	// true = the file path is in classpath; false = file path is computer's
+	// file path
+	private boolean privateKeyFileClasspath = false;
 	// Called SCOPES as this will be changed into String[] listing all the
 	// scopes for the service account
 	private String scopes;
@@ -166,6 +171,10 @@ public class GoogleServiceAccount {
 		return privateKeyFilePath;
 	}
 
+	public boolean getPrivateKeyFileClasspath() {
+		return privateKeyFileClasspath;
+	}
+
 	public String getPropertiesPrefix() {
 		return propertiesPrefix;
 	}
@@ -214,6 +223,10 @@ public class GoogleServiceAccount {
 		privateKeyFilePath = value;
 	}
 
+	private void setPrivateKeyFileClasspath(boolean value) {
+		privateKeyFileClasspath = value;
+	}
+
 	protected void setScopes(String value) {
 		scopes = value;
 	}
@@ -243,7 +256,18 @@ public class GoogleServiceAccount {
 		setEmailAddress(getStringProperty(PROPERTY_SUFFIX_EMAIL_ADDRESS));
 		setPrivateKeyFilePath(
 				getStringProperty(PROPERTY_SUFFIX_PRIVATE_KEY_FILE_PATH));
+		setPrivateKeyFileClasspath(
+				getBooleanProperty(PROPERTY_SUFFIX_PRIVATE_KEY_FILE_CLASSPATH));
 		setScopes(getStringProperty(PROPERTY_SUFFIX_SCOPES));
+	}
+
+	/**
+	 * This method is responsible for getting boolean properties from system for
+	 * this service account, using Boolean.parseBoolean(), defaulting in false.
+	 */
+	private boolean getBooleanProperty(String suffix) {
+		String result = System.getProperty(getPropertiesPrefix() + suffix);
+		return (result == null) ? false : Boolean.parseBoolean(result);
 	}
 
 	/**

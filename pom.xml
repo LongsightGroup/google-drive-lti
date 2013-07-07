@@ -25,6 +25,7 @@
 				<directory>${basedir}/src/main/java</directory>
 				<includes>
 					<include>**/*.properties</include>
+					<include>secure/*.*</include>
 				</includes>
 				<filtering>false</filtering>
 			</resource>
