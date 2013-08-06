@@ -51,10 +51,11 @@ Cases:
 
 [ BUILDING ]
 ============
-1. svn co https://source.sakaiproject.org/contrib/umich/google/sandbox/google-drive-lti
-2. cd google-drive-lti
-3. mvn clean install
-4. cp target/google-drive-lti.war $TOMCAT/webapps
+1. svn co https://source.sakaiproject.org/contrib/umich/google/lti-utils
+2. cd lti-utils; mvn install
+3. svn co https://source.sakaiproject.org/contrib/umich/google/sandbox/google-drive-lti
+4. cd google-drive-lti; mvn install
+5. cp target/google-drive-lti.war $TOMCAT/webapps
 
 
 

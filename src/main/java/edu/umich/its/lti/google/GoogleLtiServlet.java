@@ -909,7 +909,7 @@ public class GoogleLtiServlet extends HttpServlet {
 						.execute();
 			} catch (Exception err) {
 				M_log.warning("Failed to insert permission for user \""
-						+ getLink().getUserEmailAddress()
+						+ userEmailAddress
 						+ "\" on file \""
 						+ getFileId()
 						+ "\"");
