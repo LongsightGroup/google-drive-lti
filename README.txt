@@ -12,41 +12,23 @@ These permissions work for the folder's contents, so documents, sub folders, and
 
 
 
-[ ISSUES ]
+[ KNOWN ISSUES ]
 ==========
-- Storing Links: This is written to keep track of linked Google Folders in a single file listing Google Folders for a single site.  For this to work, the file would need to be maintained local to the LTI server, or placed on a drive managed for access and editing by multiple servers.  It is critical all users for a single site interact with server(s) accessing a single file.  The simplest solution is to have all access to a single site being handled by a single web application server.  If there is need to use multiple servers due to traffic over many sites, again the simplest would be to connect each site to a single server.  This could be done by assigning server-specific URL to each TC site's LTI "Remote Tool URL" (a.k.a. imsti.launch).
+- This LTI service will not run in a cluster environment, due to the way it stores links. The TcSiteToGoogleStorage class maps google folders & sakai sites in a single flat file. This could be resolved by assigning server-specific URL to each site's LTI "Remote Tool URL" (a.k.a. imsti.launch). For example, university could handle Google Drive LTI for all Engineering courses in URL https://ourEgrDomain/google-drive-lti/service, and all Math courses in URL https://ourMathDomain/google-drive-lti/service.  If each URL points to a single server, handling storage will not be complex.
 
-For example, university could handle Google Drive LTI for all Engineering courses in URL https://ourEgrDomain/google-drive-lti/service, and all Math courses in URL https://ourMathDomain/google-drive-lti/service.  If each URL points to a single server, handling storage will not be complex.
+- This LTI service may have issues if multiple clients access the server, due to the way it stores links. The TcSiteToGoogleStorage class maps google folders & sakai sites in a single flat file.  
 
-- Internet Explorer [ IE8/IE9 ]:
-	-- The page loads script "/library/htmlarea/jquery-plugin-xdr.js".  Instructions to deploy this JS library are in Sakai server module "google-service".  The instructions place the library into sub-module "reference/library", and this project is dependent upon Sakai module "reference/library" being deployed to the same domain.
-	-- IE is currently failing to associate a folder with the course, and failing to let instructor to detach the folder from the course.
+- Users may not be able to view folders from the Google Drive LTI client that they can view from Google Drove. For the user to see files in the LTI, they need to have read access to all subfolders to see those files in LTI. 
+  Examples:
+	[A] User will NOT see the file:
+	+ Root folderi (user does have access)
+		- Subfolder (user does NOT have access)
+			+ File   (user does have access)
 
-- If LTI is configured with "Send Email Addresses to the External Tool" FALSE (unchecked), the page will open with nothing showing on it, as it is unable to verify the user and request an access token without their email address.
-
-- Opening the LTI when logged in as a user that is not in the roster will open with "Google Drive LTI" and an empty box, and nothing more showing on the page.  The key is the user's email address is known by LTI
-
-- Requesting roster may fail with error: net.oauth.OAuthProblemException: timestamp_refused.  The issue is that the roster will be requested when the instructor associates the course with a folder, and that may be quite some time from when the page is loaded.  The timestamp for the request is set when the browser loads the page.  Sakai imsblis uses SimpleOauthValidator to validate the request, and uses a "time window" to ensure the request is recent.  The default "time window" is 5 minutes, and sending the request after then will fail.
-
-- When permissions are being given to people in the roster, this is being done on the browser in the background.  If the instructor leaves the page before that completes, the permissions stop.  TODO: add check when leaving the page, to ask the instructor to wait if permissions are still being added.
-
-- For the user to see files they have access to in the LTI, they need to have read access to all subfolders to see those files in LTI.  For example, if "my" permissions are:
-Keys:
-	+ I have read access to the file
-	- I do not have access to the file
-Cases:
-	[A] NO GOOD, I will not see that file:
-	+ Root folder
-		- Subfolder
-			+ File I have access to
-
-	[B] GOOD, I will see the file:
-	+ Root folder
-		+ Subfolder
-			+ File I have access to
-
-* This issue does not affect what "I" can see in Google Drive.  "I" should be able to see the file in both case [A] & case [B].
-
+	[B] User will see the file:
+	+ Root folder  (user does have access)
+		+ Subfolder (user does have access)
+			+ File   (user does have access)
 
 
 [ BUILDING ]
