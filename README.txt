@@ -11,9 +11,8 @@ This gives a course's instructor the ability to associate a Google Drive folder 
 These permissions work for the folder's contents, so documents, sub folders, and their descendants will be accessible in the same manner.
 
 
-
 [ KNOWN ISSUES ]
-==========
+================
 - This LTI service will not run in a cluster environment, due to the way it stores links. The TcSiteToGoogleStorage class maps google folders & sakai sites in a single flat file. This could be resolved by assigning server-specific URL to each site's LTI "Remote Tool URL" (a.k.a. imsti.launch). For example, university could handle Google Drive LTI for all Engineering courses in URL https://ourEgrDomain/google-drive-lti/service, and all Math courses in URL https://ourMathDomain/google-drive-lti/service.  If each URL points to a single server, handling storage will not be complex.
 
 - This LTI service may have issues if multiple clients access the server, due to the way it stores links. The TcSiteToGoogleStorage class maps google folders & sakai sites in a single flat file.  
@@ -31,34 +30,42 @@ These permissions work for the folder's contents, so documents, sub folders, and
 			+ File   (user does have access)
 
 
-[ BUILDING ]
-============
+         
+[ SETUP ]
+=========
 1. svn co https://source.sakaiproject.org/contrib/umich/google/lti-utils
-2. cd lti-utils; mvn install
-3. svn co https://source.sakaiproject.org/contrib/umich/google/sandbox/google-drive-lti
-4. cd google-drive-lti; mvn install
-5. cp target/google-drive-lti.war $TOMCAT/webapps
+2. svn co https://source.sakaiproject.org/contrib/umich/google/sandbox/google-drive-lti
+
+3. Create a google service account at https://code.google.com/apis/console/
+   - Create a public/private key and download private key file (p12 file)
+   - Configure the Service Account with the LTI application
+   - Configure the LTI 'secret' in a <tbd> properties file
+
+3. Define the following properties to googleServiceAccounts.properties
+   googleDriveLti.service.account.client.id=
+   googleDriveLti.service.account.email.address=
+   googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
 
 
+4a. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
 
-[ Deploying ]
-=============
-Do each of the following:
-	A - Enabling Basic LTI
-	B - Installing LTI into a (new) Site
-	C - Setting up Google Authorization & Site-to-Google Link Storage
+    ## Update googleServiceAccounts.properties
+    googleDriveLti.service.account.private.key.file.classpath=true
+    googleDriveLti.service.account.private.key.file=/secure/<filename>
 
+    
 
-	[ A - Enabling Basic LTI ]
-	--------------------------
-These properties must exist in sakai.properties.  If not, accessing "/imsblis/service" will deny requests, such as request for the course's roster.
+4b. OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
 
-Using these properties works with my tests of "Google Drive LTI" in Sakai Trunk 2013-06-03, but not sure they are correct;.  Some entries may not affect this LTI, and there may be missing properties that should be set.
+    ## Update googleServiceAccounts.properties
+    googleDriveLti.service.account.private.key.file.classpath=true
+    googleDriveLti.service.account.private.key.file=<absolute file location>
+    
+4. Add environment variables to JAVA_OPTS for Tomcat:
+	-DgoogleServicePropsPath=$TOMCAT/google/googleServiceAccounts.properties
+	-DDgoogleServiceStoragePath=$TOMCAT/google/ltidb
 
-Better documentation on these may exist in Sakai module "basiclti" at "basiclti-docs/resources/docs".
-
-sakai.properties
-----------------
+5. Enable Basic LTI in sakai.properties
 webservices.allowlogin=true
 webservices.allow = .*
 webservices.log-allowed=true
@@ -71,9 +78,15 @@ basiclti.roster.enabled=true
 basiclti.outcomes.enabled=true
 
 
+[ BUILD & DEPLOY ]
+==================
+1. cd lti-utils; mvn install
+2. cd google-drive-lti; mvn install
+3. cp target/google-drive-lti.war $TOMCAT/webapps
 
-	[ B - Installing LTI into a Site ]
-	----------------------------------
+
+[Configuring Google-Drive-LTI in Sakai ]
+========================================
 For adding to an existing site, continue from step "!!! 13."
 For adding to a new site, start with step 1.
 
@@ -126,25 +139,6 @@ For adding to a new site, start with step 1.
 	- imsti.key: 12345
 22. Press button "Save"
   * Page opens with list of sites
-
-
-
-	[ C - Setting up Google Authorization & Site-to-Google Link Storage ]
-	---------------------------------------------------------------------
-1. cd $TOMCAT
-2. touch googleServiceAccounts.properties
-3. Add the following properties to googleServiceAccounts.properties
-googleDriveLti.service.account.client.id=505339004686-6u695emetjek7bca8gvr7q14lbp5jbc4.apps.googleusercontent.com
-googleDriveLti.service.account.email.address=505339004686-6u695emetjek7bca8gvr7q14lbp5jbc4@developer.gserviceaccount.com
-googleDriveLti.service.account.private.key.file=/Users/ranaseef/googleKeys/e3f47d43c771825722360e4042cab76e4a3f9dd6-privatekey.p12
-googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
-* you will need to create service account with permissions to edit Google Drive, and to download .p12 file for it
-* Replace /Users/ranaseef/...p12 with filename for your service account
-* Replace 505*.apps.googleusercontent.com and 505*@developer.gserviceaccount.com with entries for your Service Account.
-* You can find the matching entries at https://code.google.com/apis/console/
-4. Add properties to JAVA_OPTS for Tomcat:
-	-DgoogleServicePropsPath=$TOMCAT/google/googleServiceAccounts.properties
-	-DDgoogleServiceStoragePath=$TOMCAT/google/ltidb
 
 
 
