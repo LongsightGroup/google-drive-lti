@@ -54,7 +54,7 @@ These permissions work for the folder's contents, so documents, sub folders, and
 4b. OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
 
     ## Update googleServiceAccounts.properties
-    googleDriveLti.service.account.private.key.file.classpath=true
+    googleDriveLti.service.account.private.key.file.classpath=false
     googleDriveLti.service.account.private.key.file=<absolute file location>
     
 4. Add environment variables to JAVA_OPTS for Tomcat:
