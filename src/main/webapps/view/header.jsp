@@ -7,8 +7,8 @@
 	<meta http-equiv="Cache-control" content="no-cache">
 
     <!-- Le styles -->
-    <link href="assets/css/bootstrap.css" rel="stylesheet">
-    <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
     <style type="text/css">
       body {
         padding-top: 60px;
@@ -59,7 +59,7 @@
       ${requestScope.GoogleDriveConfigJson}
     </script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" type="text/javascript"></script>
-    <script src="utils.js" type="text/javascript"></script>
-    <script src="google-drive-utils.js" type="text/javascript"></script>
-    <script src="googleDriveLti.js" type="text/javascript"></script>
+    <script src="js/utils.js" type="text/javascript"></script>
+    <script src="js/google-drive-utils.js" type="text/javascript"></script>
+    <script src="js/googleDriveLti.js" type="text/javascript"></script>
   </head>
