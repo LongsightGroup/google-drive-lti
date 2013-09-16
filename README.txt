@@ -14,17 +14,7 @@ These permissions work for the folder's contents, so documents, sub folders, and
 
 - This LTI service may have issues if multiple clients access the server, due to the way it stores links. The TcSiteToGoogleStorage class maps google folders & sakai sites in a single flat file.  
 
-- Users may not be able to view folders from the Google Drive LTI client that they can view from Google Drove. For the user to see files in the LTI, they need to have read access to all subfolders to see those files in LTI. 
-  Examples:
-	[A] User will NOT see the file:
-	+ Root folderi (user does have access)
-		- Subfolder (user does NOT have access)
-			+ File   (user does have access)
 
-	[B] User will see the file:
-	+ Root folder  (user does have access)
-		+ Subfolder (user does have access)
-			+ File   (user does have access)
 
 
          
@@ -32,7 +22,7 @@ These permissions work for the folder's contents, so documents, sub folders, and
 =========
 1. svn co https://source.sakaiproject.org/contrib/umich/google/lti-utils
 
-2. svn co https://source.sakaiproject.org/contrib/umich/google/sandbox/google-drive-lti
+2. svn co https://source.sakaiproject.org/contrib/umich/google/google-drive-lti
 
 3. Create a google service account at https://code.google.com/apis/console/
    - Create a public/private key and download private key file (p12 file)
