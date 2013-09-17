@@ -1,5 +1,4 @@
-    <style type="text/css">
-      body {
+body {
         padding-top: 60px;
         padding-bottom: 40px;
       }
@@ -25,6 +24,11 @@
 	  TABLE {
 		  background-color: #fff;
 	  }
+	  .large-text {
+		  font-size: 1.5em;
+		  font-weight:bold;
+		  margin-top:20px;
+	  }
       @media (max-width: 980px) {
         /* Enable use of floated navbar text */
         .navbar-text.pull-right {
@@ -33,4 +37,3 @@
           padding-right: 5px;
         }
       }
-    </style>
