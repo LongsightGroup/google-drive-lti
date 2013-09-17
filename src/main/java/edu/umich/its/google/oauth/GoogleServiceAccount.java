@@ -39,6 +39,8 @@ public class GoogleServiceAccount {
 			".service.account.private.key.file.classpath";
 	private static final String PROPERTY_SUFFIX_SCOPES =
 			".service.account.scopes";
+	private static final String PROPERTY_SUFFIX_LTI_SECRET =
+			".service.account.lti.secret";
 	// These constants are used for loading properties from system files
 	private static final String SYSTEM_PROPERTY_FILE_PATH =
 			"googleServicePropsPath";
@@ -119,6 +121,7 @@ public class GoogleServiceAccount {
 	// Called SCOPES as this will be changed into String[] listing all the
 	// scopes for the service account
 	private String scopes;
+	private String ltiSecret;
 	private String propertiesPrefix;
 
 
@@ -183,6 +186,9 @@ public class GoogleServiceAccount {
 		return scopes;
 	}
 
+	public String getLtiSecret() {
+		return ltiSecret;
+	}
 	public String[] getScopesArray() {
 		String[] result;
 		if (getScopes() == null) {
@@ -203,10 +209,13 @@ public class GoogleServiceAccount {
 				+ getEmailAddress()
 				+ "\", p12FilePath=\""
 				+ getPrivateKeyFilePath()
+				+"\", ltiSecret=\""
+				+ getLtiSecret()
 				+ "\", scopes=\""
 				+ getScopes()
 				+ "\"]";
 	}
+
 
 
 	// Protected methods --------------------------------------------
@@ -229,6 +238,9 @@ public class GoogleServiceAccount {
 
 	protected void setScopes(String value) {
 		scopes = value;
+	}
+	protected void setLtiSecret(String value) {
+		ltiSecret=value;
 	}
 
 
@@ -259,6 +271,7 @@ public class GoogleServiceAccount {
 		setPrivateKeyFileClasspath(
 				getBooleanProperty(PROPERTY_SUFFIX_PRIVATE_KEY_FILE_CLASSPATH));
 		setScopes(getStringProperty(PROPERTY_SUFFIX_SCOPES));
+		setLtiSecret(getStringProperty(PROPERTY_SUFFIX_LTI_SECRET));
 	}
 
 	/**

@@ -320,7 +320,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private TcSessionData lockInSession(HttpServletRequest request) {
 		// Store TC data in session.
-		TcSessionData result = new TcSessionData(request);
+		String ltiSecret = getGoogleServiceAccount().getLtiSecret();
+		TcSessionData result = new TcSessionData(request,ltiSecret);
 		if (getIsEmpty(result.getUserEmailAddress())) {
 			throw new IllegalStateException(
 					"Google Drive LTI was opened by user without email address:"
@@ -401,6 +402,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response)
 	throws ServletException, IOException 
 	{
+		//ResourceBundle properties = ResourceBundle.getBundle("ltis");
 		// 1 - verify the expected parameters exist
 		boolean result = 
 				EXPECTED_LTI_MESSAGE_TYPE.equals(
@@ -420,7 +422,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		result = RequestSignatureUtils.verifySignature(
 				request,
 				request.getParameter("oauth_consumer_key"),
-				"secret");
+				getGoogleServiceAccount().getLtiSecret());
 		if (!result) {
 			doError(
 					request,
