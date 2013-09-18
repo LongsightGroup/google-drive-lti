@@ -49,3 +49,8 @@ body {
       .dropdown {
           float:left;
       }
+
+    .itemLink:hover {
+        text-decoration:none;
+        cursor:pointer
+    }

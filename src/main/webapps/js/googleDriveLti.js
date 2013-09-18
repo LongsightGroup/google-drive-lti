@@ -702,7 +702,7 @@ function getPageUrl() {
 }
 
 var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
-	<td><a onclick="[OpenFileCall]"> \
+	<td><a class="itemLink" onclick="[OpenFileCall]"> \
 	  <img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
     <td> \
@@ -850,7 +850,7 @@ function getLatterIsAncestor(childFileId, ancestorFolderId) {
 }
 
 var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \
-	<td style="[FileIndentCss]">[ExpandShrink]<a onclick="[OpenFileCall]"> \
+	<td style="[FileIndentCss]">[ExpandShrink]<a class="itemLink" onclick="[OpenFileCall]"> \
 		<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;<span class="title">[FileTitle]</span> \
 	</a></td> \
 	<td>&nbsp;[DropdownTemplate]</td> \
