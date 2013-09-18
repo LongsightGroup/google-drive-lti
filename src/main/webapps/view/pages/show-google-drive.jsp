@@ -64,10 +64,20 @@
            
       <hr>
 	  <br />
+      <div id="spinner" style="display:none"></div>  
 <script type="text/javascript">
 
 // On startup: display Google resources on the screen
 $(document).ready(function() {
+    /*
+     show spinner whenever async actvity takes place
+     */
+    $(document).ajaxStart(function(){
+        $('#spinner').show();
+    });
+    $(document).ajaxStop(function(){
+        $('#spinner').hide();
+    });
 	showLinkedGoogleFolders();
 });
 

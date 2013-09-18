@@ -1177,14 +1177,3 @@ function getFileIdFromTableRowId(tableRowId) {
 function getLinkingTableRowIdForFolder(folderId) {
 	return 'LinkedFolderTrGoogleFolder' + folderId;
 }
-/*
- show spinner whenever async actvity takes place
- */
-$(document).ready(function(){
-    $(document).ajaxStart(function(){
-    $('#spinner').show();
-});
-$(document).ajaxStop(function(){
-    $('#spinner').hide();
-});
-})

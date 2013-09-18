@@ -75,7 +75,6 @@ contents, and footers.
           </div>  
         </div>  
       </div>
-       <div id="spinner"></div>  
          <%
      String role= data.getUserRoles();
       %>
