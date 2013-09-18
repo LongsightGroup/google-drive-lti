@@ -2,7 +2,7 @@
 <div style="display: none;">
   <div id="FolderDropdownTemplate">
        <div class="dropdown">
-         <a class="dropdown-toggle btn btn-primary btn-small" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="/page.html">Add<b class="caret"></b>
+         <a class="dropdown-toggle btn btn-primary btn-small" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="/page.html">Add <b class="caret"></b>
          </a>
          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 <%
