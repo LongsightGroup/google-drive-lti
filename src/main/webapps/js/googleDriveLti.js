@@ -729,6 +729,7 @@ function addFolderToLinkFolderTable(folder) {
 			.replace(/\[GoogleIconLink\]/g, folder.iconLink)
 			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder));
 	$(newEntry).appendTo('#LinkFolderTableTbody');
+    resizeFrame('grow')
 }
 
 /**
@@ -940,6 +941,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	} else {
 		if (!addFileInOrderWithSiblings(newEntry, file.title, $('#FileTreeTableTbody tr'))) {
 			$(newEntry).appendTo('#FileTreeTableTbody');
+            resizeFrame('grow')
 		}
 	}
 }
