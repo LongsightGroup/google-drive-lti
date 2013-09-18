@@ -74,7 +74,8 @@ contents, and footers.
           	<jsp:include page="${requestScope.jspPage.pageFileUrl}" flush="false"/>
           </div>  
         </div>  
-      </div>  
+      </div>
+       <div id="spinner"></div>  
          <%
      String role= data.getUserRoles();
       %>
