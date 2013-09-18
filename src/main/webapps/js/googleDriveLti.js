@@ -853,8 +853,8 @@ var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParent
 	<td style="[FileIndentCss]">[ExpandShrink]<a onclick="[OpenFileCall]"> \
 		<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;<span class="title">[FileTitle]</span> \
 	</a></td> \
-	<td>[DropdownTemplate]</td> \
-	<td>[ActionTemplate]</td> \
+	<td>&nbsp;[DropdownTemplate]</td> \
+	<td>&nbsp;[ActionTemplate]</td> \
 	<td>[LastModified]</td> \
 	</tr>';
 

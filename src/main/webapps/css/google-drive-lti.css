@@ -46,3 +46,6 @@ body {
           top: 20%;
           left: 33%;
       }
+      .dropdown {
+          float:left;
+      }
