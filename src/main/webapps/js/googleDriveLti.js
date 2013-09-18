@@ -879,9 +879,9 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	}
 	var dropdownTemplate = '';
 	var isFolder = (getIsFolder(file.mimeType));
-	var expandShrinkOption = '<span style="margin-left: 2px; margin-right: 4px; width: 20px;">&nbsp;</span>';
+	var expandShrinkOption = '<span>&nbsp;</span>';
 	if (isFolder) {
-		expandShrinkOption = '<span style="margin-left: 2px; margin-right: 4px; width: 20px;" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');">&nbsp;</span>';
+		expandShrinkOption = '<span class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');">&nbsp;</span>';
 	}
 	// Add text to parent folder for expanding/shrinking functionality
 	if ($.trim(parentFolderId) !== '') {

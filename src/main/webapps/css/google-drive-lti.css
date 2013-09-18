@@ -54,3 +54,10 @@ body {
         text-decoration:none;
         cursor:pointer
     }
+.expandShrink {
+    padding: 0 5px
+}
+.expandShrink:hover {
+    font-weight:bold;
+    cursor:pointer
+}
