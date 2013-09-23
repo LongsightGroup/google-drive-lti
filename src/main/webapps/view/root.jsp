@@ -69,8 +69,6 @@ contents, and footers.
       <div class="row-fluid">
         <div class="span12">
           <div class="grey_container">
-          	<h3>${requestScope.jspPage.pageTitle}</h3>
-          	<p class="muted">Share Google Files With Your Site</p>
           	<jsp:include page="${requestScope.jspPage.pageFileUrl}" flush="false"/>
           </div>  
         </div>  

@@ -706,7 +706,7 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
 	  <img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
     <td> \
-      <a class="btn btn-primary btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">Link Folder</a> \
+      <a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">Link Folder</a> \
     </td> \
 	</tr>';
 
@@ -858,7 +858,7 @@ var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParent
 	<td>[LastModified]</td> \
 	</tr>';
 
-var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-primary btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
+var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
 
 /**
  * Displays the given Google file on the screen, allowing the user to click on

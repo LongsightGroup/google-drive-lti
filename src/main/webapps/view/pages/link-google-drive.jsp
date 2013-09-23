@@ -1,34 +1,39 @@
-            <p>
-            	<a href="#" class="btn btn-primary btn-large" onclick="assignNewFolder();">New Google Folder</a>
-            	<a class="btn btn-primary btn-large" onclick="openPage('Home');">Back</a>
-            </p>
+            <div class="row-fluid header-controls">
+                <div class="span8">
+                    <h3>${requestScope.jspPage.pageTitle}</h3>
+                </div>
+                <div class="span4 controls">
+                    <br>
+                    <a href="#" class="btn btn-primary btn-small" onclick="assignNewFolder();">New Google Folder</a>
+                    <a class="btn btn-primary btn-small" onclick="openPage('Home');">Back</a>
+                </div>
+            </div>
             
- 			<p class="large-text">or</p>
-            
-            <h3>Select a folder below to link</h3>
-           
-            <div class="row">
-              <div class="span5 offset1">
-              <br />
-              	<form class="form-search">
-                  <div class="input-append">
-                    <input id="UnlinkedFolderSearchInput" type="text" class="span12 search-query">
-                    <button type="button" class="btn" onclick="searchUnlinkedFoldersOwnedByMe();">Search</button>
+            <div class="row-fluid header-controls">
+                <div class="span5">
+                    <p class="muted">Create a new Google  folder or select a folder below to link</p>
+                </div>   
+                <div class="span6 controls">
+                  	<form class="form-search form-inline">
+                      <div class="input-append controls">
+                        <input id="UnlinkedFolderSearchInput" type="text" class="span12 search-query">
+                        <button type="button" class="btn" onclick="searchUnlinkedFoldersOwnedByMe();">Search</button>
+                      </div>
+                    </form>
+                  <!-- TODO: Remove this div : page layout will need to be fixed
+                  <div class="span5 offset1" style="display:none;">
+                    <div class="pagination">
+                      <ul>
+                        <li><a href="#">Prev</a></li>
+                        <li><a href="#">1</a></li>
+                        <li><a href="#">2</a></li>
+                        <li><a href="#">3</a></li>
+                        <li><a href="#">Next</a></li>
+                      </ul>
+                    </div>
                   </div>
-                </form>
-              </div>
-              <!-- TODO: Remove this div : page layout will need to be fixed -->
-              <div class="span5 offset1" style="visibility: hidden;">
-              	<div class="pagination">
-                  <ul>
-                    <li><a href="#">Prev</a></li>
-                    <li><a href="#">1</a></li>
-                    <li><a href="#">2</a></li>
-                    <li><a href="#">3</a></li>
-                    <li><a href="#">Next</a></li>
-                  </ul>
-            	</div>
-              </div>
+                  -->
+                </div>
             </div>
 
             

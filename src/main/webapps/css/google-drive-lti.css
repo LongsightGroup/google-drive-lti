@@ -77,3 +77,6 @@ TABLE {
     font-weight: bold;
     cursor: pointer
 }
+.header-controls .controls {
+    text-align:right
+}

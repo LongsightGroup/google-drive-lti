@@ -2,7 +2,7 @@
 <div style="display: none;">
   <div id="FolderDropdownTemplate">
        <div class="dropdown">
-         <a class="dropdown-toggle btn btn-primary btn-small" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="/page.html">Add <b class="caret"></b>
+         <a class="dropdown-toggle btn btn-small" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="/page.html">Add <b class="caret"></b>
          </a>
          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 <%
@@ -51,9 +51,23 @@
 <%
 	if (((TcSessionData)request.getAttribute("TcSessionData")).getIsInstructor()) {
 %>
-            <p><a class="btn btn-primary btn-large" onclick="openPage('LinkFolder');">Link Google Folder</a></p>
+    <div class="row-fluid header-controls">
+        <div class="span10">
+            <h3>${requestScope.jspPage.pageTitle    }</h3>
+            <p class="muted">Share Google Files With Your Site</p>
+        </div>
+        <div class="span2 controls" >
+            <br>
+            <a class="btn btn-primary btn-small" onclick="openPage('LinkFolder');">Link Google Folder</a>
+        </div>
+    </div>
 <%
-	}
+    } else {
+%>
+            <h3>Google Drive items shared with this site</h3>
+
+<%
+    }
 %>
             
              <table class="table table-striped table-bordered table-hover" width="100%">
