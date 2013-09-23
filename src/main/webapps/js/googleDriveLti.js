@@ -879,13 +879,13 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	}
 	var dropdownTemplate = '';
 	var isFolder = (getIsFolder(file.mimeType));
-	var expandShrinkOption = '<span>&nbsp;</span>';
+	var expandShrinkOption = '<a href="#">&nbsp;</a>';
 	if (isFolder) {
-		expandShrinkOption = '<span class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');">&nbsp;</span>';
+		expandShrinkOption = '<a href="#" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');">&nbsp;</a>';
 	}
 	// Add text to parent folder for expanding/shrinking functionality
 	if ($.trim(parentFolderId) !== '') {
-		$('#' + getTableRowIdForFile(parentFolderId)).find('span.expandShrink:not(.shrinkable)').addClass('shrinkable').html(SHRINK_TEXT);
+		$('#' + getTableRowIdForFile(parentFolderId)).find('a.expandShrink:not(.shrinkable)').addClass('shrinkable').html(SHRINK_TEXT);
 	}
 	if (getIsInstructor() && isFolder) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
@@ -955,7 +955,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
  * @param folderId
  */
 function toggleExpandShrink(folderId) {
-	var $expandShrinkSpan = $('#' + getTableRowIdForFile(folderId)).find('span.expandShrink.shrinkable');
+	var $expandShrinkSpan = $('#' + getTableRowIdForFile(folderId)).find('a.expandShrink.shrinkable');
 	var expand = false;
 	if ($expandShrinkSpan.hasClass('shrunk')) {
 		$expandShrinkSpan.removeClass('shrunk');

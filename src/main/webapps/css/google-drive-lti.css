@@ -80,3 +80,6 @@ TABLE {
 .header-controls .controls {
     text-align:right
 }
+.expandShrink:hover, .expandShrink:focus {
+    text-decoration:none
+}
