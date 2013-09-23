@@ -55,15 +55,11 @@
 <%
 	}
 %>
-            <hr />
             
              <table class="table table-striped table-bordered table-hover" width="100%">
               <tbody id="FileTreeTableTbody">
              </tbody>
             </table>
-           
-      <hr>
-	  <br />
       <div id="spinner" style="display:none"></div>  
 <script type="text/javascript">
 
