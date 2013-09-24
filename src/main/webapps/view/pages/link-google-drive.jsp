@@ -1,21 +1,21 @@
-            <div class="row-fluid header-controls">
-                <div class="span8">
+            <div class="clearfix">
+                <div class="pull-left">
                     <h3>${requestScope.jspPage.pageTitle}</h3>
                 </div>
-                <div class="span4 controls">
+                <div class="pull-right">
                     <br>
                     <a href="#" class="btn btn-primary btn-small" onclick="assignNewFolder();">New Google Folder</a>
                     <a class="btn btn-primary btn-small" onclick="openPage('Home');">Back</a>
                 </div>
             </div>
             
-            <div class="row-fluid header-controls">
-                <div class="span5">
+            <div class="clearfix">
+                <div class="pull-left">
                     <p class="muted">Create a new Google  folder or select a folder below to link</p>
                 </div>   
-                <div class="span6 controls">
-                  	<form class="form-search form-inline">
-                      <div class="input-append controls">
+                <div class="pull-right">
+                  	<form class="form-search">
+                      <div class="input-append" style="margin-right:73px">
                         <input id="UnlinkedFolderSearchInput" type="text" class="span12 search-query">
                         <button type="button" class="btn" onclick="searchUnlinkedFoldersOwnedByMe();">Search</button>
                       </div>

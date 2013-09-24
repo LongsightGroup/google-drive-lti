@@ -52,14 +52,11 @@
 	if (((TcSessionData)request.getAttribute("TcSessionData")).getIsInstructor()) {
 %>
     <div class="row-fluid header-controls">
-        <div class="span10">
             <h3>${requestScope.jspPage.pageTitle    }</h3>
-            <p class="muted">Share Google Files With Your Site</p>
-        </div>
-        <div class="span2 controls" >
-            <br>
-            <a class="btn btn-primary btn-small" onclick="openPage('LinkFolder');">Link Google Folder</a>
-        </div>
+            <p class="muted pull-left">Share Google Files With Your Site</p>
+            <p class="pull-right " >
+                <a class="btn btn-primary btn-small" onclick="openPage('LinkFolder');">Link Google Folder</a>
+            </p>
     </div>
 <%
     } else {
