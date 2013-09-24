@@ -9,8 +9,6 @@
  *
  * It relies upon the following Libraries:
  * - <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
- * - <script src="/google-integration-prototype/google-integration-prototype.js" type="text/javascript"></script>
- * - <link href="/google-integration-prototype/google-integration-prototype.css" rel="stylesheet" type="text/css">
  * - <script> containing the JSON object defined in GoogleConfigJsonWriter.java </script>
  *
  * Requests to LTI need to include "tp_id" as parameter, so the server can
@@ -40,7 +38,6 @@ if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
 var DEBUG_MODE = false;
 var SAVE_SITE_ID_IN_GOOGLE = false;
 var SAVE_LINKS_IN_TP = true;
-var GOOGLE_AUTHORIZE_URL = '/google-integration-prototype/googleLinks';
 var FILTER_FOR_FOLDERS = 'mimeType = \'application/vnd.google-apps.folder\'';
 var SELECTED_FOLDER_INPUT_NAME = 'folderSelectRadio';
 // number of px is multiplied by the file's depth to pad the title
@@ -359,7 +356,10 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
  * Creates new folder with "My Drive" as its parent. 
  */
 function assignNewFolder() {
-	var folderTitle = getConfigCourseTitle();
+	var folderTitle = prompt('Please enter title new folder',getConfigCourseTitle());
+	if ($.trim(folderTitle) === '') {
+		return;	// Quick return to simplify code
+	}
 	// This would be the place to avoid duplicate existing file names.
 	if (confirm('Please confirm linking new folder "' + folderTitle + '" with the course.'))
 	{
@@ -376,7 +376,7 @@ function assignNewFolder() {
 						folderTitle = data.title
 					}
 					linkFolderToSite(folderId, function() {
-						notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, true, false);
+				      notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, true, false);
 					});
 				});
 	}
