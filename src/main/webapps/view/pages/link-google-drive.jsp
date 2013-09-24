@@ -4,7 +4,7 @@
                 </div>
                 <div class="pull-right">
                     <br>
-                    <a href="#" class="btn btn-primary btn-small" onclick="assignNewFolder();">New Google Folder</a>
+                    <a href="#" class="btn btn-primary btn-small" onclick="assignNewFolder();">Create & Link Folder</a>
                     <a class="btn btn-primary btn-small" onclick="openPage('Home');">Back</a>
                 </div>
             </div>
