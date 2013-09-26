@@ -525,7 +525,9 @@ function _queryDriveFiles(accessToken, query, callback, completeCallback) {
  * Returns Google Drive's URL for accessing and modifying files
  */
 function _getGoogleDriveUrl(fileId, permissionId) {
-	var result = 'https://www.googleapis.com/drive/v2/files/';
+	var host = "../../"; // relative path to proxy
+	var proxyName = "crossdomain/google-drive-lti";
+	var result = host+proxyName+'/drive/v2/files/';
 	if ($.trim(fileId) !== '') {
 		result = result + fileId;
 		// Adding when permissionId is '', so URL is correct for all permissions
