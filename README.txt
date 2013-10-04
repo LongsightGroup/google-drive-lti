@@ -65,6 +65,8 @@ These permissions work for the folder's contents, so documents, sub folders, and
 1. cd lti-utils; mvn install
 2. cd google-drive-lti; mvn install
 3. cp target/google-drive-lti.war $TOMCAT/webapps
+4. cd lti-proxy; mvn install
+5. cp target/lti-proxy.war $TOMCAT/webapps
 4. Deploy Sakai's library.war file to $TOMCAT/webapps (until this dependency is resolved)
 
 
