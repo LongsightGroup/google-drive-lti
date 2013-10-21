@@ -6,6 +6,9 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -28,6 +31,7 @@ import edu.umich.its.lti.TcSiteToGoogleLinks;
 import edu.umich.its.lti.TcSiteToGoogleStorage;
 import edu.umich.its.lti.utils.RequestSignatureUtils;
 import edu.umich.its.lti.utils.RosterClientUtils;
+import edu.umich.its.lti.utils.SettingsClientUtils;
 
 
 /**
@@ -42,6 +46,9 @@ import edu.umich.its.lti.utils.RosterClientUtils;
  *
  **/
 public class GoogleLtiServlet extends HttpServlet {
+	static ResourceBundle resource;
+	
+	
 	// Enum ---------------------------------------------------------
 
 	// Specifications for different JSP pages used by the LTI.  This is passed
@@ -71,7 +78,12 @@ public class GoogleLtiServlet extends HttpServlet {
 				String pageTitleValue,
 				String[] rolesValue)
 		{
-			pageTitle = pageTitleValue;
+			if(pageTitleValue.equals("Google Drive")) {
+				pageTitle=resource.getString("gd.header1.linked.view");
+			}
+			else if(pageTitleValue.equals("Link Google Drive")) {
+				pageTitle=resource.getString("gd.header1.linking.view");
+			}
 			pageFileUrl = pageFileUrlValue;
 			roles = rolesValue;
 		}
@@ -211,6 +223,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response)
 	throws ServletException, IOException
 	{
+		
+		
 		String requestedAction = request.getParameter(PARAMETER_ACTION);
 		// This is used to monitor this service is alive: return "Hi"
 		if (PARAM_ACTION_VERIFY_SERVICE_IS_ALIVE.equals(requestedAction)) {
@@ -218,6 +232,9 @@ public class GoogleLtiServlet extends HttpServlet {
 			return;
 		}
 		TcSessionData tcSessionData = retrieveLockFromSession(request);
+		bundleManipulation(tcSessionData);
+		
+		
 		if (!verifyGet(request, response, tcSessionData, requestedAction)) {
 			return;	// Quick return to simplify code
 		}
@@ -245,6 +262,8 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 	}
 
+
+
 	/**
 	 * Verifies if the request is valid; if so, this initializes Google Drive so
 	 * the browser may make requests to see resources associated with the given
@@ -256,8 +275,10 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response)
 	throws ServletException, IOException 
 	{
+		
 		if (verifyPost(request, response)) {
 			TcSessionData tcSessionData = lockInSession(request);
+			bundleManipulation(tcSessionData);
 			String googleConfigJson = GoogleConfigJsonWriter
 					.getGoogleDriveConfigJsonScript(tcSessionData);
 			request.setAttribute(
@@ -269,6 +290,21 @@ public class GoogleLtiServlet extends HttpServlet {
 
 
 	// Private methods ----------------------------------------------
+	private void bundleManipulation(TcSessionData tcSessionData) {
+		String language=null;
+		String country=null;
+		String locale = tcSessionData.getLocale();
+		StringTokenizer tempStringTokenizer = new StringTokenizer(locale,"_");
+		if(tempStringTokenizer.hasMoreTokens()) {
+			language = tempStringTokenizer.nextToken();
+		}
+		if(tempStringTokenizer.hasMoreTokens()) {
+			country = tempStringTokenizer.nextToken();
+		}
+		
+		resource = ResourceBundle.getBundle("googleDriveLTIProps",new Locale(language,country));
+		
+	}
 
 	/**
 	 * Saves relationship of folder and site in database, and returns the
@@ -286,6 +322,18 @@ public class GoogleLtiServlet extends HttpServlet {
 				tcSessionData.getUserEmailAddress(),
 				tcSessionData.getUserId(),
 				folderId);
+		/*try {
+			System.out.println("Settings Serivce"+SettingsClientUtils.setSetting(tcSessionData, newLink.toString()));
+		} catch (ServletException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			String getLinking = SettingsClientUtils.getSettingString(tcSessionData);
+			System.out.println("getting setting: "+getLinking);
+		} catch (ServletException e) {
+			e.printStackTrace();
+		}*/
 		TcSiteToGoogleStorage.addLink(newLink);
 		response.getWriter().print(
 				GoogleConfigJsonWriter.getGoogleDriveConfigJson(tcSessionData));
@@ -706,6 +754,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		} catch (Exception err) {
 			err.printStackTrace();
 		}
+		
 	}
 
 	/**
@@ -839,6 +888,26 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (jspPage.verifyAllowedRoles(tcSessionData.getUserRoleArray())) {
 			request.setAttribute("jspPage", jspPage);
 			retrieveGoogleDriveConfigFromSession(tcSessionData, request);
+			
+			request.setAttribute("search",resource.getString("gd.search"));
+			request.setAttribute("linkingViewInfo",resource.getString("gd.linking.view.info"));
+			request.setAttribute("createAndLinkButton",resource.getString("gd.create.link.button"));
+			
+			request.setAttribute("info",resource.getString("gd.linked.view.info"));
+			request.setAttribute("studentInfo",resource.getString("gd.student.view.info"));
+			request.setAttribute("deleteButton",resource.getString("gd.delete.button"));
+			request.setAttribute("addButton",resource.getString("gd.add.button"));
+			
+			request.setAttribute("header2",resource.getString("gd.header2"));
+			request.setAttribute("about",resource.getString("gd.header3.about"));
+			request.setAttribute("help",resource.getString("gd.header4.help"));
+			request.setAttribute("loggedMsg",resource.getString("gd.logged.in"));
+			request.setAttribute("studentAccessMsg",resource.getString("gd.student.view.access.msg"));
+			request.setAttribute("linkFolderButton",resource.getString("gd.link.folder.button"));
+			request.setAttribute("unlinkFolderButton",resource.getString("gd.unlink.button"));
+			
+			
+			
 			getServletContext()
 					.getRequestDispatcher("/view/root.jsp")
 					.forward(request, response);

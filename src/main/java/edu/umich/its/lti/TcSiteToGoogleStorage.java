@@ -37,7 +37,7 @@ public class TcSiteToGoogleStorage {
 	// Static public methods ----------------------------------------
 
 	/**
-	 * Adds link of site with Google folder, iff there is no otherLink where
+	 * Adds link of site with Google folder, if there is no otherLink where
 	 * link.equals(otherLink).
 	 * 
 	 * @param newLink Link to add

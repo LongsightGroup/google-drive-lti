@@ -104,7 +104,7 @@ function showLinkedGoogleFolder(folderId) {
 }
 
 /**
- * Displays the given folde on the page, so the user can open it in another
+ * Displays the given folder on the page, so the user can open it in another
  * window, and runs query for getting its children.
  * 
  * See showLinkedGoogleFolders() for description of this function's responsibilities.
@@ -396,15 +396,21 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 		// Do nothing, as the response does not show association succeeded
 		return;	// Quick return to simpify code
 	}
+	
 	if (!unlinked) {
 		var sendNotificationEmails = confirm('Site linked to folder "'
 				+ folderTitle
 				+ '", and will give the roster access.  '
 				+ 'Send email to notify people about their new permissions?');
-		giveRosterReadOnlyPermissions(folderId, sendNotificationEmails);
+		giveRosterReadOnlyPermissions(folderId, sendNotificationEmails,function(){
+		openPage('Home');
+		});
 		removeLinkedFolderFromLinkingTable(folderId);
+		
 	} else {
-		removeRosterPermissions(folderId);
+		removeRosterPermissions(folderId,function(){
+			openPage('LinkFolder');
+		});
 		removeUnlinkedFileTreeFromTable(folderId);
 		alert('Folder "'
 				+ folderTitle + '" was unlinked from the site: '
@@ -527,10 +533,11 @@ function unlinkFolderToSite(folderId, callback) {
  * Sends request to TP to give people in the roster read-only access to the
  * given folder (people with higher permissions are not affected by this call).
  */
-function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
+function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails,callback) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
+		async:false,
 		data: getUpdateLtiParams(
 				folderId,
 				"giveRosterAccessReadOnly",
@@ -539,6 +546,7 @@ function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
 			if ($.trim(data) !== '') {
 				alert(data);
 			}
+			callback();
 		}
 	});
 }
@@ -579,10 +587,11 @@ function giveCurrentUserReadOnlyPermissions(folderId) {
  * Removes permissions for people in the roster to the given folder.
  * Permissions for the instructor and owners of the folder are not affected.
  */
-function removeRosterPermissions(folderId) {
+function removeRosterPermissions(folderId,callback) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
+		async:false,
 		data: getUpdateLtiParams(
 				folderId,
 				"removeRosterAccess",
@@ -591,6 +600,7 @@ function removeRosterPermissions(folderId) {
 			if ($.trim(data) !== '') {
 				alert(data);
 			}
+			callback();
 		}
 	});
 }
@@ -706,7 +716,7 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
 	  <img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
     <td> \
-      <a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">Link Folder</a> \
+      <a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
     </td> \
 	</tr>';
 
@@ -897,11 +907,11 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	var actionTitle = null;
 	var actionOnClick = '';
 	if (getIsInstructor() && isFolder && (treeDepth === 0)) {
-		actionTitle = 'Unlink';
+		actionTitle = unlinkFolderButton;
 		actionOnClick = 'unlinkFolderFromSite(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\');';
 	} else {
 		if (getIsInstructor()) {
-			actionTitle = 'Delete';
+			actionTitle = deleteFolderButton;
 			actionOnClick = 'deleteGoogleFile(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\', \'' + escapeAllQuotes(file.mimeType) + '\');';
 		}
 	}
@@ -1112,6 +1122,7 @@ function findFileInFileTreeTable(fileId) {
  * still unlinked.
  */
 function removeLinkedFolderFromLinkingTable(linkedFolderId) {
+	alert("Surely");
 	$('#' + getLinkingTableRowIdForFolder(linkedFolderId)).remove();
 }
 

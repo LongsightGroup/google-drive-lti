@@ -4,6 +4,11 @@ contents, and footers.
 --%>
 <%@page isELIgnored="false" %>
 <%@page import="edu.umich.its.lti.TcSessionData"%>
+<%TcSessionData data = (TcSessionData)request.getAttribute("TcSessionData");
+String linkFolderButton =(String)request.getAttribute("linkFolderButton");
+String unlinkFolderButton =(String)request.getAttribute("unlinkFolderButton");
+String deleteButton =(String)request.getAttribute("deleteButton");
+%>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -19,6 +24,11 @@ contents, and footers.
     <link href="css/google-drive-lti.css" rel="stylesheet">
     <script>
       ${requestScope.GoogleDriveConfigJson}
+    </script>
+    <script type="text/javascript">
+    var linkFolderButton='<%=linkFolderButton%>';
+    var unlinkFolderButton='<%=unlinkFolderButton %>';
+    var deleteFolderButton='<%=deleteButton %>';
     </script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" type="text/javascript"></script>
     <script src="js/utils.js" type="text/javascript"></script>
@@ -38,14 +48,13 @@ contents, and footers.
           <div class="nav-collapse collapse">
             <p class="navbar-text pull-right">
 <%
-	TcSessionData data = (TcSessionData)request.getAttribute("TcSessionData");
 	String username = data.getUserNameFull();
 	if (username == null) {
 		username = data.getUserSourceDid();
 	}
 	if (username != null) {
 %>
-              Logged in as <a href="#" class="navbar-link"><%=username%></a>
+              ${loggedMsg} <a href="#" class="navbar-link">&nbsp;<%=username%></a>
 <%
 	}
 %>
@@ -54,12 +63,12 @@ contents, and footers.
 <%
 	if (data.getIsInstructor()) {
 %>
-              <li class="active"><a onclick="openPage('LinkFolder');">Link Folder</a></li>
+              <li class="active"><a onclick="openPage('LinkFolder');">${header2}</a></li>
 <%
 	}
 %>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Help</a></li>
+              <li><a href="#about">${about}</a></li>
+              <li><a href="#contact">${help}</a></li>
             </ul>
           </div>
         </div>
@@ -78,7 +87,7 @@ contents, and footers.
       %>
       <%if(role.equals("Learner")){%>
         <footer>
-        <p>Users will have View (Read Only) access.</p>
+        <p>${studentAccessMsg}.</p>
         </footer>
         <%} %>
     </div>  

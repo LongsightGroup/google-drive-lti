@@ -1,8 +1,9 @@
 <%@page import="edu.umich.its.lti.TcSessionData"%>
+
 <div style="display: none;">
   <div id="FolderDropdownTemplate">
        <div class="dropdown">
-         <a class="dropdown-toggle btn btn-small" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="/page.html">Add <b class="caret"></b>
+         <a class="dropdown-toggle btn btn-small" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="/page.html">${addButton} <b class="caret"></b>
          </a>
          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 <%
@@ -39,7 +40,7 @@
 				    parent to the linked folder
 			*/
 %>
-           <li><a tabindex="-1" onclick="openDialogToCreateFile('<%=fileTypeLowerCase%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">Add <%=fileType%></a></li>
+           <li><a tabindex="-1" onclick="openDialogToCreateFile('<%=fileTypeLowerCase%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton} <%=fileType%></a></li>
 <%
 		}
 	}
@@ -52,8 +53,8 @@
 	if (((TcSessionData)request.getAttribute("TcSessionData")).getIsInstructor()) {
 %>
     <div class="row-fluid header-controls">
-            <h3>${requestScope.jspPage.pageTitle    }</h3>
-            <p class="muted pull-left">Share Google Files With Your Site</p>
+            <h3>${requestScope.jspPage.pageTitle}</h3>
+            <p class="muted pull-left">${requestScope.info}</p>
             <p class="pull-right " >
                 <a class="btn btn-primary btn-small" onclick="openPage('LinkFolder');">Link Google Folder</a>
             </p>
@@ -61,7 +62,7 @@
 <%
     } else {
 %>
-            <h3>Google Drive items shared with this site</h3>
+            <h3>${studentInfo}</h3>
 
 <%
     }

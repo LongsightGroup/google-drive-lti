@@ -4,20 +4,20 @@
                 </div>
                 <div class="pull-right">
                     <br>
-                    <a href="#" class="btn btn-primary btn-small" onclick="assignNewFolder();">Create & Link Folder</a>
+                    <a href="#" class="btn btn-primary btn-small" onclick="assignNewFolder();">${createAndLinkButton}</a>
                     <a class="btn btn-primary btn-small" onclick="openPage('Home');">Back</a>
                 </div>
             </div>
             
             <div class="clearfix">
                 <div class="pull-left">
-                    <p class="muted">Create a new Google  folder or select a folder below to link</p>
+                    <p class="muted">${linkingViewInfo}</p>
                 </div>   
                 <div class="pull-right">
                   	<form class="form-search">
                       <div class="input-append" style="margin-right:73px">
                         <input id="UnlinkedFolderSearchInput" type="text" class="span12 search-query">
-                        <button type="button" class="btn" onclick="searchUnlinkedFoldersOwnedByMe();">Search</button>
+                        <button type="button" class="btn" onclick="searchUnlinkedFoldersOwnedByMe();">${requestScope.search}</button>
                       </div>
                     </form>
                   <!-- TODO: Remove this div : page layout will need to be fixed
