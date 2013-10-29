@@ -479,6 +479,25 @@ function requestGoogleAccessToken() {
 	return result;
 }
 
+
+function checkBackButtonHit(){
+	$.ajax({
+		url:getPageUrl(),
+		type:'GET',
+		cache:false,
+		data:getUpdateLtiParams(
+				"",
+				"checkBackButton",
+				  false),
+				  success:function(data){
+					  if ($.trim(data) === 'SUCCESS') {
+						  openPage('Home');
+					  }
+					 
+				  }
+	});
+}
+
 /**
  * Link the given Google Folder to the site
  */

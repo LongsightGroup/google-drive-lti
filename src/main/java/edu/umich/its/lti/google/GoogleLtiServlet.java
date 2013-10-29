@@ -25,6 +25,7 @@ import com.google.api.services.drive.model.Permission;
 
 import edu.umich.its.google.oauth.GoogleSecurity;
 import edu.umich.its.google.oauth.GoogleServiceAccount;
+import edu.umich.its.lti.GoogleCache;
 import edu.umich.its.lti.TcSessionData;
 import edu.umich.its.lti.TcSiteToGoogleLink;
 import edu.umich.its.lti.TcSiteToGoogleLinks;
@@ -136,7 +137,7 @@ public class GoogleLtiServlet extends HttpServlet {
 
 
 	// Constants -----------------------------------------------------
-
+   
 	private static final long serialVersionUID = -21239787L;
 	private static final Logger M_log =
 			Logger.getLogger(GoogleLtiServlet.class.toString());
@@ -153,6 +154,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	// Special request to monitor this service is alive: this returns "Hi"
 	private static final String PARAM_ACTION_VERIFY_SERVICE_IS_ALIVE =
 			"checkServiceIsAlive";
+	private static final String PARAM_ACTION_CHECK_BACK_BUTTON =
+			"checkBackButton";
 	private static final String PARAM_ACTION_LINK_GOOGLE_FOLDER =
 			"linkGoogleFolder";
 	private static final String PARAM_ACTION_UNLINK_GOOGLE_FOLDER =
@@ -232,6 +235,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			return;
 		}
 		TcSessionData tcSessionData = retrieveLockFromSession(request);
+		
 		bundleManipulation(tcSessionData);
 		
 		
@@ -240,7 +244,10 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 		if (PARAM_ACTION_LINK_GOOGLE_FOLDER.equals(requestedAction)) {
 			linkGoogleFolder(request, response, tcSessionData);
-		} else if (PARAM_ACTION_UNLINK_GOOGLE_FOLDER.equals(requestedAction)) {
+		} else if (PARAM_ACTION_CHECK_BACK_BUTTON.equals(requestedAction)) {
+			checkBackButtonHit(request, response, tcSessionData);
+		}
+		  else if (PARAM_ACTION_UNLINK_GOOGLE_FOLDER.equals(requestedAction)) {
 			unlinkGoogleFolder(request, response, tcSessionData);
 		} else if (PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY
 				.equals(requestedAction))
@@ -284,7 +291,11 @@ public class GoogleLtiServlet extends HttpServlet {
 			request.setAttribute(
 					JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
 					googleConfigJson);
+			TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
+			if(link!=null) {
 			loadJspPage(request, response, tcSessionData, JspPage.Home);
+			}else
+				loadJspPage(request, response, tcSessionData, JspPage.LinkFolder);
 		}
 	}
 
@@ -309,53 +320,76 @@ public class GoogleLtiServlet extends HttpServlet {
 	/**
 	 * Saves relationship of folder and site in database, and returns the
 	 * updated Google Drive Configuration json to the browser.
+	 * @throws IOException 
+	 * @throws ServletException 
+	 * @throws Throwable 
 	 */
 	private void linkGoogleFolder(
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws IOException
+	throws IOException, ServletException
 	{
 		String folderId = request.getParameter(PARAM_FILE_ID);
-		TcSiteToGoogleLink newLink = new TcSiteToGoogleLink(
+		 TcSiteToGoogleLink newLink = new TcSiteToGoogleLink(
 				tcSessionData.getContextId(),
 				tcSessionData.getUserEmailAddress(),
 				tcSessionData.getUserId(),
 				folderId);
-		/*try {
-			System.out.println("Settings Serivce"+SettingsClientUtils.setSetting(tcSessionData, newLink.toString()));
-		} catch (ServletException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			String getLinking = SettingsClientUtils.getSettingString(tcSessionData);
-			System.out.println("getting setting: "+getLinking);
-		} catch (ServletException e) {
-			e.printStackTrace();
-		}*/
-		TcSiteToGoogleStorage.addLink(newLink);
-		response.getWriter().print(
+		
+		//TcSiteToGoogleStorage.addLink(newLink);
+		 
+		
+		//settings mapping
+			try {
+				TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData, newLink);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		 response.getWriter().print(
 				GoogleConfigJsonWriter.getGoogleDriveConfigJson(tcSessionData));
+			
 	}
 
 
 	/**
 	 * Removes relationship of folder and site from the database, and returns
 	 * the updated Google Drive Configuration json to the browser.
+	 * @throws ServletException 
 	 */
 	private void unlinkGoogleFolder(
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws IOException
+	throws IOException, ServletException
 	{
 		String folderId = request.getParameter(PARAM_FILE_ID);
-		if (TcSiteToGoogleStorage
+		/*if (TcSiteToGoogleStorage
 				.removeLink(tcSessionData.getContextId(), folderId))
 		{
+			
 			response.getWriter().print(GoogleConfigJsonWriter
 					.getGoogleDriveConfigJson(tcSessionData));
+		}*/
+		
+		if(TcSiteToGoogleStorage.setLinkingToSettingServiceWithNoLinking(tcSessionData)) {
+		response.getWriter().print(GoogleConfigJsonWriter
+				.getGoogleDriveConfigJson(tcSessionData));
+		}
+						
+	}
+	
+	private void checkBackButtonHit(HttpServletRequest request, 
+			                        HttpServletResponse response,
+			                          TcSessionData tcSessionData) 
+	throws IOException, ServletException
+	{
+		TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
+		if(link==null) {
+		response.getWriter().print("NOSUCCESS");
+		}
+		else {
+			response.getWriter().print("SUCCESS");
 		}
 	}
 
@@ -585,6 +619,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			}
 			FolderPermissionsHandler handler =
 					getHandler(request, response, tcSessionData);
+			//google file object
 			File file = handler.getFile();
 			if (file == null) {
 				logError(
@@ -634,9 +669,12 @@ public class GoogleLtiServlet extends HttpServlet {
 		FolderPermissionsHandler result = null;
 		String siteId = tcSessionData.getContextId();
 		String fileId = request.getParameter(PARAM_FILE_ID);
-		TcSiteToGoogleLinks links =
-				TcSiteToGoogleStorage.getLinkedGoogleFolders(siteId);
-		TcSiteToGoogleLink link = null;
+		//TcSiteToGoogleLinks links =TcSiteToGoogleStorage.getLinkedGoogleFolders(siteId);
+		//setting stuff
+		TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
+		
+		//flat file
+		/*TcSiteToGoogleLink link = null;
 		if (links != null) {
 			link = links.getLinkForFolder(fileId);
 			if (link == null) {
@@ -667,6 +705,42 @@ public class GoogleLtiServlet extends HttpServlet {
 			}
 		}
 		String instructorEmailAddress = link.getUserEmailAddress();
+		GoogleCredential googleCredential = null;
+		if (instructorEmailAddress.equalsIgnoreCase(
+				tcSessionData.getUserEmailAddress()))
+		{
+			// Logged in user is instructor: use their access token
+			googleCredential = getGoogleCredential(request);
+		} else {
+			// This is unlikely to happen for whole roster, but will be
+			// useful for code modifying a single student's permissions
+			googleCredential = GoogleSecurity.authorize(
+					getGoogleServiceAccount(),
+					instructorEmailAddress);
+		}
+		Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
+		result = new FolderPermissionsHandler(link, drive, fileId);*/
+		
+		//setting stuff
+		String instructorEmailAddress="";
+		if(link!=null) {
+			 instructorEmailAddress = link.getUserEmailAddress();
+		} else {
+			link = GoogleCache.getInstance().getLinkForSite(siteId);
+			if (link == null) {
+				M_log.warning(
+						"Error: cannot modify permissions to folder #"
+						+ fileId
+						+ " - did not find link with course #"
+						+ tcSessionData.getContextId());
+				logError(
+						response,
+						"Server failed to find link to this Google folder.");
+				return null;
+			}
+			instructorEmailAddress=link.getUserEmailAddress();
+		}
+			
 		GoogleCredential googleCredential = null;
 		if (instructorEmailAddress.equalsIgnoreCase(
 				tcSessionData.getUserEmailAddress()))
@@ -729,9 +803,11 @@ public class GoogleLtiServlet extends HttpServlet {
 			for (int rosterIdx = 0; rosterIdx < roster.size(); rosterIdx++) {
 				String userEmailAddress = roster.get(rosterIdx);
 				// TODO: consider doing formal check this is valid email address
+				boolean isEmpty = getIsEmpty(userEmailAddress);
+				boolean isInstructor = handler.getIsInstructor(userEmailAddress);
 				if (
-						!getIsEmpty(userEmailAddress)
-						&& !handler.getIsInstructor(userEmailAddress))
+						!isEmpty
+						&& !isInstructor)
 				{
 					// If result not null, the user has permission >= inserted
 					Permission permission = handler.insertPermission(
@@ -930,7 +1006,7 @@ public class GoogleLtiServlet extends HttpServlet {
 
 	// Inner classes ------------------------------------------------
 
-
+    //Talking to google with respect to permission insertion and deletion
 	private class FolderPermissionsHandler {
 		// Instance variables ---------------------------------------
 
@@ -1040,3 +1116,4 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 	}
 }
+

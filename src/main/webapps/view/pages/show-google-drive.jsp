@@ -56,7 +56,7 @@
             <h3>${requestScope.jspPage.pageTitle}</h3>
             <p class="muted pull-left">${requestScope.info}</p>
             <p class="pull-right " >
-                <a class="btn btn-primary btn-small" onclick="openPage('LinkFolder');">Link Google Folder</a>
+               <!--  <a class="btn btn-primary btn-small" onclick="openPage('LinkFolder');">Link Google Folder</a>-->
             </p>
     </div>
 <%

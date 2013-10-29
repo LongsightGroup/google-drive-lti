@@ -9,8 +9,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import edu.umich.its.lti.utils.SettingsClientUtils;
 
 /**
  * This class manages persistence of relationships between TC sites and Google
@@ -34,7 +38,50 @@ public class TcSiteToGoogleStorage {
 	private static String storageFolder = null;
 
 
+
 	// Static public methods ----------------------------------------
+	
+	/**
+	 * Adding google linked folder to setting service
+	 * @return 
+	 * @throws IOException 
+	 * @throws Exception 
+	 */
+	public synchronized static Boolean setLinkingToSettingService(TcSessionData tcSessionData, TcSiteToGoogleLink linking) throws  IOException, Exception {
+		Boolean state = false;
+			state= SettingsClientUtils.setSetting(tcSessionData, linking.toString());
+		
+		return state;
+		
+	}
+	
+	public synchronized static Boolean setLinkingToSettingServiceWithNoLinking(TcSessionData tcSessionData) throws  IOException, ServletException {
+		Boolean state = false;
+		
+		    TcSiteToGoogleLink linkBeforeDeletion=null;
+			linkBeforeDeletion = getLinkingFromSettingService(tcSessionData);
+			state= SettingsClientUtils.setSetting(tcSessionData, "");
+			if(state) {
+		   GoogleCache.getInstance().setLinkForSite(tcSessionData.getContextId(), linkBeforeDeletion);
+			}
+		return state;
+		
+	}
+	
+	/**
+	 * Getting the linked folders from the setting service
+	 * @throws ServletException 
+	 * 
+	 * */
+	public synchronized static TcSiteToGoogleLink getLinkingFromSettingService(TcSessionData tcSessionData) throws  IOException, ServletException {
+		TcSiteToGoogleLink result = null;
+			String linkedGoogleFolder = SettingsClientUtils.getSettingString(tcSessionData);
+			if(linkedGoogleFolder!=null) {
+				result=parseLink(linkedGoogleFolder);
+			}
+			
+		return result;
+	}
 
 	/**
 	 * Adds link of site with Google folder, if there is no otherLink where
@@ -269,6 +316,7 @@ public class TcSiteToGoogleStorage {
 	private static String assembleLink(TcSiteToGoogleLink link) {
 		return link.toString();
 	}
+	
 
 	/**
 	 * Parse the given line into a link.  The line is in format:

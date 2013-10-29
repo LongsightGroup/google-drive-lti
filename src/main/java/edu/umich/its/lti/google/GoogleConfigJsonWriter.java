@@ -2,6 +2,8 @@ package edu.umich.its.lti.google;
 
 import java.io.IOException;
 
+import javax.servlet.ServletException;
+
 import edu.umich.its.lti.TcSessionData;
 import edu.umich.its.lti.TcSiteToGoogleLink;
 import edu.umich.its.lti.TcSiteToGoogleLinks;
@@ -86,7 +88,7 @@ public class GoogleConfigJsonWriter {
 			TcSessionData tcSessionData,
 			StringBuilder result)
 	{
-		result.append("[");
+		/*result.append("[");
 		try {
 			TcSiteToGoogleLinks links = TcSiteToGoogleStorage
 					.getLinkedGoogleFolders(tcSessionData.getContextId());
@@ -104,6 +106,25 @@ public class GoogleConfigJsonWriter {
 			}
 		} catch (Exception err) {
 			err.printStackTrace();
+		}
+		result.append("]");
+		//System.out.println("What is this :" +result);*/
+		
+		//setting mapping
+		result.append("[");
+		try {
+			TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
+			if(link!=null) {
+				result.append("\"")
+				.append(escapeJson(link.getFolderId()))
+				.append("\"");
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ServletException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		result.append("]");
 	}
