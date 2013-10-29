@@ -1141,7 +1141,6 @@ function findFileInFileTreeTable(fileId) {
  * still unlinked.
  */
 function removeLinkedFolderFromLinkingTable(linkedFolderId) {
-	alert("Surely");
 	$('#' + getLinkingTableRowIdForFolder(linkedFolderId)).remove();
 }
 
