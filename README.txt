@@ -69,6 +69,20 @@ These permissions work for the folder's contents, so documents, sub folders, and
 5. cp target/lti-proxy.war $TOMCAT/webapps
 4. Deploy Sakai's library.war file to $TOMCAT/webapps (until this dependency is resolved)
 
+PLEASE REMEMBER TO REVERT THE BELOW CHANGE BEFORE CHECKING IN TO SVN
+HINT: For local developement in pom.xml add the <plugin> tag under the <plugins> tag, this will automatically deploy to tomcat. while deploy the project use this build command "mvn clean install sakai:deploy -Dmaven.tomcat.home=$TOMCAT_HOME".
+<plugin>
+            <groupId>org.sakaiproject.maven.plugins</groupId>
+            <artifactId>sakai</artifactId>
+            <version>1.4.0</version>
+            <extensions>true</extensions>
+            <inherited>true</inherited>
+            <configuration>
+                <deployDirectory>${maven.tomcat.home}</deployDirectory>
+                <warSourceDirectory>${basedir}/src/main/webapps</warSourceDirectory>
+            </configuration>
+</plugin>
+
 
 [Configuring Google-Drive-LTI in Sakai ]
 ========================================
