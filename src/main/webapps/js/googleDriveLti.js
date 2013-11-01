@@ -41,7 +41,7 @@ var SAVE_LINKS_IN_TP = true;
 var FILTER_FOR_FOLDERS = 'mimeType = \'application/vnd.google-apps.folder\'';
 var SELECTED_FOLDER_INPUT_NAME = 'folderSelectRadio';
 // number of px is multiplied by the file's depth to pad the title
-var FILE_DEPTH_PADDING_PX = 20;
+var FILE_DEPTH_PADDING_PX = 30;
 // Array listing ID of each file's parents, keyed by the child file.  Finding
 // all a file's ancestors can be done by finding file's parent, then finding
 // entry for each parent's parent.
