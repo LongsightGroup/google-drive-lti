@@ -6,7 +6,6 @@ import javax.servlet.ServletException;
 
 import edu.umich.its.lti.TcSessionData;
 import edu.umich.its.lti.TcSiteToGoogleLink;
-import edu.umich.its.lti.TcSiteToGoogleLinks;
 import edu.umich.its.lti.TcSiteToGoogleStorage;
 
 /**
@@ -88,27 +87,6 @@ public class GoogleConfigJsonWriter {
 			TcSessionData tcSessionData,
 			StringBuilder result)
 	{
-		/*result.append("[");
-		try {
-			TcSiteToGoogleLinks links = TcSiteToGoogleStorage
-					.getLinkedGoogleFolders(tcSessionData.getContextId());
-			boolean first = true;
-			if (links != null) {
-				for (TcSiteToGoogleLink link : links) {
-					if (!first) {
-						result.append(",");
-					}
-					result.append("\"")
-							.append(escapeJson(link.getFolderId()))
-							.append("\"");
-					first = false;
-				}
-			}
-		} catch (Exception err) {
-			err.printStackTrace();
-		}
-		result.append("]");
-		//System.out.println("What is this :" +result);*/
 		
 		//setting mapping
 		result.append("[");

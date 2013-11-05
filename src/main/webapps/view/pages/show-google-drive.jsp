@@ -56,7 +56,6 @@
             <h3>${requestScope.jspPage.pageTitle}</h3>
             <p class="muted pull-left">${requestScope.info}</p>
             <p class="pull-right " >
-               <!--  <a class="btn btn-primary btn-small" onclick="openPage('LinkFolder');">Link Google Folder</a>-->
             </p>
     </div>
 <%
@@ -68,18 +67,16 @@
     }
 %>
             
+<div id="spinner" style="display:none"></div>  
              <table class="table table-striped table-bordered table-hover" width="100%">
               <tbody id="FileTreeTableTbody">
              </tbody>
             </table>
-      <div id="spinner" style="display:none"></div>  
 <script type="text/javascript">
 
 // On startup: display Google resources on the screen
 $(document).ready(function() {
-    /*
-     show spinner whenever async actvity takes place
-     */
+     //show spinner whenever async actvity takes place
     $(document).ajaxStart(function(){
         $('#spinner').show();
     });

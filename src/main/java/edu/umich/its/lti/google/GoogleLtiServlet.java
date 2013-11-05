@@ -28,11 +28,9 @@ import edu.umich.its.google.oauth.GoogleServiceAccount;
 import edu.umich.its.lti.GoogleCache;
 import edu.umich.its.lti.TcSessionData;
 import edu.umich.its.lti.TcSiteToGoogleLink;
-import edu.umich.its.lti.TcSiteToGoogleLinks;
 import edu.umich.its.lti.TcSiteToGoogleStorage;
 import edu.umich.its.lti.utils.RequestSignatureUtils;
 import edu.umich.its.lti.utils.RosterClientUtils;
-import edu.umich.its.lti.utils.SettingsClientUtils;
 
 
 /**
@@ -337,9 +335,6 @@ public class GoogleLtiServlet extends HttpServlet {
 				tcSessionData.getUserId(),
 				folderId);
 		
-		//TcSiteToGoogleStorage.addLink(newLink);
-		 
-		
 		//settings mapping
 			try {
 				TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData, newLink);
@@ -363,14 +358,6 @@ public class GoogleLtiServlet extends HttpServlet {
 			TcSessionData tcSessionData)
 	throws IOException, ServletException
 	{
-		String folderId = request.getParameter(PARAM_FILE_ID);
-		/*if (TcSiteToGoogleStorage
-				.removeLink(tcSessionData.getContextId(), folderId))
-		{
-			
-			response.getWriter().print(GoogleConfigJsonWriter
-					.getGoogleDriveConfigJson(tcSessionData));
-		}*/
 		
 		if(TcSiteToGoogleStorage.setLinkingToSettingServiceWithNoLinking(tcSessionData)) {
 		response.getWriter().print(GoogleConfigJsonWriter
@@ -545,26 +532,14 @@ public class GoogleLtiServlet extends HttpServlet {
 	throws ServletException, IOException 
 	{
 		List<String> emailAddresses = getRoster(request, tcSessionData);
-		int count = insertPermissions(
+	 insertPermissions(
 				request,
 				response,
 				tcSessionData,
 				emailAddresses);
 		// Title set in request by insertPermissions: get and clear it
-		String folderTitle = (String)request.getAttribute("folderTitle");
 		request.removeAttribute("folderTitle");
-		StringBuilder sbResponse = new StringBuilder();
-		sbResponse.append("Added permissions for folder \"")
-				.append(folderTitle)
-				.append("\" to ")
-				.append(count)
-				.append((count == 1) ? " person" : " people")
-				.append(" in the roster");
-		if (tcSessionData.getIsInstructor()) {
-			sbResponse.append(" (you already have permissions)");
-		}
-		sbResponse.append(".");
-		response.getWriter().print(sbResponse.toString());
+		response.getWriter().print("SUCCESS");
 	}
 
 	private void insertCurrentUserPermissions(
@@ -669,59 +644,8 @@ public class GoogleLtiServlet extends HttpServlet {
 		FolderPermissionsHandler result = null;
 		String siteId = tcSessionData.getContextId();
 		String fileId = request.getParameter(PARAM_FILE_ID);
-		//TcSiteToGoogleLinks links =TcSiteToGoogleStorage.getLinkedGoogleFolders(siteId);
 		//setting stuff
 		TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
-		
-		//flat file
-		/*TcSiteToGoogleLink link = null;
-		if (links != null) {
-			link = links.getLinkForFolder(fileId);
-			if (link == null) {
-				link = links.getRemovedLinkForFolder(fileId);
-			}
-			if (link == null) {
-				M_log.warning(
-						"Error: cannot modify permissions to folder #"
-						+ fileId
-						+ " - did not find link with course #"
-						+ tcSessionData.getContextId());
-				logError(
-						response,
-						"Server failed to find link to this Google folder.");
-				return null;
-			}
-		} else {
-			if (link == null) {
-				M_log.warning(
-						"Error: cannot modify permissions to folder #"
-						+ fileId
-						+ " - did not find any links with course #"
-						+ tcSessionData.getContextId());
-				logError(
-						response,
-						"Server failed to find link to this Google folder.");
-				return null;
-			}
-		}
-		String instructorEmailAddress = link.getUserEmailAddress();
-		GoogleCredential googleCredential = null;
-		if (instructorEmailAddress.equalsIgnoreCase(
-				tcSessionData.getUserEmailAddress()))
-		{
-			// Logged in user is instructor: use their access token
-			googleCredential = getGoogleCredential(request);
-		} else {
-			// This is unlikely to happen for whole roster, but will be
-			// useful for code modifying a single student's permissions
-			googleCredential = GoogleSecurity.authorize(
-					getGoogleServiceAccount(),
-					instructorEmailAddress);
-		}
-		Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
-		result = new FolderPermissionsHandler(link, drive, fileId);*/
-		
-		//setting stuff
 		String instructorEmailAddress="";
 		if(link!=null) {
 			 instructorEmailAddress = link.getUserEmailAddress();
@@ -820,13 +744,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					}
 				}
 			}
-			response.getWriter().print(
-					"Removed permissions for folder \""
-					+ file.getTitle()
-					+ "\" to "
-					+ updateCount
-					+ ((updateCount == 1) ? " person" : " people")
-					+ " in the roster (you already have permissions).");
+			response.getWriter().print("SUCCESS");
 		} catch (Exception err) {
 			err.printStackTrace();
 		}

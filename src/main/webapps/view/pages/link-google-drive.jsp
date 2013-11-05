@@ -5,7 +5,6 @@
                 <div class="pull-right">
                     <br>
                     <a href="#" class="btn btn-primary btn-small" onclick="assignNewFolder();">${createAndLinkButton}</a>
-                   <!--  <a class="btn btn-primary btn-small" onclick="openPage('Home');">Back</a>-->
                 </div>
             </div>
             

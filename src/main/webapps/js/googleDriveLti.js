@@ -327,24 +327,20 @@ function getIsFolderLinked(folder) {
  */
 function unlinkFolderFromSite(folderId, folderTitle) {
 	if ($.trim(folderId) !== '') {
-		if (confirm('Please confirm unlinking folder "' + folderTitle + '" from the course.'))
-		{
 			unlinkFolderToSite(folderId, function() {
 				notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, false, true);
 			});
-		}
 	}
 }
 
 function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
-	var msg = 'Please confirm deleting file "' + fileTitle + '":  this cannot be undone.';
+	var msg = 'Please confirm deletion of file "' + fileTitle + '": and its contents. this cannot be undone.';
 	var isFolder = getIsFolder(fileMimeType);
 	if (isFolder) {
-		msg = 'Please confirm deleting folder "' + fileTitle + ':  doing this will move the folder and all its children, and cannot be undone.';
+		msg = 'Please confirm deletion of folder "' + fileTitle + ':  and its contents. and cannot be undone.';
 	}
 	if (confirm(msg)) {
 		deleteDriveFile(getGoogleAccessToken(), fileId, function() {
-			alert('The ' + (isFolder ? 'folder' : 'file') + ' has been deleted.');
 			// This is deleted, not unlinked, but the result is essentially the
 			// same on the page (nobody can see it any longer)
 			removeFileTreeFromTable(fileId);
@@ -361,8 +357,7 @@ function assignNewFolder() {
 		return;	// Quick return to simplify code
 	}
 	// This would be the place to avoid duplicate existing file names.
-	if (confirm('Please confirm linking new folder "' + folderTitle + '" with the course.'))
-	{
+	
 		createFile(getGoogleAccessToken(),
 				'',
 				folderTitle,
@@ -379,7 +374,6 @@ function assignNewFolder() {
 				      notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, true, false);
 					});
 				});
-	}
 }
 
 /**
@@ -398,25 +392,14 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 	}
 	
 	if (!unlinked) {
-		var sendNotificationEmails = confirm('Site linked to folder "'
-				+ folderTitle
-				+ '", and will give the roster access.  '
-				+ 'Send email to notify people about their new permissions?');
-		giveRosterReadOnlyPermissions(folderId, sendNotificationEmails,function(){
-		openPage('Home');
-		});
+		var sendNotificationEmails = confirm('Select \'OK\' to SEND EMAIL to notify members');
+		giveRosterReadOnlyPermissions(folderId, sendNotificationEmails);
 		removeLinkedFolderFromLinkingTable(folderId);
 		
 	} else {
-		removeRosterPermissions(folderId,function(){
-			openPage('LinkFolder');
-		});
+		removeRosterPermissions(folderId);
 		removeUnlinkedFileTreeFromTable(folderId);
-		alert('Folder "'
-				+ folderTitle + '" was unlinked from the site: '
-				+ 'permissions were updated in Sakai, and are being removed in '
-				+ 'Google Drive.');
-	}
+		}
 }
 
 function getConfigCourseId() {
@@ -552,20 +535,19 @@ function unlinkFolderToSite(folderId, callback) {
  * Sends request to TP to give people in the roster read-only access to the
  * given folder (people with higher permissions are not affected by this call).
  */
-function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails,callback) {
+function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
-		async:false,
 		data: getUpdateLtiParams(
 				folderId,
 				"giveRosterAccessReadOnly",
 				sendNotificationEmails),
 		success: function(data) {
-			if ($.trim(data) !== '') {
-				alert(data);
+			if ($.trim(data) == 'SUCCESS') {
+				openPage('Home');
 			}
-			callback();
+			
 		}
 	});
 }
@@ -606,20 +588,18 @@ function giveCurrentUserReadOnlyPermissions(folderId) {
  * Removes permissions for people in the roster to the given folder.
  * Permissions for the instructor and owners of the folder are not affected.
  */
-function removeRosterPermissions(folderId,callback) {
+function removeRosterPermissions(folderId) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
-		async:false,
 		data: getUpdateLtiParams(
 				folderId,
 				"removeRosterAccess",
 				false),
 		success: function(data) {
-			if ($.trim(data) !== '') {
-				alert(data);
+			if ($.trim(data) === 'SUCCESS') {
+				openPage('LinkFolder');
 			}
-			callback();
 		}
 	});
 }
@@ -792,7 +772,7 @@ function linkFolder(folderId, folderTitle) {
 			// Error getting linked folder...
 			notifyUserFolderCannotBeLinked(folderTitle, 'this is ' + folderRelationship.type + ' of a linked folder.');
 		})
-	} else if (confirm('Please confirm linking folder ' + folderTitle + ' with the course.'))
+	} else 
 	{
 		linkFolderToSite(folderId, function() {
 			notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, false, false);
@@ -1153,7 +1133,7 @@ function removeLinkedFolderFromLinkingTable(linkedFolderId) {
 function removeFileTreeFromTable(fileId) {
 	$('#FileTreeTableTbody').find('tr.' + getClassForFoldersChildren(fileId)).each(
 			function() {
-				removeFileTreeFromTable(getFileIdFromTableRowId($(this).id));
+				removeFileTreeFromTable(getFileIdFromTableRowId(this.id));
 			});
 	$('#' + getTableRowIdForFile(fileId)).remove();
 }
@@ -1183,7 +1163,7 @@ function getClassForLinkedFolder(linkedFolderId) {
  * @returns {String}
  */
 function getClassForFoldersChildren(parentFolderId) {
-	return 'child-of-' + $.trim(parentFolderId);
+		return 'child-of-' + $.trim(parentFolderId);
 }
 
 /**
