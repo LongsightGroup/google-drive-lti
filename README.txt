@@ -33,6 +33,9 @@ These permissions work for the folder's contents, so documents, sub folders, and
    googleDriveLti.service.account.client.id=
    googleDriveLti.service.account.email.address=
    googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
+   
+   ## LTI password property
+   googleDriveLti.service.account.lti.secret=
 
 4a. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
 
