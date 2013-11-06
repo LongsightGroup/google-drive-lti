@@ -77,6 +77,7 @@ String deleteButton =(String)request.getAttribute("deleteButton");
     <div class="container-fluid">
       <div class="row-fluid">
         <div class="span12">
+        <div id="spinner" style="display:none"></div>  
           <div class="grey_container">
           	<jsp:include page="${requestScope.jspPage.pageFileUrl}" flush="false"/>
           </div>  

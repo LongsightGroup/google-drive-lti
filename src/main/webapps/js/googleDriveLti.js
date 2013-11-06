@@ -97,10 +97,11 @@ function showLinkedGoogleFolder(folderId) {
 			},
 			function(data, textStatus, jqXHR) {
 				// Handle error...
-				if (data.status == 404) {
+				if (data.status === 404) {
 					giveCurrentUserReadOnlyPermissions(folderId)
 				}
 			});
+	
 }
 
 /**
@@ -220,7 +221,6 @@ function searchUnlinkedFoldersOwnedByMe() {
 	if ($.trim(searchValue) !== '') {
 		query = query + " AND title contains '" + escapeSingleQuotes(searchValue) + "'";
 	}
-	unlinkedFoldersOwnedByMeNextPageUrl = null;
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
 			function(data) {
 				emptyUnlinkedFoldersTable();
@@ -228,14 +228,12 @@ function searchUnlinkedFoldersOwnedByMe() {
 			});
 }
 
-var unlinkedFoldersOwnedByMeNextPageUrl = null;
 
 /**
  * When called as result of AJAX call, this displays the folders on the screen:
  * see searchUnlinkedFoldersOwnedByMe() for details.
  */
 function searchUnlinkedFoldersOwnedByMeCallback(data, courseId) {
-	unlinkedFoldersOwnedByMeNextPageUrl = null;
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
 	{
 		var files = sortFilesByTitle(data.items);
@@ -248,15 +246,7 @@ function searchUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 				addFolderToLinkFolderTable(file);
 			}
 		}
-		// Only setting variable after adding all the received files, so
-		// scrollbar events do not consider launching request for more data
-		// before the table is complete
-		if (typeof(data.nextLink) === 'string') {
-			unlinkedFoldersOwnedByMeNextPageUrl = data.nextLink;
-		}
-		// Checking right away, in case scroll bar is already very close to the
-		// bottom
-		setTimeout(handleNeedToGetMoreUnlinkedFolders(), 500);
+		
 	}
 }
 
@@ -267,41 +257,7 @@ function emptyUnlinkedFoldersTable() {
 	$('#LinkFolderTableTbody').empty();
 }
 
-/**
- * This function checks if scrollbar is near bottom, and launches request for
- * more Google folders in that case.
- */
-function handleNeedToGetMoreUnlinkedFolders() {
-	if (getIsCloseToBottomOfUnlinkedTable()) {
-		listUnlinkedFoldersOwnedByMeNextPage();
-	}
-}
 
-/**
- * Convenient method for checking if the scrollbar is close enough to the bottom
- * to cause loading more data with paging
- * 
- * @returns {Boolean} true if the page's scrollbar is close to the bottom
- */
-function getIsCloseToBottomOfUnlinkedTable() {
-	return getDistanceFromBottomOfScroll() < 40;
-}
-
-/**
- * Makes request to Google to get additional unlinked folders, if the variable
- * unlinkedFoldersOwnedByMeNextPageUrl is not null.
- */
-function listUnlinkedFoldersOwnedByMeNextPage() {
-	if (unlinkedFoldersOwnedByMeNextPageUrl === null) {
-		return; // No next page to request: quick return
-	}
-	var url = unlinkedFoldersOwnedByMeNextPageUrl;
-	unlinkedFoldersOwnedByMeNextPageUrl = null;
-	getResponsePage(getGoogleAccessToken(), url,
-			function(data) {
-				searchUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
-			});
-}
 
 /**
  * Returns true if the folder is linked to the site.
@@ -573,9 +529,6 @@ function giveCurrentUserReadOnlyPermissions(folderId) {
 						getGoogleAccessToken(),
 						folderId,
 						function(data) {
-							// Commented out, as this may result in many alerts if user needs access to several folders
-							//alert('Folder "' + data.title + '" was retrieved, and will show now.');
-
 							// Linked folders are all depth 0 (no parents)
 							showLinkedGoogleFoldersCallback(data, 0);
 						});
@@ -738,7 +691,6 @@ function addFolderToLinkFolderTable(folder) {
 			.replace(/\[GoogleIconLink\]/g, folder.iconLink)
 			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder));
 	$(newEntry).appendTo('#LinkFolderTableTbody');
-    resizeFrame('grow')
 }
 
 /**
@@ -950,7 +902,6 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	} else {
 		if (!addFileInOrderWithSiblings(newEntry, file.title, $('#FileTreeTableTbody tr'))) {
 			$(newEntry).appendTo('#FileTreeTableTbody');
-            resizeFrame('grow')
 		}
 	}
 }
@@ -1188,3 +1139,16 @@ function getFileIdFromTableRowId(tableRowId) {
 function getLinkingTableRowIdForFolder(folderId) {
 	return 'LinkedFolderTrGoogleFolder' + folderId;
 }
+
+/*
+ show spinner whenever async actvity takes place
+ */
+$(document).ready(function(){
+    $(document).ajaxStart(function(){
+    $('#spinner').show();
+});
+$(document).ajaxStop(function(){
+    $('#spinner').hide();
+});
+})
+

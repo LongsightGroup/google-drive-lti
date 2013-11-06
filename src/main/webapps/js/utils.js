@@ -160,63 +160,13 @@ function isScrolledIntoView($elem)
       && (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
 }
 
-/**
- * @returns <iframe> this window belongs to; null if this window is top.
- */
-function findMyIframe() {
-	var result = null;
-	var $window = $(window);
-	var parentWindow = window.parent;
-	if (parentWindow != null) {
-		$(parentWindow.document).find('iframe').each(function () {
-			if ($(this).contents()[0] === window.document) {
-				result = this;
-				return false;
-			}
-		});
-	}
-	return result;
-}
+
 
 /**
  * resize the iframe based on the contained document height.
  * used after DOM operations that add or substract to the doc height
  */
-var resizeFrame = function(updown){
-    var clientH;
-    
-    if (top.location !== self.location) {
-        var frame = findMyIframe();
-        //var frame = parent.document.getElementById(window.name);
-    }
-    if (frame) {
-        if (updown === 'shrink') {
-            clientH = document.body.clientHeight;
-        }
-        else {
-            clientH = document.body.clientHeight + 550;
-        }
-    }
-    else {
-        // throw( "resizeFrame did not get the frame (using name=" + window.name + ")" );
-    }
-    $(frame).height(clientH);
-};
 
-/**
- * Returns true if scrollbar is near to the bottom, counting for this as top
- * window or iframe.
- * 
- * @param offset Buffer from exact bottom to count for
- * @returns {Boolean}
- */
-function getDistanceFromBottomOfScroll() {
-	var frameHeight = 0;
-	var myIframe = findMyIframe();
-	if (myIframe != null) {
-		frameHeight = $(myIframe).height();
-	}
-	// Could subtract from window height instead of from document height: they were equal in my testing
-	return ($(document).height() - ($(window).scrollTop() + frameHeight));
-}
+
+
 

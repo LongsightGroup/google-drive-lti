@@ -67,7 +67,6 @@
     }
 %>
             
-<div id="spinner" style="display:none"></div>  
              <table class="table table-striped table-bordered table-hover" width="100%">
               <tbody id="FileTreeTableTbody">
              </tbody>
@@ -76,14 +75,7 @@
 
 // On startup: display Google resources on the screen
 $(document).ready(function() {
-     //show spinner whenever async actvity takes place
-    $(document).ajaxStart(function(){
-        $('#spinner').show();
-    });
-    $(document).ajaxStop(function(){
-        $('#spinner').hide();
-    });
-	showLinkedGoogleFolders();
+    	showLinkedGoogleFolders();
 });
 
 </script>

@@ -41,15 +41,12 @@
                </tbody>
             </table>
            
-
 <script type="text/javascript">
 
 	$(document).ready(function() {
+		
 		getAncestorsForLinkedFolders();
 		searchUnlinkedFoldersOwnedByMe();
-		$(window).scroll(function(e) {
-			handleNeedToGetMoreUnlinkedFolders();
-		});
 		checkBackButtonHit();
 	});
 
