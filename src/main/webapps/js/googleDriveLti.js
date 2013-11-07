@@ -290,10 +290,10 @@ function unlinkFolderFromSite(folderId, folderTitle) {
 }
 
 function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
-	var msg = 'Please confirm deletion of file "' + fileTitle + '": and its contents. this cannot be undone.';
+	var msg = 'Click OK to confirm deletion of  "' + fileTitle + '". This can\'t be undone.';
 	var isFolder = getIsFolder(fileMimeType);
 	if (isFolder) {
-		msg = 'Please confirm deletion of folder "' + fileTitle + ':  and its contents. and cannot be undone.';
+		msg = 'Click OK to confirm deletion of  "' + fileTitle + '"  and its contents. This can\'t be undone.';
 	}
 	if (confirm(msg)) {
 		deleteDriveFile(getGoogleAccessToken(), fileId, function() {
