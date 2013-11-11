@@ -8,6 +8,12 @@ contents, and footers.
 String linkFolderButton =(String)request.getAttribute("linkFolderButton");
 String unlinkFolderButton =(String)request.getAttribute("unlinkFolderButton");
 String deleteButton =(String)request.getAttribute("deleteButton");
+String undoneCopy =(String)request.getAttribute("undoneCopy");
+String deleteUndoneFolderCopy =(String)request.getAttribute("deleteUndoneFolderCopy");
+String deleteFileFolderCopy =(String)request.getAttribute("deleteFileFolderCopy");
+String createFolderCopy =(String)request.getAttribute("createFolderCopy");
+String createFileCopy =(String)request.getAttribute("createFileCopy");
+String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 %>
 <html lang="en">
 <head>
@@ -29,6 +35,13 @@ String deleteButton =(String)request.getAttribute("deleteButton");
     var linkFolderButton='<%=linkFolderButton%>';
     var unlinkFolderButton='<%=unlinkFolderButton %>';
     var deleteFolderButton='<%=deleteButton %>';
+    var undoneCopy='<%=undoneCopy %>';
+    var deleteUndoneFolderCopy='<%=deleteUndoneFolderCopy %>';
+    var deleteFileFolderCopy='<%=deleteFileFolderCopy %>';
+    var createFolderCopy='<%=createFolderCopy %>';
+    var createFileCopy='<%=createFileCopy %>';
+    var sendEmailCopy='<%=sendEmailCopy %>';
+    
     </script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" type="text/javascript"></script>
     <script src="js/utils.js" type="text/javascript"></script>

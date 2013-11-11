@@ -900,6 +900,13 @@ public class GoogleLtiServlet extends HttpServlet {
 			request.setAttribute("linkFolderButton",resource.getString("gd.link.folder.button"));
 			request.setAttribute("unlinkFolderButton",resource.getString("gd.unlink.button"));
 			
+			request.setAttribute("undoneCopy",resource.getString("gd.delete.undone"));
+			request.setAttribute("deleteUndoneFolderCopy",resource.getString("gd.delete.undone.folder"));
+			request.setAttribute("deleteFileFolderCopy",resource.getString("gd.delete.file.folder"));
+			request.setAttribute("createFolderCopy",resource.getString("gd.create.folder"));
+			request.setAttribute("createFileCopy",resource.getString("gd.create.file"));
+			request.setAttribute("sendEmailCopy",resource.getString("gd.send.email"));
+			
 			
 			
 			getServletContext()

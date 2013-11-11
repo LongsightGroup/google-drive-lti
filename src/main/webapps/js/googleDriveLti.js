@@ -290,10 +290,10 @@ function unlinkFolderFromSite(folderId, folderTitle) {
 }
 
 function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
-	var msg = 'Click OK to confirm deletion of  "' + fileTitle + '". This can\'t be undone.';
+	var msg = deleteFileFolderCopy + fileTitle + undoneCopy;
 	var isFolder = getIsFolder(fileMimeType);
 	if (isFolder) {
-		msg = 'Click OK to confirm deletion of  "' + fileTitle + '"  and its contents. This can\'t be undone.';
+		msg = deleteFileFolderCopy + fileTitle + deleteUndoneFolderCopy;
 	}
 	if (confirm(msg)) {
 		deleteDriveFile(getGoogleAccessToken(), fileId, function() {
@@ -308,7 +308,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
  * Creates new folder with "My Drive" as its parent. 
  */
 function assignNewFolder() {
-	var folderTitle = prompt('Please enter title new folder',getConfigCourseTitle());
+	var folderTitle = prompt(createFolderCopy,getConfigCourseTitle());
 	if ($.trim(folderTitle) === '') {
 		return;	// Quick return to simplify code
 	}
@@ -348,7 +348,7 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 	}
 	
 	if (!unlinked) {
-		var sendNotificationEmails = confirm('Select \'OK\' to SEND EMAIL to notify members');
+		var sendNotificationEmails = confirm(sendEmailCopy);
 		giveRosterReadOnlyPermissions(folderId, sendNotificationEmails);
 		removeLinkedFolderFromLinkingTable(folderId);
 		
@@ -577,7 +577,7 @@ function getUpdateLtiParams(folderId, requestedAction, sendNotificationEmails) {
 
 function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 {
-	var title = prompt('Please enter title for the new ' + fileType, '');
+	var title = prompt(createFileCopy + ' ' + fileType, '');
 	if ($.trim(title) === '') {
 		return;	// Quick return to simplify code
 	}
