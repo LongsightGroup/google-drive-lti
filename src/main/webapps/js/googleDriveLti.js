@@ -577,7 +577,7 @@ function getUpdateLtiParams(folderId, requestedAction, sendNotificationEmails) {
 
 function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 {
-	var title = prompt(createFileCopy + ' ' + fileType, '');
+	var title = prompt(createFileCopy + '' + fileType, '');
 	if ($.trim(title) === '') {
 		return;	// Quick return to simplify code
 	}
