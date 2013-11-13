@@ -137,12 +137,7 @@ public class GoogleConfigJsonWriter {
 		result.append(" \"name\" : \"")
 				.append(escapeJson(tcSessionData.getUserNameFull()))
 				.append("\"");
-		// 1b - email address
-/*		String userEmailAddress = escapeJson(getUserEmailAddress());
-		result.append(", \"emailAddress\" : '")
-				.append(userEmailAddress)
-				.append("'");*/
-		// 1c - roles
+		// 1b - roles
 		String[] roleArray = tcSessionData.getUserRoleArray();
 		result.append(", \"roles\" : [ ");
 		for (int idx = 0; idx < roleArray.length; idx++) {
