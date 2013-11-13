@@ -209,8 +209,6 @@ public class GoogleServiceAccount {
 				+ getEmailAddress()
 				+ "\", p12FilePath=\""
 				+ getPrivateKeyFilePath()
-				+"\", ltiSecret=\""
-				+ getLtiSecret()
 				+ "\", scopes=\""
 				+ getScopes()
 				+ "\"]";

@@ -45,21 +45,24 @@ import edu.umich.its.lti.utils.RosterClientUtils;
  *
  **/
 public class GoogleLtiServlet extends HttpServlet {
-	static ResourceBundle resource;
 	
+	private static String GOOGLE_DRIVE="";
+	private static String LINK_GOOGLE_DRIVE="";
+	static ResourceBundle resource;
 	
 	// Enum ---------------------------------------------------------
 
 	// Specifications for different JSP pages used by the LTI.  This is passed
 	// to root JSP files with properties to manage display of the page contents.
 	public enum JspPage {
+		
 		// Home page shows Google Resources with functions to act upon them
-		Home("pages/show-google-drive.jsp", "Google Drive", null),
+		Home("pages/show-google-drive.jsp", GOOGLE_DRIVE, null),
 		// Link Folder page shows instructor folders they own, so they can link
 		// 1+ folders to the site
 		LinkFolder(
 				"pages/link-google-drive.jsp",
-				"Link Google Drive",
+				LINK_GOOGLE_DRIVE ,
 				new String[] {"Instructor"});
 
 
@@ -77,12 +80,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				String pageTitleValue,
 				String[] rolesValue)
 		{
-			if(pageTitleValue.equals("Google Drive")) {
-				pageTitle=resource.getString("gd.header1.linked.view");
-			}
-			else if(pageTitleValue.equals("Link Google Drive")) {
-				pageTitle=resource.getString("gd.header1.linking.view");
-			}
+		    pageTitle=pageTitleValue;
 			pageFileUrl = pageFileUrlValue;
 			roles = rolesValue;
 		}
@@ -299,6 +297,11 @@ public class GoogleLtiServlet extends HttpServlet {
 
 
 	// Private methods ----------------------------------------------
+	/**
+	 * gets the locale information and instantiate the Resource bundle to handle the localization.
+	 * Only supports language/country and not region in Locale object
+	 * @param tcSessionData
+	 */
 	private void bundleManipulation(TcSessionData tcSessionData) {
 		String language=null;
 		String country=null;
@@ -312,6 +315,8 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 		
 		resource = ResourceBundle.getBundle("googleDriveLTIProps",new Locale(language,country));
+		GOOGLE_DRIVE=resource.getString("gd.header1.linked.view");
+		LINK_GOOGLE_DRIVE=resource.getString("gd.header1.linking.view");
 		
 	}
 
