@@ -22,9 +22,9 @@ The Google Drive LTI run on its own instance than the Sakai instance
 4. Google service account creation at https://code.google.com/apis/console/. This is account is created and every body will be using the same account properties and .p12file
    - Create a public/private key and download private key file (p12 file)
    
-   
+5a.Replace the googleServiceAccounts.properties.template file with googleServiceAccounts.properties
 
-5a. Define the following properties to googleServiceAccounts.properties
+5b. Define the following properties to googleServiceAccounts.properties
    ## client.id and email.address are created as part of Google service account initial creation. just populate with those values
    googleDriveLti.service.account.client.id=
    googleDriveLti.service.account.email.address=
@@ -33,21 +33,21 @@ The Google Drive LTI run on its own instance than the Sakai instance
    ## LTI password property
    googleDriveLti.service.account.lti.secret=
 
-5b. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
+5c. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
 
     ## Update googleServiceAccounts.properties
     googleDriveLti.service.account.private.key.file.classpath=true
     googleDriveLti.service.account.private.key.file=/secure/<filename>
 
 
-5c. OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
+5f. OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
 
     ## Update googleServiceAccounts.properties
     googleDriveLti.service.account.private.key.file.classpath=false
     googleDriveLti.service.account.private.key.file=<absolute file location>
     
 
-8. Enable Basic LTI in sakai.properties
+6. Enable Basic LTI in sakai.properties
    
    #set the variable to Server URL of sakai instance( and not Google-Drive instance) including Protocol eg. http://localhost:8080
    
