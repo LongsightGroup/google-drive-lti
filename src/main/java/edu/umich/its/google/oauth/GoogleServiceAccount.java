@@ -21,6 +21,7 @@
 package edu.umich.its.google.oauth;
 //FROM: package org.sakaiproject.googleservice.impl;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
@@ -28,20 +29,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
-* Google Service Account information for authorizing with Google.
-* 
-* The properties for authorizing include:
-* <ul>
-* 	<li>Service Account's email address</li>
-* 	<li>Service Account's private key file path (.p12)</li>
-* 	<li>
-* 		Scopes the service account will need
-* 	</li>
-* </ul>
-* 
-* @author ranaseef
-*
-*/
+ * Google Service Account information for authorizing with Google.
+ * 
+ * The properties for authorizing include:
+ * <ul>
+ * 	<li>Service Account's email address</li>
+ * 	<li>Service Account's private key file path (.p12)</li>
+ * 	<li>
+ * 		Scopes the service account will need
+ * 	</li>
+ * </ul>
+ * 
+ * @author ranaseef
+ *
+ */
 public class GoogleServiceAccount {
 	// Constants ----------------------------------------------------
 
@@ -64,8 +65,6 @@ public class GoogleServiceAccount {
 	// These constants are used for loading properties from system files
 	private static final String SYSTEM_PROPERTY_FILE_PATH =
 			"googleServicePropsPath";
-	private static final String SYSTEM_PROPERTY_FILE_XML =
-			"googleServicePropsXml";
 	private static final String SYSTEM_PROPERTY_FILE_DEFAULT_NAME =
 			"googleServiceProps.properties";
 
@@ -80,39 +79,36 @@ public class GoogleServiceAccount {
 	static private void initProperties() {
 		String propertiesFilePath =
 				System.getProperty(SYSTEM_PROPERTY_FILE_PATH);
-		boolean propertiesFileXml =
-				Boolean.getBoolean(SYSTEM_PROPERTY_FILE_XML);
+
 		InputStream in = null;
 		try {
+			//loads the file from the tomcat directory
 			if (!isEmpty(propertiesFilePath)) {
 				in = new FileInputStream(propertiesFilePath);
 			} else {
+				//loads the file from inside of the war
 				// Use default file, sibling with this class in classpath.
 				String packagePath =
 						GoogleServiceAccount.class.getPackage().getName()
-						.replace(".", "/");
+						.replace(".", File.separator);
 				in = GoogleServiceAccount.class.getClassLoader()
 						.getResourceAsStream(
 								packagePath
-								+ "/"
+								+ File.separator
 								+ SYSTEM_PROPERTY_FILE_DEFAULT_NAME);
 				if (in == null) {
-					M_log.info(
+					M_log.error(
 							"GoogleServiceAccount Properties resource \""
-							+ SYSTEM_PROPERTY_FILE_DEFAULT_NAME
-							+ "\" not located.");
+									+ SYSTEM_PROPERTY_FILE_DEFAULT_NAME
+									+ "\" not located.");
 				}
 			}
 			if (in != null) {
-				if (propertiesFileXml) {
-					System.getProperties().loadFromXML(in);
-				} else {
-					System.getProperties().load(in);
-				}
+				System.getProperties().load(in);
 			}
 		} catch (Exception err) {
-			M_log.warn(
-					"Failed to load system properties for GoogleServiceAccount",
+			M_log.error(
+					"Failed to load system properties(googleServiceProps.properties) for GoogleServiceAccount",
 					err);
 		} finally {
 			if (in != null) {
@@ -126,7 +122,7 @@ public class GoogleServiceAccount {
 	}
 
 	static private boolean isEmpty(String value) {
-		return (value == null) || (value.trim() == "");
+		return (value == null) || (value.trim().equals(""));
 	}
 
 
@@ -172,8 +168,7 @@ public class GoogleServiceAccount {
 			String privateKeyFilePath)
 	{
 		M_log.error(
-				"This GoogleServiceAccount constructor is for unit testing and "
-				+ "not proper in production.");
+				"This GoogleServiceAccount constructor is for unit testing and not proper in production.");
 		setClientId(clientId);
 		setEmailAddress(emailAddress);
 		setPrivateKeyFilePath(privateKeyFilePath);
@@ -271,8 +266,7 @@ public class GoogleServiceAccount {
 	private void setPropertiesPrefix(String value) {
 		if (isEmpty(value)) {
 			throw new IllegalArgumentException(
-					"Property prefix for GoogleServiceAccount must not be "
-					+ "empty.");
+					"Property prefix for GoogleServiceAccount must not be empty.");
 		}
 		propertiesPrefix = value;
 		loadProperties();

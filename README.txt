@@ -46,6 +46,14 @@ The Google Drive LTI run on its own instance than the Sakai instance
     googleDriveLti.service.account.private.key.file.classpath=false
     googleDriveLti.service.account.private.key.file=<absolute file location>
     
+5g. If the googleServiceAccounts.properties file is in the $TOMCAT directory then follow the procedures to do this
+     1.cd $TOMCAT
+     2.create a directory named "google" and add the properties file into it $TOMCAT/google/googleServiceAccounts.properties
+     3.Add properties to JAVA_OPTS for Tomcat:
+        -DgoogleServicePropsPath=$TOMCAT/google/googleServiceAccounts.properties
+        
+     
+    
 
 6. Enable Basic LTI in sakai.properties
    

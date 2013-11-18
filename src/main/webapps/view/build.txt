@@ -1,0 +1,1 @@
+Build.txt for automation build scripts placement
