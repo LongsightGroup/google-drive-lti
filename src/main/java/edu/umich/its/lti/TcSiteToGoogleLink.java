@@ -21,7 +21,7 @@
 package edu.umich.its.lti;
 
 /**
- * This holds information regarding one relationship between a TC Site and a
+ * This holds information regarding one relationship between a TC(Tool Consumer) Site and a
  * Google folder, including details needed to manage the relationship (i.e.,
  * linking/unlinking and modifying permissions to the Google folder).
  * 
@@ -124,20 +124,20 @@ implements Comparable<TcSiteToGoogleLink>
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		result.append(encodeField(getSiteId()))
+		result.append(encodeComma(getSiteId()))
 		.append(",")
-		.append(encodeField(getUserId()))
+		.append(encodeComma(getUserId()))
 		.append(",")
-		.append(encodeField(getUserEmailAddress()))
+		.append(encodeComma(getUserEmailAddress()))
 		.append(",")
-		.append(encodeField(getFolderId()));
+		.append(encodeComma(getFolderId()));
 		return result.toString();
 	}
 
 
 	// Private methods ----------------------------------------------
 
-	private static String encodeField(String value) {
+	private static String encodeComma(String value) {
 		return value.replaceAll(",", "%2C")
 				.replaceAll("\n", " ");
 	}

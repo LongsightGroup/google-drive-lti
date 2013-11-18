@@ -30,8 +30,8 @@ import org.apache.commons.logging.LogFactory;
 import edu.umich.its.lti.utils.SettingsClientUtils;
 
 /**
- * This class manages persistence of relationships between TC sites and Google
- * folders. Storage is done in one file for each TC site, listing its linked
+ * This class manages persistence of relationships between TC (Tool Consumer)sites and Google
+ * folders. Storage is done in one file for each TC(Tool Consumer) site, listing its linked
  * Google folders.
  * 
  * @author ranaseef
@@ -110,14 +110,14 @@ public class TcSiteToGoogleStorage {
 					"Data line storing link of TC Site to Google Folder is "
 							+ "invalid: " + line);
 		}
-		result.setSiteId(decodeField(fields[0]));
-		result.setUserId(decodeField(fields[1]));
-		result.setUserEmailAddress(decodeField(fields[2]));
-		result.setFolderId(decodeField(fields[3]));
+		result.setSiteId(decodeComma(fields[0]));
+		result.setUserId(decodeComma(fields[1]));
+		result.setUserEmailAddress(decodeComma(fields[2]));
+		result.setFolderId(decodeComma(fields[3]));
 		return result;
 	}
 
-	private static String decodeField(String value) {
+	private static String decodeComma(String value) {
 		return value.replaceAll("%2C", ",");
 	}
 }
