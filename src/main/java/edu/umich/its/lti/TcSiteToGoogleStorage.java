@@ -79,7 +79,7 @@ public class TcSiteToGoogleStorage {
 	}
 
 	/**
-	 * Getting the linked folders from the setting service
+	 * Getting the linked folder from the setting service
 	 * 
 	 * @throws ServletException
 	 * 

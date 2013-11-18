@@ -30,13 +30,13 @@ import edu.umich.its.lti.TcSiteToGoogleStorage;
 
 /**
  * This generates JSON object sent to the browser containing user name & roles,
- * and list of linked folders
+ * and linked folder
  * <pre>
  * 	googleDriveConfig = {
  * 		  "tp_id" : ""
  * 		, "course" : { "id" : "", title: "" }
  * 		, "user" : { "name" : "", "roles" : [ "", "" ]}
- * 		, "linkedFolders" : [ "", "" ]
+ * 		, "linkedFolders" : [ "" ]
  * 
  * 	}
  * </pre>
