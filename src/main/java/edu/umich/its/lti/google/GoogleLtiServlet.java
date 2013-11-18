@@ -193,6 +193,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String PARAM_SEND_NOTIFICATION_EMAILS =
 			"send_notification_emails";
 	private static final String PARAM_TP_ID = "tp_id";
+	private static final String FOLDER_TITLE="folderTitle";
+	private static final String SUCCESS="SUCCESS";
+	private static final String NOSUCCESS="NOSUCCESS";
 
 
 	// Constructors --------------------------------------------------
@@ -398,10 +401,10 @@ public class GoogleLtiServlet extends HttpServlet {
 					{
 		TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
 		if(link==null) {
-			response.getWriter().print("NOSUCCESS");
+			response.getWriter().print(NOSUCCESS);
 		}
 		else {
-			response.getWriter().print("SUCCESS");
+			response.getWriter().print(SUCCESS);
 		}
 					}
 
@@ -563,8 +566,8 @@ public class GoogleLtiServlet extends HttpServlet {
 				tcSessionData,
 				emailAddresses);
 		// Title set in request by insertPermissions: get and clear it
-		request.removeAttribute("folderTitle");
-		response.getWriter().print("SUCCESS");
+		request.removeAttribute(FOLDER_TITLE);
+		response.getWriter().print(SUCCESS);
 					}
 
 	private void insertCurrentUserPermissions(
@@ -586,7 +589,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (insertPermissions(request, response, tcSessionData, emailAddresses)
 				== 1)
 		{
-			response.getWriter().print("SUCCESS");
+			response.getWriter().print(SUCCESS);
 		}
 					}
 
@@ -629,7 +632,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				return 0;	// Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
-			request.setAttribute("folderTitle", file.getTitle());
+			request.setAttribute(FOLDER_TITLE, file.getTitle());
 			boolean sendNotificationEmails = Boolean.parseBoolean(
 					request.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each given person
@@ -769,7 +772,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					}
 				}
 			}
-			response.getWriter().print("SUCCESS");
+			response.getWriter().print(SUCCESS);
 		} catch (Exception err) {
 			err.printStackTrace();
 		}
