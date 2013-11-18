@@ -1,12 +1,14 @@
 <%@page import="edu.umich.its.lti.TcSessionData"%>
 
 <div style="display: none;">
-  <div id="FolderDropdownTemplate">
-       <div class="dropdown">
-         <a class="dropdown-toggle btn btn-small" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="/page.html">${addButton} <b class="caret"></b>
-         </a>
-         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-<%
+	<div id="FolderDropdownTemplate">
+		<div class="dropdown">
+			<a class="dropdown-toggle btn btn-small" id="dLabel" role="button"
+				data-toggle="dropdown" data-target="#" href="/page.html">${addButton}
+				<b class="caret"></b>
+			</a>
+			<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+				<%
 	// This is list of each file types as it appears on the page, and is also
 	// appended to Google MIME type
 	// See comments on openDialogToCreateFile() below
@@ -23,8 +25,8 @@
 		String fileType = fileTypes[fileTypeIdx];
 		if ("-".equals(fileType)) {
 %>
-           <li class="divider"></li>
-<%
+				<li class="divider"></li>
+				<%
 		} else {
 			String fileTypeLowerCase = fileType.toLowerCase();
 			/*
@@ -40,37 +42,39 @@
 				    parent to the linked folder
 			*/
 %>
-           <li><a tabindex="-1" onclick="openDialogToCreateFile('<%=fileTypeLowerCase%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton} <%=fileType%></a></li>
-<%
+				<li><a tabindex="-1"
+					onclick="openDialogToCreateFile('<%=fileTypeLowerCase%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton}
+						<%=fileType%></a></li>
+				<%
 		}
 	}
 %>
-         </ul>
-       </div>
-  </div>
+			</ul>
+		</div>
+	</div>
 </div>
 <%
 	if (((TcSessionData)request.getAttribute("TcSessionData")).getIsInstructor()) {
 %>
-    <div class="row-fluid header-controls">
-            <h3>${requestScope.jspPage.pageTitle}</h3>
-            <p class="muted pull-left">${requestScope.info}</p>
-            <p class="pull-right " >
-            </p>
-    </div>
+<div class="row-fluid header-controls">
+	<h3>${requestScope.jspPage.pageTitle}</h3>
+	<p class="muted pull-left">${requestScope.info}</p>
+	<p class="pull-right "></p>
+</div>
 <%
     } else {
 %>
-            <h3>${studentInfo}</h3>
+<h3>${studentInfo}</h3>
 
 <%
     }
 %>
-            
-             <table class="table table-striped table-bordered table-hover" width="100%">
-              <tbody id="FileTreeTableTbody">
-             </tbody>
-            </table>
+
+<table class="table table-striped table-bordered table-hover"
+	width="100%">
+	<tbody id="FileTreeTableTbody">
+	</tbody>
+</table>
 <script type="text/javascript">
 
 // On startup: display Google resources on the screen

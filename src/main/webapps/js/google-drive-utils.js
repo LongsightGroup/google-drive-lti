@@ -28,10 +28,10 @@ function addPermissionsToFile(accessToken, fileTitle, fileId, permissionRole, pe
 	}
 	var url = _getGoogleDriveUrl(fileId, '');
 	var requestData = '{ \
-			"access_token" : "' + escapeJson(accessToken) + '", \
-			"role": "' + escapeJson(permissionRole) + '", \
-			"type": "' + escapeJson(permissionType) + '", \
-			"value" : "' + escapeJson(permissionValue) + '" \
+		"access_token" : "' + escapeJson(accessToken) + '", \
+		"role": "' + escapeJson(permissionRole) + '", \
+		"type": "' + escapeJson(permissionType) + '", \
+		"value" : "' + escapeJson(permissionValue) + '" \
 		}';
 	$.ajax({
 		url: url,
@@ -81,14 +81,14 @@ function createFile(accessToken, parentFolderId, fileTitle, fileDescription, goo
 			"description": "' + escapeJson(fileDescription) + '", \
 			"parents" : [{"id":"' + escapeJson(parentFolderId) + '"}], \
 			"mimeType": "' + escapeJson(googleFileMimeType) + '" \
-		}';
+			}';
 	} else {
 		requestData = '{ \
 			"access_token" : "' + escapeJson(accessToken) + '", \
 			"title": "' + escapeJson(fileTitle) + '", \
 			"description": "' + escapeJson(fileDescription) + '", \
 			"mimeType": "' + escapeJson(googleFileMimeType) + '" \
-		}';
+			}';
 	}
 	$.ajax({
 		url: _getGoogleDriveUrl(),
@@ -445,11 +445,11 @@ function sortFilesByTitle(files) {
  */
 function updateFilePermission(accessToken, fileId, permissionId, newRole, callback, errorCallback, completeCallback) {
 	var url = _getGoogleDriveUrl(fileId, permissionId)
-			+ '?transferOwnership=false';
+	+ '?transferOwnership=false';
 	url = keySourceUrl(url);
 	var requestData = '{ \
-			"role" : "' + newRole + '" \
-	}';
+		"role" : "' + newRole + '" \
+		}';
 	$.ajax({
 		url: url,
 		beforeSend: function(xhr) {
@@ -477,9 +477,9 @@ function updateFilePermission(accessToken, fileId, permissionId, newRole, callba
 	});
 }
 
-	// ----------------------------------------------------
-	// INNER FUNCTIONS
-	// ----------------------------------------------------
+// ----------------------------------------------------
+// INNER FUNCTIONS
+// ----------------------------------------------------
 
 
 /**
@@ -545,10 +545,10 @@ function _keySourceUrl(sourceUrl, accessToken) {
 	if ($.trim(accessToken) !== '') {
 		if (sourceUrl.indexOf('?') === -1) {
 			sourceUrl = sourceUrl
-					+ '?access_token=' + accessToken;
+			+ '?access_token=' + accessToken;
 		} else {
 			sourceUrl = sourceUrl
-					+ '&access_token=' + accessToken;
+			+ '&access_token=' + accessToken;
 		}
 	}
 	return sourceUrl

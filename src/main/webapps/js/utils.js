@@ -78,11 +78,11 @@ function getTimeIso(dt, useLocalTimezone) {
 			function pad(n) { return n < 10 ? '0' + n : n }
 			// NOTE: removed newline after "return" to fix parsing the return in IE8 (MacBook Pro VM)
 			return this.getUTCFullYear() + '-'
-					+ pad(this.getUTCMonth() + 1) + '-'
-					+ pad(this.getUTCDate()) + 'T'
-					+ pad(this.getUTCHours()) + ':'
-					+ pad(this.getUTCMinutes()) + ':'
-					+ pad(this.getUTCSeconds()) + 'Z';
+			+ pad(this.getUTCMonth() + 1) + '-'
+			+ pad(this.getUTCDate()) + 'T'
+			+ pad(this.getUTCHours()) + ':'
+			+ pad(this.getUTCMinutes()) + ':'
+			+ pad(this.getUTCSeconds()) + 'Z';
 		};
 	}
 	// Modify to current timezone
@@ -150,14 +150,14 @@ function getHasConsoleLogFunction() {
  */
 function isScrolledIntoView($elem)
 {
-    var docViewTop = $(window).scrollTop();
-    var docViewBottom = docViewTop + $(window).height();
+	var docViewTop = $(window).scrollTop();
+	var docViewBottom = docViewTop + $(window).height();
 
-    var elemTop = $elem.offset().top;
-    var elemBottom = elemTop + $elem.height();
+	var elemTop = $elem.offset().top;
+	var elemBottom = elemTop + $elem.height();
 
-    return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
-      && (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
+	return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
+			&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
 }
 
 

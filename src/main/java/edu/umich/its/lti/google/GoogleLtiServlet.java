@@ -65,17 +65,17 @@ import edu.umich.its.lti.utils.RosterClientUtils;
  *
  **/
 public class GoogleLtiServlet extends HttpServlet {
-	
+
 	private static String GOOGLE_DRIVE="";
 	private static String LINK_GOOGLE_DRIVE="";
 	static ResourceBundle resource;
-	
+
 	// Enum ---------------------------------------------------------
 
 	// Specifications for different JSP pages used by the LTI.  This is passed
 	// to root JSP files with properties to manage display of the page contents.
 	public enum JspPage {
-		
+
 		// Home page shows Google Resources with functions to act upon them
 		Home("pages/show-google-drive.jsp", GOOGLE_DRIVE, null),
 		// Link Folder page shows instructor folders they own, so they can link
@@ -100,7 +100,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				String pageTitleValue,
 				String[] rolesValue)
 		{
-		    pageTitle=pageTitleValue;
+			pageTitle=pageTitleValue;
 			pageFileUrl = pageFileUrlValue;
 			roles = rolesValue;
 		}
@@ -153,7 +153,7 @@ public class GoogleLtiServlet extends HttpServlet {
 
 
 	// Constants -----------------------------------------------------
-   
+
 	private static final long serialVersionUID = -21239787L;
 	private static final Logger M_log =
 			Logger.getLogger(GoogleLtiServlet.class.toString());
@@ -179,7 +179,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY =
 			"giveRosterAccessReadOnly";
 	private static final String PARAM_ACTION_GIVE_CURRENT_USER_ACCESS_READ_ONLY
-			= "giveCurrentUserAccessReadOnly";
+	= "giveCurrentUserAccessReadOnly";
 	private static final String PARAM_ACTION_REMOVE_ROSTER_ACCESS =
 			"removeRosterAccess";
 	private static final String PARAM_ACTION_GET_ACCESS_TOKEN =
@@ -207,8 +207,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletRequest request,
 			HttpServletResponse response, 
 			String message)
-		throws java.io.IOException
-	{
+					throws java.io.IOException
+					{
 		String returnUrl =
 				request.getParameter("launch_presentation_return_url");
 		if (!getIsEmpty(returnUrl)) {
@@ -216,19 +216,19 @@ public class GoogleLtiServlet extends HttpServlet {
 			if (returnUrl.indexOf('?') > 1) {
 				returnUrl +=
 						"&lti_msg="
-						+ URLEncoder.encode(message, HTTP.UTF_8);
+								+ URLEncoder.encode(message, HTTP.UTF_8);
 			} else {
 				returnUrl +=
 						"?lti_msg="
-						+ URLEncoder.encode(message, HTTP.UTF_8);
+								+ URLEncoder.encode(message, HTTP.UTF_8);
 			}
 			response.sendRedirect(returnUrl);
-        } else {
+		} else {
 			// Client not recognized: simply print the message as the response
 			PrintWriter out = response.getWriter();
 			out.println(message);
 		}
-	}
+					}
 
 
 	// Protected methods ---------------------------------------------
@@ -240,10 +240,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	protected void doGet(
 			HttpServletRequest request,
 			HttpServletResponse response)
-	throws ServletException, IOException
-	{
-		
-		
+					throws ServletException, IOException
+					{
+
+
 		String requestedAction = request.getParameter(PARAMETER_ACTION);
 		// This is used to monitor this service is alive: return "Hi"
 		if (PARAM_ACTION_VERIFY_SERVICE_IS_ALIVE.equals(requestedAction)) {
@@ -251,10 +251,10 @@ public class GoogleLtiServlet extends HttpServlet {
 			return;
 		}
 		TcSessionData tcSessionData = retrieveLockFromSession(request);
-		
+
 		bundleManipulation(tcSessionData);
-		
-		
+
+
 		if (!verifyGet(request, response, tcSessionData, requestedAction)) {
 			return;	// Quick return to simplify code
 		}
@@ -263,7 +263,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		} else if (PARAM_ACTION_CHECK_BACK_BUTTON.equals(requestedAction)) {
 			checkBackButtonHit(request, response, tcSessionData);
 		}
-		  else if (PARAM_ACTION_UNLINK_GOOGLE_FOLDER.equals(requestedAction)) {
+		else if (PARAM_ACTION_UNLINK_GOOGLE_FOLDER.equals(requestedAction)) {
 			unlinkGoogleFolder(request, response, tcSessionData);
 		} else if (PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY
 				.equals(requestedAction))
@@ -283,7 +283,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			M_log.warning(
 					"Request action unknown: \"" + requestedAction + "\"");
 		}
-	}
+					}
 
 
 
@@ -296,9 +296,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	protected void doPost(
 			HttpServletRequest request,
 			HttpServletResponse response)
-	throws ServletException, IOException 
-	{
-		
+					throws ServletException, IOException 
+					{
+
 		if (verifyPost(request, response)) {
 			TcSessionData tcSessionData = lockInSession(request);
 			bundleManipulation(tcSessionData);
@@ -309,11 +309,11 @@ public class GoogleLtiServlet extends HttpServlet {
 					googleConfigJson);
 			TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
 			if(link!=null) {
-			loadJspPage(request, response, tcSessionData, JspPage.Home);
+				loadJspPage(request, response, tcSessionData, JspPage.Home);
 			}else
 				loadJspPage(request, response, tcSessionData, JspPage.LinkFolder);
 		}
-	}
+					}
 
 
 	// Private methods ----------------------------------------------
@@ -333,11 +333,11 @@ public class GoogleLtiServlet extends HttpServlet {
 		if(tempStringTokenizer.hasMoreTokens()) {
 			country = tempStringTokenizer.nextToken();
 		}
-		
+
 		resource = ResourceBundle.getBundle("googleDriveLTIProps",new Locale(language,country));
 		GOOGLE_DRIVE=resource.getString("gd.header1.linked.view");
 		LINK_GOOGLE_DRIVE=resource.getString("gd.header1.linking.view");
-		
+
 	}
 
 	/**
@@ -351,25 +351,25 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws IOException, ServletException
-	{
+					throws IOException, ServletException
+					{
 		String folderId = request.getParameter(PARAM_FILE_ID);
-		 TcSiteToGoogleLink newLink = new TcSiteToGoogleLink(
+		TcSiteToGoogleLink newLink = new TcSiteToGoogleLink(
 				tcSessionData.getContextId(),
 				tcSessionData.getUserEmailAddress(),
 				tcSessionData.getUserId(),
 				folderId);
-		
+
 		//settings mapping
-			try {
-				TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData, newLink);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		 response.getWriter().print(
+		try {
+			TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData, newLink);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		response.getWriter().print(
 				GoogleConfigJsonWriter.getGoogleDriveConfigJson(tcSessionData));
-			
-	}
+
+					}
 
 
 	/**
@@ -381,29 +381,29 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws IOException, ServletException
-	{
-		
+					throws IOException, ServletException
+					{
+
 		if(TcSiteToGoogleStorage.setLinkingToSettingServiceWithNoLinking(tcSessionData)) {
-		response.getWriter().print(GoogleConfigJsonWriter
-				.getGoogleDriveConfigJson(tcSessionData));
+			response.getWriter().print(GoogleConfigJsonWriter
+					.getGoogleDriveConfigJson(tcSessionData));
 		}
-						
-	}
-	
+
+					}
+
 	private void checkBackButtonHit(HttpServletRequest request, 
-			                        HttpServletResponse response,
-			                          TcSessionData tcSessionData) 
-	throws IOException, ServletException
-	{
+			HttpServletResponse response,
+			TcSessionData tcSessionData) 
+					throws IOException, ServletException
+					{
 		TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
 		if(link==null) {
-		response.getWriter().print("NOSUCCESS");
+			response.getWriter().print("NOSUCCESS");
 		}
 		else {
 			response.getWriter().print("SUCCESS");
 		}
-	}
+					}
 
 	/**
 	 * This records TcSessionData holding LTI session specific data, and returns
@@ -419,10 +419,10 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (getIsEmpty(result.getUserEmailAddress())) {
 			throw new IllegalStateException(
 					"Google Drive LTI was opened by user without email address:"
-					+ " please verify the tool is configured with"
-					+ " imsti.releaseemail = 'on' for course (context_id) '"
-					+ result.getContextId()
-					+ "'");
+							+ " please verify the tool is configured with"
+							+ " imsti.releaseemail = 'on' for course (context_id) '"
+							+ result.getContextId()
+							+ "'");
 		}
 		request.setAttribute(SESSION_ATTR_TC_DATA, result);
 		request.getSession().setAttribute(SESSION_ATTR_TC_DATA, result);
@@ -447,8 +447,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response,
 			TcSessionData tcSessionData,
 			String requestedAction)
-	throws ServletException, IOException 
-	{
+					throws ServletException, IOException 
+					{
 		boolean result = false;
 		if (tcSessionData != null) {
 			String requestTpId = request.getParameter(PARAM_TP_ID);
@@ -470,7 +470,7 @@ public class GoogleLtiServlet extends HttpServlet {
 						request,
 						response,
 						"The server failed to match the authority key for "
-						+ "this request.");
+								+ "this request.");
 			}
 		} else {
 			M_log.warning("A request \""
@@ -481,10 +481,10 @@ public class GoogleLtiServlet extends HttpServlet {
 					request,
 					response,
 					"No action taken: the request could not be verified in "
-					+ "this session.");
+							+ "this session.");
 		}
 		return result;
-	}
+					}
 
 	/**
 	 * This verifies the post has expected parameters from valid LTI client, and
@@ -494,23 +494,23 @@ public class GoogleLtiServlet extends HttpServlet {
 	private boolean verifyPost(
 			HttpServletRequest request,
 			HttpServletResponse response)
-	throws ServletException, IOException 
-	{
+					throws ServletException, IOException 
+					{
 		//ResourceBundle properties = ResourceBundle.getBundle("ltis");
 		// 1 - verify the expected parameters exist
 		boolean result = 
 				EXPECTED_LTI_MESSAGE_TYPE.equals(
 						request.getParameter("lti_message_type"))
-				&& EXPECTED_LTI_VERSION.equals(
-						request.getParameter("lti_version"))
-				&& !getIsEmpty(request.getParameter("oauth_consumer_key"))
-				&& !getIsEmpty(request.getParameter("resource_link_id"));
+						&& EXPECTED_LTI_VERSION.equals(
+								request.getParameter("lti_version"))
+								&& !getIsEmpty(request.getParameter("oauth_consumer_key"))
+								&& !getIsEmpty(request.getParameter("resource_link_id"));
 		if (!result) {
 			doError(
 					request,
 					response,
 					"Post apparently not from LTI Consumer, as parameters are "
-					+ "missing or invalid.");
+							+ "missing or invalid.");
 		}
 		// 2 - verify signature
 		result = RequestSignatureUtils.verifySignature(
@@ -524,7 +524,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					"Request signature is invalid.");
 		}
 		return result;
-	}
+					}
 
 	/**
 	 * @return true if the given object is null or trimmed = ""
@@ -542,22 +542,22 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void retrieveGoogleDriveConfigFromSession(
 			TcSessionData tcSessionData,
 			HttpServletRequest request)
-	throws IOException
-	{
+					throws IOException
+					{
 		request.setAttribute(
 				JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
 				GoogleConfigJsonWriter
-						.getGoogleDriveConfigJsonScript(tcSessionData));
-	}
+				.getGoogleDriveConfigJsonScript(tcSessionData));
+					}
 
 	private void insertRosterPermissions(
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws ServletException, IOException 
-	{
+					throws ServletException, IOException 
+					{
 		List<String> emailAddresses = getRoster(request, tcSessionData);
-	 insertPermissions(
+		insertPermissions(
 				request,
 				response,
 				tcSessionData,
@@ -565,20 +565,20 @@ public class GoogleLtiServlet extends HttpServlet {
 		// Title set in request by insertPermissions: get and clear it
 		request.removeAttribute("folderTitle");
 		response.getWriter().print("SUCCESS");
-	}
+					}
 
 	private void insertCurrentUserPermissions(
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws ServletException, IOException 
-	{
+					throws ServletException, IOException 
+					{
 		String emailAddress = tcSessionData.getUserEmailAddress();
 		if (getIsEmpty(emailAddress)) {
 			logError(
 					response,
 					"Error: unable to handle permissions - the TC did "
-					+ "not sent the current user's email address.");
+							+ "not sent the current user's email address.");
 			return;
 		}
 		List<String> emailAddresses = new ArrayList<String>();
@@ -588,7 +588,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		{
 			response.getWriter().print("SUCCESS");
 		}
-	}
+					}
 
 	/**
 	 * Gives people with the given email addresses read-only access to the given
@@ -606,8 +606,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response,
 			TcSessionData tcSessionData,
 			List<String> emailAddresses)
-	throws ServletException, IOException 
-	{
+					throws ServletException, IOException 
+					{
 		int result = 0;
 		try {
 			if (!validatePermissionsRequiredParams(
@@ -625,7 +625,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				logError(
 						response,
 						"Error: unable to modify Google Folder permissions, as "
-						+ "the folder was not retrieved from Google Drive.");
+								+ "the folder was not retrieved from Google Drive.");
 				return 0;	// Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
@@ -658,14 +658,14 @@ public class GoogleLtiServlet extends HttpServlet {
 			err.printStackTrace();
 		}
 		return result;
-	}
+					}
 
 	private FolderPermissionsHandler getHandler(
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws ServletException, IOException 
-	{
+					throws ServletException, IOException 
+					{
 		FolderPermissionsHandler result = null;
 		String siteId = tcSessionData.getContextId();
 		String fileId = request.getParameter(PARAM_FILE_ID);
@@ -673,15 +673,15 @@ public class GoogleLtiServlet extends HttpServlet {
 		TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
 		String instructorEmailAddress="";
 		if(link!=null) {
-			 instructorEmailAddress = link.getUserEmailAddress();
+			instructorEmailAddress = link.getUserEmailAddress();
 		} else {
 			link = GoogleCache.getInstance().getLinkForSite(siteId);
 			if (link == null) {
 				M_log.warning(
 						"Error: cannot modify permissions to folder #"
-						+ fileId
-						+ " - did not find link with course #"
-						+ tcSessionData.getContextId());
+								+ fileId
+								+ " - did not find link with course #"
+								+ tcSessionData.getContextId());
 				logError(
 						response,
 						"Server failed to find link to this Google folder.");
@@ -689,7 +689,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			}
 			instructorEmailAddress=link.getUserEmailAddress();
 		}
-			
+
 		GoogleCredential googleCredential = null;
 		if (instructorEmailAddress.equalsIgnoreCase(
 				tcSessionData.getUserEmailAddress()))
@@ -706,7 +706,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
 		result = new FolderPermissionsHandler(link, drive, fileId);
 		return result;
-	}
+					}
 
 	/**
 	 * Removes read-only access to the given folder to people in the roster.
@@ -723,8 +723,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws ServletException, IOException 
-	{
+					throws ServletException, IOException 
+					{
 		try {
 			if (!validatePermissionsRequiredParams(
 					request,
@@ -740,7 +740,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				logError(
 						response,
 						"Error: unable to modify Google Folder permissions, as "
-						+ "the folder was not retrieved from Google Drive.");
+								+ "the folder was not retrieved from Google Drive.");
 				return;	// Quick return to simplify code
 			}
 			// Get credential for the instructor owning the folder
@@ -773,8 +773,8 @@ public class GoogleLtiServlet extends HttpServlet {
 		} catch (Exception err) {
 			err.printStackTrace();
 		}
-		
-	}
+
+					}
 
 	/**
 	 * Returns access token for Google Drive and the given user to the browser.
@@ -783,15 +783,15 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws IOException
-	{
+					throws IOException
+					{
 		String userEmailAddress =
 				tcSessionData.getUserEmailAddress();
 		if (getIsEmpty(userEmailAddress)) {
 			logError(
 					response,
 					"Error: unable to get access token - the TP server does "
-					+ "not know the user's email address.");
+							+ "not know the user's email address.");
 			return;
 		}
 		String accessToken = GoogleSecurity.getGoogleAccessToken(
@@ -804,7 +804,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					response,
 					"Error: unable to get access token.");
 		}
-	}
+					}
 
 	private GoogleServiceAccount getGoogleServiceAccount() {
 		return new GoogleServiceAccount(GOOGLE_SERVICE_ACCOUNT_PROPS_PREFIX);
@@ -814,32 +814,32 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws IOException
-	{
+					throws IOException
+					{
 		boolean result = true;
 		if (getIsEmpty(tcSessionData.getUserEmailAddress())) {
 			logError(
 					response,
 					"Error: unable to handle permissions - the request did "
-					+ "not specify the instructor.");
+							+ "not specify the instructor.");
 			result = false;
 		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
 			logError(
 					response,
 					"Error: unable to handle permissions - the request did "
-					+ "not include valid access token.");
+							+ "not include valid access token.");
 			result = false;
 		}
 		if (getIsEmpty(PARAM_FILE_ID)) {
 			logError(
 					response,
 					"Error: unable to insert permissions, as no file "
-					+ "ID was included in the request.");
+							+ "ID was included in the request.");
 			result = false;
 		}
 		return result;
-	}
+					}
 
 	private GoogleCredential getGoogleCredential(HttpServletRequest request) {
 		GoogleCredential result = null;
@@ -857,17 +857,17 @@ public class GoogleLtiServlet extends HttpServlet {
 	private List<String> getRoster(
 			HttpServletRequest request,
 			TcSessionData tcSessionData)
-	throws ServletException, IOException 
-	{
+					throws ServletException, IOException 
+					{
 		return RosterClientUtils.getRoster(tcSessionData);
-	}
+					}
 
 	private void logError(HttpServletResponse response, String message)
-	throws IOException
-	{
+			throws IOException
+			{
 		M_log.warning(message);
 		response.getWriter().print(message);
-	}
+			}
 
 	/**
 	 * Overload that gets JSP page to open from parameter in the request.
@@ -876,15 +876,15 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			TcSessionData tcSessionData)
-	throws ServletException, IOException
-	{
+					throws ServletException, IOException
+					{
 		String pageName = request.getParameter(PARAM_OPEN_PAGE_NAME);
 		loadJspPage(
 				request,
 				response,
 				tcSessionData,
 				JspPage.valueOf(pageName));
-	}
+					}
 
 	/**
 	 * Forwards the request to open owner (container) JSP /view/root.jsp,
@@ -902,21 +902,21 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response,
 			TcSessionData tcSessionData,
 			JspPage jspPage)
-	throws ServletException, IOException
-	{
+					throws ServletException, IOException
+					{
 		if (jspPage.verifyAllowedRoles(tcSessionData.getUserRoleArray())) {
 			request.setAttribute("jspPage", jspPage);
 			retrieveGoogleDriveConfigFromSession(tcSessionData, request);
-			
+
 			request.setAttribute("search",resource.getString("gd.search"));
 			request.setAttribute("linkingViewInfo",resource.getString("gd.linking.view.info"));
 			request.setAttribute("createAndLinkButton",resource.getString("gd.create.link.button"));
-			
+
 			request.setAttribute("info",resource.getString("gd.linked.view.info"));
 			request.setAttribute("studentInfo",resource.getString("gd.student.view.info"));
 			request.setAttribute("deleteButton",resource.getString("gd.delete.button"));
 			request.setAttribute("addButton",resource.getString("gd.add.button"));
-			
+
 			request.setAttribute("header2",resource.getString("gd.header2"));
 			request.setAttribute("about",resource.getString("gd.header3.about"));
 			request.setAttribute("help",resource.getString("gd.header4.help"));
@@ -924,39 +924,39 @@ public class GoogleLtiServlet extends HttpServlet {
 			request.setAttribute("studentAccessMsg",resource.getString("gd.student.view.access.msg"));
 			request.setAttribute("linkFolderButton",resource.getString("gd.link.folder.button"));
 			request.setAttribute("unlinkFolderButton",resource.getString("gd.unlink.button"));
-			
+
 			request.setAttribute("undoneCopy",resource.getString("gd.delete.undone"));
 			request.setAttribute("deleteUndoneFolderCopy",resource.getString("gd.delete.undone.folder"));
 			request.setAttribute("deleteFileFolderCopy",resource.getString("gd.delete.file.folder"));
 			request.setAttribute("createFolderCopy",resource.getString("gd.create.folder"));
 			request.setAttribute("createFileCopy",resource.getString("gd.create.file"));
 			request.setAttribute("sendEmailCopy",resource.getString("gd.send.email"));
-			
-			
-			
+
+
+
 			getServletContext()
-					.getRequestDispatcher("/view/root.jsp")
-					.forward(request, response);
+			.getRequestDispatcher("/view/root.jsp")
+			.forward(request, response);
 		} else {
 			M_log.warning(
 					"Unauthorized attempt to acces JSP page "
-					+ jspPage
-					+ " requiring roles "
-					+ Arrays.toString(jspPage.getRoles())
-					+ " by "
-					+ tcSessionData.getUserNameFull()
-					+ " <"
-					+ tcSessionData.getUserEmailAddress()
-					+ "> with roles "
-					+ Arrays.toString(tcSessionData.getUserRoleArray()));
+							+ jspPage
+							+ " requiring roles "
+							+ Arrays.toString(jspPage.getRoles())
+							+ " by "
+							+ tcSessionData.getUserNameFull()
+							+ " <"
+							+ tcSessionData.getUserEmailAddress()
+							+ "> with roles "
+							+ Arrays.toString(tcSessionData.getUserRoleArray()));
 			loadJspPage(request, response, tcSessionData, JspPage.Home);
 		}
-	}
+					}
 
 
 	// Inner classes ------------------------------------------------
 
-    //Talking to google with respect to permission insertion and deletion
+	//Talking to google with respect to permission insertion and deletion
 	private class FolderPermissionsHandler {
 		// Instance variables ---------------------------------------
 
@@ -971,11 +971,11 @@ public class GoogleLtiServlet extends HttpServlet {
 				TcSiteToGoogleLink link,
 				Drive drive,
 				String fileId)
-		{
+				{
 			setLink(link);
 			setDrive(drive);
 			setFileId(fileId);
-		}
+				}
 
 
 		// Public methods -------------------------------------------
@@ -1000,8 +1000,8 @@ public class GoogleLtiServlet extends HttpServlet {
 				newPermission.setRole("reader");
 				result =
 						getDrive()
-								.permissions()
-								.insert(getFileId(), newPermission)
+						.permissions()
+						.insert(getFileId(), newPermission)
 						.setSendNotificationEmails(sendNotificationEmails)
 						.execute();
 			} catch (Exception err) {
@@ -1010,7 +1010,7 @@ public class GoogleLtiServlet extends HttpServlet {
 						+ "\" on file \""
 						+ getFileId()
 						+ "\"");
-						err.printStackTrace();
+				err.printStackTrace();
 			}
 			return result;
 		}
@@ -1020,20 +1020,20 @@ public class GoogleLtiServlet extends HttpServlet {
 			boolean result = false;
 			try {
 				getDrive()
-						.permissions()
-						.delete(getFileId(), permissionId).execute();
+				.permissions()
+				.delete(getFileId(), permissionId).execute();
 				// No errors indicates this operation succeeded
 				result = true;
 			} catch (Exception err) {
 				M_log.warning(
 						"Failed to remove permission "
-						+ permissionId
-						+ " for user \""
-						+ getLink().getUserEmailAddress()
-						+ "\" on file \""
-						+ getFileId()
-						+ "\"");
-						err.printStackTrace();
+								+ permissionId
+								+ " for user \""
+								+ getLink().getUserEmailAddress()
+								+ "\" on file \""
+								+ getFileId()
+								+ "\"");
+				err.printStackTrace();
 			}
 			return result;
 		}

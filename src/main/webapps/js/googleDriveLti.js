@@ -40,18 +40,18 @@ var SAVE_SITE_ID_IN_GOOGLE = false;
 var SAVE_LINKS_IN_TP = true;
 var FILTER_FOR_FOLDERS = 'mimeType = \'application/vnd.google-apps.folder\'';
 var SELECTED_FOLDER_INPUT_NAME = 'folderSelectRadio';
-// number of px is multiplied by the file's depth to pad the title
+//number of px is multiplied by the file's depth to pad the title
 var FILE_DEPTH_PADDING_PX = 30;
-// Array listing ID of each file's parents, keyed by the child file.  Finding
-// all a file's ancestors can be done by finding file's parent, then finding
-// entry for each parent's parent.
+//Array listing ID of each file's parents, keyed by the child file.  Finding
+//all a file's ancestors can be done by finding file's parent, then finding
+//entry for each parent's parent.
 var googleFileParents = [];
 var EXPAND_TEXT = '+ <span class="hide-text">Expand this folder</span>';
 var SHRINK_TEXT = '- <span class="hide-text">Collapse this folder</span>';
 
 var accessTokenHandler = {
 		"accessToken" : null,
-	};
+};
 
 /**
  * Retrieves and displays folders linked with this site, with functions
@@ -101,7 +101,7 @@ function showLinkedGoogleFolder(folderId) {
 					giveCurrentUserReadOnlyPermissions(folderId)
 				}
 			});
-	
+
 }
 
 /**
@@ -223,9 +223,9 @@ function searchUnlinkedFoldersOwnedByMe() {
 	}
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
 			function(data) {
-				emptyUnlinkedFoldersTable();
-				searchUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
-			});
+		emptyUnlinkedFoldersTable();
+		searchUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
+	});
 }
 
 
@@ -246,7 +246,7 @@ function searchUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 				addFolderToLinkFolderTable(file);
 			}
 		}
-		
+
 	}
 }
 
@@ -283,9 +283,9 @@ function getIsFolderLinked(folder) {
  */
 function unlinkFolderFromSite(folderId, folderTitle) {
 	if ($.trim(folderId) !== '') {
-			unlinkFolderToSite(folderId, function() {
-				notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, false, true);
-			});
+		unlinkFolderToSite(folderId, function() {
+			notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, false, true);
+		});
 	}
 }
 
@@ -313,23 +313,23 @@ function assignNewFolder() {
 		return;	// Quick return to simplify code
 	}
 	// This would be the place to avoid duplicate existing file names.
-	
-		createFile(getGoogleAccessToken(),
-				'',
-				folderTitle,
-				getConfigCourseId(),
-				'application/vnd.google-apps.folder',
-				function(data) {
-					var folderId = '';
-					var folderTitle = '';
-					if ((typeof(data) !== 'undefined') && ($.trim(data.id) !== '')) {
-						folderId = data.id;
-						folderTitle = data.title
-					}
-					linkFolderToSite(folderId, function() {
-				      notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, true, false);
-					});
-				});
+
+	createFile(getGoogleAccessToken(),
+			'',
+			folderTitle,
+			getConfigCourseId(),
+			'application/vnd.google-apps.folder',
+			function(data) {
+		var folderId = '';
+		var folderTitle = '';
+		if ((typeof(data) !== 'undefined') && ($.trim(data.id) !== '')) {
+			folderId = data.id;
+			folderTitle = data.title
+		}
+		linkFolderToSite(folderId, function() {
+			notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, true, false);
+		});
+	});
 }
 
 /**
@@ -346,16 +346,16 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 		// Do nothing, as the response does not show association succeeded
 		return;	// Quick return to simpify code
 	}
-	
+
 	if (!unlinked) {
 		var sendNotificationEmails = confirm(sendEmailCopy);
 		giveRosterReadOnlyPermissions(folderId, sendNotificationEmails);
 		removeLinkedFolderFromLinkingTable(folderId);
-		
+
 	} else {
 		removeRosterPermissions(folderId);
 		removeUnlinkedFileTreeFromTable(folderId);
-		}
+	}
 }
 
 function getConfigCourseId() {
@@ -427,13 +427,13 @@ function checkBackButtonHit(){
 		data:getUpdateLtiParams(
 				"",
 				"checkBackButton",
-				  false),
-				  success:function(data){
-					  if ($.trim(data) === 'SUCCESS') {
-						  openPage('Home');
-					  }
-					 
-				  }
+				false),
+				success:function(data){
+					if ($.trim(data) === 'SUCCESS') {
+						openPage('Home');
+					}
+
+				}
 	});
 }
 
@@ -449,16 +449,16 @@ function linkFolderToSite(folderId, callback) {
 				folderId,
 				"linkGoogleFolder",
 				false),
-		success: function(data) {
-			if ((typeof(data) === 'object') && (data !== null)) {
-				if ($.trim(data.tp_id) !== '') {
-					googleDriveConfig = data;
+				success: function(data) {
+					if ((typeof(data) === 'object') && (data !== null)) {
+						if ($.trim(data.tp_id) !== '') {
+							googleDriveConfig = data;
+						}
+						callback(data);
+					} else if (typeof(data) === 'string') {
+						alert(data);
+					}
 				}
-				callback(data);
-			} else if (typeof(data) === 'string') {
-				alert(data);
-			}
-		}
 	});
 }
 
@@ -473,17 +473,17 @@ function unlinkFolderToSite(folderId, callback) {
 				folderId,
 				"unlinkGoogleFolder",
 				false),
-		dataType: 'json',
-		success: function(data) {
-			if (typeof(data) === 'object' && (data !== null)) {
-				if ($.trim(data.tp_id) !== '') {
-					googleDriveConfig = data;
+				dataType: 'json',
+				success: function(data) {
+					if (typeof(data) === 'object' && (data !== null)) {
+						if ($.trim(data.tp_id) !== '') {
+							googleDriveConfig = data;
+						}
+						callback(data);
+					} else if (typeof(data) === 'string') {
+						alert(data);
+					}
 				}
-				callback(data);
-			} else if (typeof(data) === 'string') {
-				alert(data);
-			}
-		}
 	});
 }
 
@@ -499,12 +499,12 @@ function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
 				folderId,
 				"giveRosterAccessReadOnly",
 				sendNotificationEmails),
-		success: function(data) {
-			if ($.trim(data) == 'SUCCESS') {
-				openPage('Home');
-			}
-			
-		}
+				success: function(data) {
+					if ($.trim(data) == 'SUCCESS') {
+						openPage('Home');
+					}
+
+				}
 	});
 }
 
@@ -523,17 +523,17 @@ function giveCurrentUserReadOnlyPermissions(folderId) {
 				folderId,
 				"giveCurrentUserAccessReadOnly",
 				false),
-		success: function(data) {
-			if ($.trim(data) === 'SUCCESS') {
-				getDriveFile(
-						getGoogleAccessToken(),
-						folderId,
-						function(data) {
-							// Linked folders are all depth 0 (no parents)
-							showLinkedGoogleFoldersCallback(data, 0);
-						});
-			}
-		}
+				success: function(data) {
+					if ($.trim(data) === 'SUCCESS') {
+						getDriveFile(
+								getGoogleAccessToken(),
+								folderId,
+								function(data) {
+									// Linked folders are all depth 0 (no parents)
+									showLinkedGoogleFoldersCallback(data, 0);
+								});
+					}
+				}
 	});
 }
 
@@ -549,11 +549,11 @@ function removeRosterPermissions(folderId) {
 				folderId,
 				"removeRosterAccess",
 				false),
-		success: function(data) {
-			if ($.trim(data) === 'SUCCESS') {
-				openPage('LinkFolder');
-			}
-		}
+				success: function(data) {
+					if ($.trim(data) === 'SUCCESS') {
+						openPage('LinkFolder');
+					}
+				}
 	});
 }
 
@@ -569,10 +569,10 @@ function removeRosterPermissions(folderId) {
  */
 function getUpdateLtiParams(folderId, requestedAction, sendNotificationEmails) {
 	return 'access_token=' + getGoogleAccessToken()
-			+ '&requested_action=' + requestedAction
-			+ '&send_notification_emails=' + sendNotificationEmails
-			+ '&file_id=' + escapeUrl(folderId)
-			+ '&tp_id=' + escapeUrl(getConfigTpId());
+	+ '&requested_action=' + requestedAction
+	+ '&send_notification_emails=' + sendNotificationEmails
+	+ '&file_id=' + escapeUrl(folderId)
+	+ '&tp_id=' + escapeUrl(getConfigTpId());
 }
 
 function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
@@ -587,8 +587,8 @@ function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 			'',
 			'application/vnd.google-apps.' + fileType,
 			function(file) {
-				addFileToFileTreeTable(file, parentFolderId, linkedFolderId, depth + 1);
-			});
+		addFileToFileTreeTable(file, parentFolderId, linkedFolderId, depth + 1);
+	});
 }
 
 function openFile(title, sourceUrl, googleFileMimeType, inDialog) {
@@ -608,7 +608,7 @@ function openFile(title, sourceUrl, googleFileMimeType, inDialog) {
 			closeOnEscape: false,
 			position: 'center',
 			close: function() {
-					$('#DialogIframe').remove();
+				$('#DialogIframe').remove();
 			}
 		});
 	}
@@ -623,10 +623,10 @@ function openFolder(sourceUrl) {
 
 function create_iframe(parentId, iframeId, iframeName, sourceUrl) {
 	return $('<iframe class="dialog"></iframe>')
-			.appendTo('#' + parentId)
-			.attr('id', iframeId)
-			.attr('name', iframeName)
-			.attr('src', sourceUrl);
+	.appendTo('#' + parentId)
+	.attr('id', iframeId)
+	.attr('name', iframeName)
+	.attr('src', sourceUrl);
 }
 
 function logToConsole() {
@@ -643,11 +643,11 @@ function logToConsole() {
  */
 function openPage(pageName) {
 	var url = getPageUrl()
-			+ '?requested_action=openPage'
-			+ '&pageName=' + escapeUrl(pageName)
-			+ '&tp_id=' + escapeUrl(getConfigTpId())
-			// Adding timestamp to ensure request is sent & result is not cached
-			+ "&_=" + new Date().getTime();
+	+ '?requested_action=openPage'
+	+ '&pageName=' + escapeUrl(pageName)
+	+ '&tp_id=' + escapeUrl(getConfigTpId())
+	// Adding timestamp to ensure request is sent & result is not cached
+	+ "&_=" + new Date().getTime();
 	document.location.href = url;
 }
 
@@ -665,11 +665,11 @@ function getPageUrl() {
 
 var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
 	<td><a class="itemLink" onclick="[OpenFileCall]" title="[FolderTitle]"> \
-	  <img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
+	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
-    <td> \
-      <a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
-    </td> \
+	<td> \
+	<a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
+	</td> \
 	</tr>';
 
 /**
@@ -684,12 +684,12 @@ function addFolderToLinkFolderTable(folder) {
 		return;
 	}
 	var newEntry = LINK_FOLDER_TABLE_ROW_TEMPLATE
-			.replace(/\[TrFolderId\]/g, escapeSingleQuotes(getLinkingTableRowIdForFolder(folder.id)))
-			.replace(/\[FolderIdOnclickParam\]/g, escapeAllQuotes(folder.id))
-			.replace(/\[FolderTitle\]/g, folder.title)
-			.replace(/\[FolderTitleOnclickParam\]/g, escapeAllQuotes(folder.title))
-			.replace(/\[GoogleIconLink\]/g, folder.iconLink)
-			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder));
+	.replace(/\[TrFolderId\]/g, escapeSingleQuotes(getLinkingTableRowIdForFolder(folder.id)))
+	.replace(/\[FolderIdOnclickParam\]/g, escapeAllQuotes(folder.id))
+	.replace(/\[FolderTitle\]/g, folder.title)
+	.replace(/\[FolderTitleOnclickParam\]/g, escapeAllQuotes(folder.title))
+	.replace(/\[GoogleIconLink\]/g, folder.iconLink)
+	.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder));
 	$(newEntry).appendTo('#LinkFolderTableTbody');
 }
 
@@ -699,10 +699,10 @@ function addFolderToLinkFolderTable(folder) {
  */
 function getFunctionCallToOpenFile(file) {
 	return "openFile("
-			+ "'" + escapeSingleQuotes(file.title)
-			+ "', '" + escapeSingleQuotes(file.alternateLink)
-			+ "', '" + escapeSingleQuotes(file.mimeType)
-			+ "');";
+	+ "'" + escapeSingleQuotes(file.title)
+	+ "', '" + escapeSingleQuotes(file.alternateLink)
+	+ "', '" + escapeSingleQuotes(file.mimeType)
+	+ "');";
 }
 
 /**
@@ -812,7 +812,7 @@ function getLatterIsAncestor(childFileId, ancestorFolderId) {
 
 var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \
 	<td style="[FileIndentCss]">[ExpandShrink]<a class="itemLink" onclick="[OpenFileCall]" title="[FileTitle]"> \
-		<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;<span class="title">[FileTitle]</span> \
+	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;<span class="title">[FileTitle]</span> \
 	</a></td> \
 	<td>&nbsp;[DropdownTemplate]</td> \
 	<td>&nbsp;[ActionTemplate]</td> \
@@ -851,9 +851,9 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	if (getIsInstructor() && isFolder) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
 		dropdownTemplate = dropdownTemplate
-				.replace(/\[FolderIdParam\]/g, escapeAllQuotes(file.id))
-				.replace(/\[LinkedFolderIdParam\]/g, escapeAllQuotes(linkedFolderId))
-				.replace(/\[FolderDepthParam\]/g, treeDepth);
+		.replace(/\[FolderIdParam\]/g, escapeAllQuotes(file.id))
+		.replace(/\[LinkedFolderIdParam\]/g, escapeAllQuotes(linkedFolderId))
+		.replace(/\[FolderDepthParam\]/g, treeDepth);
 	}
 	var actionTitle = null;
 	var actionOnClick = '';
@@ -869,23 +869,23 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	var actionTemplate = '';
 	if (actionTitle !== null) {
 		actionTemplate = ACTION_BUTTON_TEMPLATE
-				.replace(/\[ActionTitle\]/g, actionTitle)
-				.replace(/\[ActionOnClick\]/g, actionOnClick);
+		.replace(/\[ActionTitle\]/g, actionTitle)
+		.replace(/\[ActionOnClick\]/g, actionOnClick);
 	}
 	// Using trim so null/undefined id is empty string ('')
 	var childOfParentId = getClassForFoldersChildren(parentFolderId);
 	var newEntry = FILE_TREE_TABLE_ROW_TEMPLATE
-			.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
-			.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
-			.replace(/\[LinkedFolderId\]/g, getClassForLinkedFolder(linkedFolderId))
-			.replace(/\[FileTitle\]/g, file.title)
-			.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
-			.replace(/\[ActionTemplate\]/g, actionTemplate)
-			.replace(/\[GoogleIconLink\]/g, file.iconLink)
-			.replace(/\[ExpandShrink\]/g, expandShrinkOption)
-			.replace(/\[FileIndentCss\]/g, fileIndentCss)
-			.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file))
-			.replace(/\[LastModified\]/g, getFileLastModified(file));
+	.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
+	.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
+	.replace(/\[LinkedFolderId\]/g, getClassForLinkedFolder(linkedFolderId))
+	.replace(/\[FileTitle\]/g, file.title)
+	.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
+	.replace(/\[ActionTemplate\]/g, actionTemplate)
+	.replace(/\[GoogleIconLink\]/g, file.iconLink)
+	.replace(/\[ExpandShrink\]/g, expandShrinkOption)
+	.replace(/\[FileIndentCss\]/g, fileIndentCss)
+	.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file))
+	.replace(/\[LastModified\]/g, getFileLastModified(file));
 	if (parentFolderId) {
 		var $parentRow = $('#' + getTableRowIdForFile(parentFolderId));
 		if ($parentRow.length > 0) {
@@ -987,9 +987,9 @@ function getFileLastModified(file) {
 	var result = '';
 	if (file) {
 		result = getGoogleDateOrTime(file.modifiedDate)
-				+ ' <span class="modified_by">'
-				+ file.lastModifyingUserName
-				+ "</span>";	
+		+ ' <span class="modified_by">'
+		+ file.lastModifyingUserName
+		+ "</span>";	
 	}
 	return result;
 }
@@ -1007,7 +1007,7 @@ var MONTHS = [
               'October',
               'November',
               'December'
-		];
+              ];
 
 /**
  * Returns given date/time as time of day for today, "May 5" if today is not
@@ -1041,8 +1041,8 @@ function getGoogleDateOrTime(googleDateIso) {
 			} else {
 				// Not today, show "Month ##"
 				result = MONTHS[googleDate.getMonth() + 1]
-						+ ' '
-						+ googleDate.getDate();
+				+ ' '
+				+ googleDate.getDate();
 			}
 		} catch (err) {
 			logToConsole(err);
@@ -1114,7 +1114,7 @@ function getClassForLinkedFolder(linkedFolderId) {
  * @returns {String}
  */
 function getClassForFoldersChildren(parentFolderId) {
-		return 'child-of-' + $.trim(parentFolderId);
+	return 'child-of-' + $.trim(parentFolderId);
 }
 
 /**
@@ -1144,11 +1144,11 @@ function getLinkingTableRowIdForFolder(folderId) {
  show spinner whenever async actvity takes place
  */
 $(document).ready(function(){
-    $(document).ajaxStart(function(){
-    $('#spinner').show();
-});
-$(document).ajaxStop(function(){
-    $('#spinner').hide();
-});
+	$(document).ajaxStart(function(){
+		$('#spinner').show();
+	});
+	$(document).ajaxStop(function(){
+		$('#spinner').hide();
+	});
 })
 

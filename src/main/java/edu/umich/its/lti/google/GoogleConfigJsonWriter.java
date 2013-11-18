@@ -51,8 +51,8 @@ public class GoogleConfigJsonWriter {
 	 * browser to manage the site's Google Resources.
 	 */
 	static public String getGoogleDriveConfigJson(TcSessionData tcSessionData)
-	throws IOException
-	{
+			throws IOException
+			{
 		StringBuilder result = new StringBuilder("{");
 		String courseId = tcSessionData.getContextId();
 		if ((courseId == null) || courseId.trim().equals("")) {
@@ -60,8 +60,8 @@ public class GoogleConfigJsonWriter {
 					"Google Drive LTI request made without context_id!");
 		}
 		result.append("\"tp_id\" : \"")
-				.append(escapeJson(tcSessionData.getId()))
-				.append("\"");
+		.append(escapeJson(tcSessionData.getId()))
+		.append("\"");
 		result.append(", \"course\" : ");
 		appendCourseJson(tcSessionData, result);
 		result.append(", \"linkedFolders\" : ");
@@ -71,7 +71,7 @@ public class GoogleConfigJsonWriter {
 		// End the JSON object
 		result.append("}");
 		return result.toString();
-	}
+			}
 
 	/**
 	 * Returns JavaScript setting the JSON configuration object to global
@@ -79,10 +79,10 @@ public class GoogleConfigJsonWriter {
 	 */
 	static public String getGoogleDriveConfigJsonScript(
 			TcSessionData tcSessionData)
-	throws IOException
-	{
+					throws IOException
+					{
 		return "googleDriveConfig = " + getGoogleDriveConfigJson(tcSessionData);
-	}
+					}
 
 
 	// Static private methods ---------------------------------------
@@ -93,12 +93,12 @@ public class GoogleConfigJsonWriter {
 	{
 		// 2 - Begin Adding the folder
 		result.append("{ \"id\" : \"")
-				.append(escapeJson(tcSessionData.getContextId()))
-				.append("\"");
+		.append(escapeJson(tcSessionData.getContextId()))
+		.append("\"");
 		// 2a - Folder's title
 		result.append(", \"title\" : \"")
-				.append(escapeJson(tcSessionData.getContextTitle()))
-				.append("\"");
+		.append(escapeJson(tcSessionData.getContextTitle()))
+		.append("\"");
 		// 2 - End Adding the folder
 		result.append("}");
 	}
@@ -107,7 +107,7 @@ public class GoogleConfigJsonWriter {
 			TcSessionData tcSessionData,
 			StringBuilder result)
 	{
-		
+
 		//setting mapping
 		result.append("[");
 		try {
@@ -135,8 +135,8 @@ public class GoogleConfigJsonWriter {
 		result.append("{");
 		// 1a - full name
 		result.append(" \"name\" : \"")
-				.append(escapeJson(tcSessionData.getUserNameFull()))
-				.append("\"");
+		.append(escapeJson(tcSessionData.getUserNameFull()))
+		.append("\"");
 		// 1b - roles
 		String[] roleArray = tcSessionData.getUserRoleArray();
 		result.append(", \"roles\" : [ ");

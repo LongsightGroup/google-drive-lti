@@ -31,65 +31,73 @@ import edu.umich.its.lti.utils.SettingsClientUtils;
 
 /**
  * This class manages persistence of relationships between TC sites and Google
- * folders.  Storage is done in one file for each TC site, listing its linked
+ * folders. Storage is done in one file for each TC site, listing its linked
  * Google folders.
  * 
  * @author ranaseef
- *
+ * 
  */
 public class TcSiteToGoogleStorage {
 	// Constants ----------------------------------------------------
 
-	private static final Log M_log =
-			LogFactory.getLog(TcSiteToGoogleStorage.class);
+	private static final Log M_log = LogFactory
+			.getLog(TcSiteToGoogleStorage.class);
 
 	// Static public methods ----------------------------------------
-	
+
 	/**
 	 * Adding google linked folder to setting service
-	 * @return 
-	 * @throws IOException 
-	 * @throws Exception 
+	 * 
+	 * @return
+	 * @throws IOException
+	 * @throws Exception
 	 */
-	public synchronized static Boolean setLinkingToSettingService(TcSessionData tcSessionData, TcSiteToGoogleLink linking) throws  IOException, Exception {
+	public synchronized static Boolean setLinkingToSettingService(
+			TcSessionData tcSessionData, TcSiteToGoogleLink linking)
+					throws IOException, Exception {
 		Boolean state = false;
-			state= SettingsClientUtils.setSetting(tcSessionData, linking.toString());
-		
+		state = SettingsClientUtils.setSetting(tcSessionData,
+				linking.toString());
+
 		return state;
-		
+
 	}
-	
-	public synchronized static Boolean setLinkingToSettingServiceWithNoLinking(TcSessionData tcSessionData) throws  IOException, ServletException {
+
+	public synchronized static Boolean setLinkingToSettingServiceWithNoLinking(
+			TcSessionData tcSessionData) throws IOException, ServletException {
 		Boolean state = false;
-		
-		    TcSiteToGoogleLink linkBeforeDeletion=null;
-			linkBeforeDeletion = getLinkingFromSettingService(tcSessionData);
-			state= SettingsClientUtils.setSetting(tcSessionData, "");
-			if(state) {
-		   GoogleCache.getInstance().setLinkForSite(tcSessionData.getContextId(), linkBeforeDeletion);
-			}
+
+		TcSiteToGoogleLink linkBeforeDeletion = null;
+		linkBeforeDeletion = getLinkingFromSettingService(tcSessionData);
+		state = SettingsClientUtils.setSetting(tcSessionData, "");
+		if (state) {
+			GoogleCache.getInstance().setLinkForSite(
+					tcSessionData.getContextId(), linkBeforeDeletion);
+		}
 		return state;
-		
+
 	}
-	
+
 	/**
 	 * Getting the linked folders from the setting service
-	 * @throws ServletException 
+	 * 
+	 * @throws ServletException
 	 * 
 	 * */
-	public synchronized static TcSiteToGoogleLink getLinkingFromSettingService(TcSessionData tcSessionData) throws  IOException, ServletException {
+	public synchronized static TcSiteToGoogleLink getLinkingFromSettingService(
+			TcSessionData tcSessionData) throws IOException, ServletException {
 		TcSiteToGoogleLink result = null;
-			String linkedGoogleFolder = SettingsClientUtils.getSettingString(tcSessionData);
-			if(linkedGoogleFolder!=null) {
-				result=parseLink(linkedGoogleFolder);
-			}
-			
+		String linkedGoogleFolder = SettingsClientUtils
+				.getSettingString(tcSessionData);
+		if (linkedGoogleFolder != null) {
+			result = parseLink(linkedGoogleFolder);
+		}
+
 		return result;
 	}
 
-
 	/**
-	 * Parse the given line into a link.  The line is in format:
+	 * Parse the given line into a link. The line is in format:
 	 * 
 	 * <site_id>,<user_id>,<user_email_address>,<google-folder-id>
 	 * 
@@ -100,8 +108,7 @@ public class TcSiteToGoogleStorage {
 		if (fields.length != 4) {
 			throw new IllegalArgumentException(
 					"Data line storing link of TC Site to Google Folder is "
-					+ "invalid: "
-					+ line);
+							+ "invalid: " + line);
 		}
 		result.setSiteId(decodeField(fields[0]));
 		result.setUserId(decodeField(fields[1]));

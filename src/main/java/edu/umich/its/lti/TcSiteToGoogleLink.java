@@ -125,12 +125,12 @@ implements Comparable<TcSiteToGoogleLink>
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append(encodeField(getSiteId()))
-				.append(",")
-				.append(encodeField(getUserId()))
-				.append(",")
-				.append(encodeField(getUserEmailAddress()))
-				.append(",")
-				.append(encodeField(getFolderId()));
+		.append(",")
+		.append(encodeField(getUserId()))
+		.append(",")
+		.append(encodeField(getUserEmailAddress()))
+		.append(",")
+		.append(encodeField(getFolderId()));
 		return result.toString();
 	}
 

@@ -72,12 +72,12 @@ public class GoogleSecurity {
 			// Get service account credential
 			String[] scopes = serviceAccount.getScopesArray();
 			result = new GoogleCredential.Builder()
-					.setTransport(HTTP_TRANSPORT)
-					.setJsonFactory(JSON_FACTORY)
-					.setServiceAccountId(serviceAccount.getEmailAddress())
-					.setServiceAccountScopes(scopes)
-					.setServiceAccountPrivateKeyFromP12File(
-							privateKeyFile)
+			.setTransport(HTTP_TRANSPORT)
+			.setJsonFactory(JSON_FACTORY)
+			.setServiceAccountId(serviceAccount.getEmailAddress())
+			.setServiceAccountScopes(scopes)
+			.setServiceAccountPrivateKeyFromP12File(
+					privateKeyFile)
 					.setServiceAccountUser(emailAddress)
 					.build();
 		} catch (Exception err) {
@@ -109,10 +109,10 @@ public class GoogleSecurity {
 			M_log.log(
 					Level.ALL,
 					"Failed to get access token for user \""
-					+ userEmailAddress
-					+ "\" and service account "
-					+ serviceAccount,
-					err);
+							+ userEmailAddress
+							+ "\" and service account "
+							+ serviceAccount,
+							err);
 		}
 		return result;
 	}
@@ -120,8 +120,8 @@ public class GoogleSecurity {
 	static public Drive getGoogleDrive(GoogleCredential credential) {
 		Drive result = new Drive
 				.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-				.setApplicationName(APPLICATION_NAME)
-				.build();
+		.setApplicationName(APPLICATION_NAME)
+		.build();
 		return result;
 	}
 }
