@@ -97,10 +97,11 @@ public class GoogleServiceAccount {
 								+ File.separator
 								+ SYSTEM_PROPERTY_FILE_DEFAULT_NAME);
 				if (in == null) {
-					M_log.error(
-							"GoogleServiceAccount Properties resource \""
-									+ SYSTEM_PROPERTY_FILE_DEFAULT_NAME
-									+ "\" not located.");
+					StringBuilder sb=new StringBuilder();
+					sb.append("GoogleServiceAccount Properties resource \"");
+					sb.append(SYSTEM_PROPERTY_FILE_DEFAULT_NAME);
+					sb.append("\" not located.");
+					M_log.error(sb.toString());
 				}
 			}
 			if (in != null) {
@@ -215,18 +216,19 @@ public class GoogleServiceAccount {
 	}
 
 	public String toString() {
-		return
-				"GoogleServiceAccount [propPrefix=\""
-				+ getPropertiesPrefix()
-				+ "\", clientId=\""
-				+ getClientId()
-				+ "\", emailAddress=\""
-				+ getEmailAddress()
-				+ "\", p12FilePath=\""
-				+ getPrivateKeyFilePath()
-				+ "\", scopes=\""
-				+ getScopes()
-				+ "\"]";
+		StringBuilder sb=new StringBuilder();
+		sb.append("GoogleServiceAccount [propPrefix=\"");
+		sb.append(getPropertiesPrefix());
+		sb.append("\", clientId=\"");
+		sb.append(getClientId());
+		sb.append("\", emailAddress=\"");
+		sb.append(getEmailAddress());
+		sb.append("\", p12FilePath=\"");
+		sb.append(getPrivateKeyFilePath());
+		sb.append("\", scopes=\"");
+		sb.append(getScopes());
+		sb.append("\"]");
+		return sb.toString();
 	}
 
 

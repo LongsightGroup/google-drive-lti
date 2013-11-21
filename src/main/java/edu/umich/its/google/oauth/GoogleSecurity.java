@@ -88,11 +88,12 @@ public class GoogleSecurity {
 	}
 
 	/**
-	 * Creates calendar client from GoogleCredential and opens the calendar with
-	 * the given ID, returning accessToken for that.
+	 * Generate the access token that is need to Authorizes the service account to 
+	 * access user's protected data for user requests
+	 * 
 	 * 
 	 * @param userEmailAddress	User's full email address
-	 * @param gcalId	Google ID for the calendar to open
+	 * @param serviceAccount	Google Service Account for authorizing with Google
 	 * @return
 	 */
 	static public String getGoogleAccessToken(
@@ -106,13 +107,15 @@ public class GoogleSecurity {
 			credential.refreshToken();
 			result = credential.getAccessToken();
 		} catch (Exception err) {
+			StringBuilder sb =new StringBuilder();
+			sb.append("Failed to get access token for user \"");
+			sb.append(userEmailAddress);
+			sb.append("\" and service account ");
+			sb.append(serviceAccount);
 			M_log.log(
 					Level.ALL,
-					"Failed to get access token for user \""
-							+ userEmailAddress
-							+ "\" and service account "
-							+ serviceAccount,
-							err);
+					sb.toString(),
+					err);
 		}
 		return result;
 	}

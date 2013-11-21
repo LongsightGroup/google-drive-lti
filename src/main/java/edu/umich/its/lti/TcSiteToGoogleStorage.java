@@ -86,6 +86,7 @@ public class TcSiteToGoogleStorage {
 	 * */
 	public synchronized static TcSiteToGoogleLink getLinkingFromSettingService(
 			TcSessionData tcSessionData) throws IOException, ServletException {
+		
 		TcSiteToGoogleLink result = null;
 		String linkedGoogleFolder = SettingsClientUtils
 				.getSettingString(tcSessionData);
@@ -107,8 +108,7 @@ public class TcSiteToGoogleStorage {
 		String[] fields = line.split(",");
 		if (fields.length != 4) {
 			throw new IllegalArgumentException(
-					"Data line storing link of TC Site to Google Folder is "
-							+ "invalid: " + line);
+					"Data line storing link of TC Site to Google Folder is invalid: " + line);
 		}
 		result.setSiteId(decodeComma(fields[0]));
 		result.setUserId(decodeComma(fields[1]));
