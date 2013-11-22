@@ -29,13 +29,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
-import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.protocol.HTTP;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -155,8 +156,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	// Constants -----------------------------------------------------
 
 	private static final long serialVersionUID = -21239787L;
-	private static final Logger M_log =
-			Logger.getLogger(GoogleLtiServlet.class.toString());
+	private static final Log M_log = LogFactory
+			.getLog(GoogleLtiServlet.class);
 	
 	
 	private static final String SESSION_ATTR_TC_DATA = "TcSessionData";
@@ -284,7 +285,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		} else if (PARAM_ACTION_OPEN_PAGE.equals(requestedAction)) {
 			loadJspPage(request, response, tcSessionData);
 		} else {
-			M_log.warning(
+			M_log.warn(
 					"Request action unknown: \"" + requestedAction + "\"");
 		}  
 					}
@@ -468,7 +469,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				sb.append("\", expected \"");
 				sb.append(tcSessionData.getId());
 				sb.append("\".");
-				M_log.warning(sb.toString());
+				M_log.warn(sb.toString());
 				doError(
 						request,
 						response,
@@ -478,7 +479,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			sb.append("A request \"");
 			sb.append(requestedAction);
 			sb.append("\" was made to Google Drive LTI, and there is no data in the session from a post made by Tool Consumer(TC).");
-			M_log.warning(sb.toString());
+			M_log.warn(sb.toString());
 			doError(
 					request,
 					response,
@@ -652,7 +653,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				}
 			}
 		} catch (Exception err) {
-			M_log.warning("Error insertPermissions():");
+			M_log.warn("Error insertPermissions():");
 			err.printStackTrace();
 		}
 		return result;
@@ -680,7 +681,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				sb.append(fileId);
 				sb.append(" - did not find link with course #");
 				sb.append(tcSessionData.getContextId());
-				M_log.warning(sb.toString());
+				M_log.warn(sb.toString());
 				logError(
 						response,
 						"Server failed to find link to this Google folder.");
@@ -859,7 +860,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void logError(HttpServletResponse response, String message)
 			throws IOException
 			{
-		M_log.warning(message);
+		M_log.warn(message);
 		response.getWriter().print(message);
 			}
 
@@ -943,7 +944,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			sb.append(tcSessionData.getUserEmailAddress());
 			sb.append("> with roles ");
 			sb.append(Arrays.toString(tcSessionData.getUserRoleArray()));
-			M_log.warning(sb.toString());
+			M_log.warn(sb.toString());
 			loadJspPage(request, response, tcSessionData, JspPage.Home);
 		}
 					}
@@ -1007,7 +1008,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				sb.append(getFileId());
 				sb.append("\"");
 				System.out.println(sb.toString());
-				M_log.warning(sb.toString());
+				M_log.warn(sb.toString());
 				err.printStackTrace();
 			}
 			return result;
@@ -1031,7 +1032,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				sb.append("\" on file \"");
 				sb.append(getFileId());
 				sb.append("\"");
-				M_log.warning(sb.toString());
+				M_log.warn(sb.toString());
 				err.printStackTrace();
 			}
 			return result;

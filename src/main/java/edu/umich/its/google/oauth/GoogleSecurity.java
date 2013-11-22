@@ -21,8 +21,9 @@
 package edu.umich.its.google.oauth;
 
 import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
@@ -31,11 +32,12 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.drive.Drive;
 
+
 public class GoogleSecurity {
 	// Constants ----------------------------------------------------
 
-	private static final Logger M_log =
-			Logger.getLogger(GoogleSecurity.class.toString());
+	private static final Log M_log = LogFactory
+			.getLog(GoogleSecurity.class);
 
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
@@ -50,11 +52,11 @@ public class GoogleSecurity {
 			String emailAddress)
 	{
 		if (serviceAccount == null) {
-			M_log.warning("GoogleServiceAccount must not be null");
+			M_log.warn("GoogleServiceAccount must not be null");
 			return null;
 		}
 		if (emailAddress == null) {
-			M_log.warning("User's email address must not be null");
+			M_log.warn("User's email address must not be null");
 			return null;
 		}
 		GoogleCredential result = null;
@@ -81,7 +83,7 @@ public class GoogleSecurity {
 					.setServiceAccountUser(emailAddress)
 					.build();
 		} catch (Exception err) {
-			M_log.warning("Failed to Google Authorize " + emailAddress);
+			M_log.warn("Failed to Google Authorize " + emailAddress);
 			err.printStackTrace();
 		}
 		return result;
@@ -112,10 +114,7 @@ public class GoogleSecurity {
 			sb.append(userEmailAddress);
 			sb.append("\" and service account ");
 			sb.append(serviceAccount);
-			M_log.log(
-					Level.ALL,
-					sb.toString(),
-					err);
+			M_log.error(sb.toString(),err);
 		}
 		return result;
 	}
