@@ -530,7 +530,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					throws ServletException, IOException {
 		String emailAddress = tcSessionData.getUserEmailAddress();
 		if (getIsEmpty(emailAddress)) {
-			logError(
+			logErrorWritingResponse(
 					response,
 					"Error: unable to handle permissions - the ToolConsumer(TC) did not sent the current user's email address.");
 			return;
@@ -567,7 +567,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			// google file object
 			File file = handler.getFile();
 			if (file == null) {
-				logError(
+				logErrorWritingResponse(
 						response,
 						resource.getString("permission.error.four"));
 				return 0; // Quick return to simplify code
@@ -616,7 +616,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				sb.append(" - did not find link with course #");
 				sb.append(tcSessionData.getContextId());
 				M_log.warn(sb.toString());
-				logError(response,
+				logErrorWritingResponse(response,
 						resource.getString("permission.error.five"));
 				return null;
 			}
@@ -662,7 +662,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					tcSessionData);
 			File file = handler.getFile();
 			if (file == null) {
-				logError(
+				logErrorWritingResponse(
 						response,
 						resource.getString("permission.error.four"));
 				return; // Quick return to simplify code
@@ -705,7 +705,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					throws IOException {
 		String userEmailAddress = tcSessionData.getUserEmailAddress();
 		if (getIsEmpty(userEmailAddress)) {
-			logError(
+			logErrorWritingResponse(
 					response,
 					"Error: unable to get access token - the ToolProvider(TP) server does not know the user's email address.");
 			return;
@@ -715,7 +715,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (accessToken != null) {
 			response.getWriter().print(accessToken);
 		} else {
-			logError(response, "Error: unable to get access token.");
+			logErrorWritingResponse(response, "Error: unable to get access token.");
 		}
 	}
 
@@ -728,19 +728,19 @@ public class GoogleLtiServlet extends HttpServlet {
 			TcSessionData tcSessionData) throws IOException {
 		boolean result = true;
 		if (getIsEmpty(tcSessionData.getUserEmailAddress())) {
-			logError(
+			logErrorWritingResponse(
 					response,
 					resource.getString("permission.error.one"));
 			result = false;
 		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
-			logError(
+			logErrorWritingResponse(
 					response,
 					resource.getString("permission.error.two"));
 			result = false;
 		}
 		if (getIsEmpty(PARAM_FILE_ID)) {
-			logError(
+			logErrorWritingResponse(
 					response,
 					resource.getString("permission.error.three"));
 			result = false;
@@ -766,7 +766,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		return RosterClientUtils.getRoster(tcSessionData);
 	}
 
-	private void logError(HttpServletResponse response, String message)
+	private void logErrorWritingResponse(HttpServletResponse response, String message)
 			throws IOException {
 		M_log.warn(message);
 		response.getWriter().print(message);
