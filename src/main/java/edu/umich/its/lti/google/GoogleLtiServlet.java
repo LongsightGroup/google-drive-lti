@@ -569,7 +569,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			if (file == null) {
 				logError(
 						response,
-						"Error: unable to modify Google Folder permissions, as the folder was not retrieved from Google Drive.");
+						resource.getString("permission.error.four"));
 				return 0; // Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
@@ -617,7 +617,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				sb.append(tcSessionData.getContextId());
 				M_log.warn(sb.toString());
 				logError(response,
-						"Server failed to find link to this Google folder.");
+						resource.getString("permission.error.five"));
 				return null;
 			}
 			instructorEmailAddress = link.getUserEmailAddress();
@@ -664,7 +664,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			if (file == null) {
 				logError(
 						response,
-						"Error: unable to modify Google Folder permissions, as the folder was not retrieved from Google Drive.");
+						resource.getString("permission.error.four"));
 				return; // Quick return to simplify code
 			}
 			// Get credential for the instructor owning the folder
@@ -730,19 +730,19 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (getIsEmpty(tcSessionData.getUserEmailAddress())) {
 			logError(
 					response,
-					"Error: unable to handle permissions - the request did not specify the instructor.");
+					resource.getString("permission.error.one"));
 			result = false;
 		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
 			logError(
 					response,
-					"Error: unable to handle permissions - the request did not include valid access token.");
+					resource.getString("permission.error.two"));
 			result = false;
 		}
 		if (getIsEmpty(PARAM_FILE_ID)) {
 			logError(
 					response,
-					"Error: unable to insert permissions, as no file ID was included in the request.");
+					resource.getString("permission.error.three"));
 			result = false;
 		}
 		return result;
