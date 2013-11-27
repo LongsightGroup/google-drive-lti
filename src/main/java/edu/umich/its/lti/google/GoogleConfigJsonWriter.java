@@ -22,7 +22,8 @@ package edu.umich.its.lti.google;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import edu.umich.its.lti.TcSessionData;
 import edu.umich.its.lti.TcSiteToGoogleLink;
@@ -31,6 +32,7 @@ import edu.umich.its.lti.TcSiteToGoogleStorage;
 /**
  * This generates JSON object sent to the browser containing user name & roles,
  * and linked folder
+ * 
  * <pre>
  * 	googleDriveConfig = {
  * 		  "tp_id" : ""
@@ -40,27 +42,28 @@ import edu.umich.its.lti.TcSiteToGoogleStorage;
  * 
  * 	}
  * </pre>
- *  
+ * 
  * @author Raymond Naseef
- *
+ * 
  */
 public class GoogleConfigJsonWriter {
+
+	private static final Log M_log = LogFactory
+			.getLog(GoogleConfigJsonWriter.class);
 
 	/**
 	 * This creates JSON with configuration of Google Drive, for use by the
 	 * browser to manage the site's Google Resources.
 	 */
 	static public String getGoogleDriveConfigJson(TcSessionData tcSessionData)
-			throws IOException
-			{
+			throws IOException {
 		StringBuilder result = new StringBuilder("{");
 		String courseId = tcSessionData.getContextId();
 		if ((courseId == null) || courseId.trim().equals("")) {
-			throw new RuntimeException(
-					"Google Drive LTI request made without context_id!");
+			M_log.error("Google Drive LTI request made without context_id!");
 		}
 		result.append("\"tp_id\" : \"")
-		.append(escapeJson(tcSessionData.getId()))
+		.append(escapeQuotesForJson(tcSessionData.getId()))
 		.append("\"");
 		result.append(", \"course\" : ");
 		appendCourseJson(tcSessionData, result);
@@ -71,71 +74,61 @@ public class GoogleConfigJsonWriter {
 		// End the JSON object
 		result.append("}");
 		return result.toString();
-			}
+	}
 
 	/**
 	 * Returns JavaScript setting the JSON configuration object to global
 	 * variable "googleDriveConfig".
 	 */
 	static public String getGoogleDriveConfigJsonScript(
-			TcSessionData tcSessionData)
-					throws IOException
-					{
+			TcSessionData tcSessionData) throws IOException {
 		return "googleDriveConfig = " + getGoogleDriveConfigJson(tcSessionData);
-					}
-
+	}
 
 	// Static private methods ---------------------------------------
 
-	static private void appendCourseJson(
-			TcSessionData tcSessionData,
-			StringBuilder result)
-	{
+	static private void appendCourseJson(TcSessionData tcSessionData,
+			StringBuilder result) {
 		// 2 - Begin Adding the folder
 		result.append("{ \"id\" : \"")
-		.append(escapeJson(tcSessionData.getContextId()))
+		.append(escapeQuotesForJson(tcSessionData.getContextId()))
 		.append("\"");
 		// 2a - Folder's title
 		result.append(", \"title\" : \"")
-		.append(escapeJson(tcSessionData.getContextTitle()))
+		.append(escapeQuotesForJson(tcSessionData.getContextTitle()))
 		.append("\"");
 		// 2 - End Adding the folder
 		result.append("}");
 	}
 
-	static private void appendLinkedFolders(
-			TcSessionData tcSessionData,
-			StringBuilder result)
-	{
+	static private void appendLinkedFolders(TcSessionData tcSessionData,
+			StringBuilder result) {
 
-		//setting mapping
+		// setting mapping
 		result.append("[");
 		try {
-			TcSiteToGoogleLink link = TcSiteToGoogleStorage.getLinkingFromSettingService(tcSessionData);
-			if(link!=null) {
+			TcSiteToGoogleLink link = TcSiteToGoogleStorage
+					.getLinkingFromSettingService(tcSessionData);
+			if (link != null) {
 				result.append("\"")
-				.append(escapeJson(link.getFolderId()))
+				.append(escapeQuotesForJson(link.getFolderId()))
 				.append("\"");
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ServletException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			M_log.error(
+					"Failed to load the string that has the Shared folder information",
+					e);
 		}
 		result.append("]");
 	}
 
-	static private void appendUserJson(
-			TcSessionData tcSessionData,
-			StringBuilder result)
-	{
+	static private void appendUserJson(TcSessionData tcSessionData,
+			StringBuilder result) {
 		// 1 - Begin Adding User
 		result.append("{");
 		// 1a - full name
 		result.append(" \"name\" : \"")
-		.append(escapeJson(tcSessionData.getUserNameFull()))
+		.append(escapeQuotesForJson(tcSessionData.getUserNameFull()))
 		.append("\"");
 		// 1b - roles
 		String[] roleArray = tcSessionData.getUserRoleArray();
@@ -144,7 +137,8 @@ public class GoogleConfigJsonWriter {
 			if (idx > 0) {
 				result.append(",");
 			}
-			result.append("\"").append(escapeJson(roleArray[idx])).append("\"");
+			result.append("\"").append(escapeQuotesForJson(roleArray[idx]))
+			.append("\"");
 		}
 		result.append("]");
 		// 1 - End Adding User
@@ -155,7 +149,7 @@ public class GoogleConfigJsonWriter {
 	 * Returns the value escaped properly for placement as value in JSON; null
 	 * is returned as ''
 	 */
-	static private String escapeJson(String value) {
+	static private String escapeQuotesForJson(String value) {
 		return (value == null) ? "" : value.replace("\"", "\\\"");
 	}
 }

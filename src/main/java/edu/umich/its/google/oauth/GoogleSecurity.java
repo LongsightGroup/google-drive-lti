@@ -32,25 +32,20 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.drive.Drive;
 
-
 public class GoogleSecurity {
 	// Constants ----------------------------------------------------
 
-	private static final Log M_log = LogFactory
-			.getLog(GoogleSecurity.class);
+	private static final Log M_log = LogFactory.getLog(GoogleSecurity.class);
 
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 	private static final String APPLICATION_NAME = "GoogleDriveLti";
 
-
 	// Static public methods ----------------------------------------
 
 	/** Authorizes the service account to access user's protected data. */
 	static public GoogleCredential authorize(
-			GoogleServiceAccount serviceAccount,
-			String emailAddress)
-	{
+			GoogleServiceAccount serviceAccount, String emailAddress) {
 		if (serviceAccount == null) {
 			M_log.warn("GoogleServiceAccount must not be null");
 			return null;
@@ -65,23 +60,18 @@ public class GoogleSecurity {
 			String filePath = serviceAccount.getPrivateKeyFilePath();
 			// If this path is in classpath, get the file's path from it
 			if (serviceAccount.getPrivateKeyFileClasspath()) {
-				filePath = GoogleSecurity.class
-						.getClassLoader()
-						.getResource(filePath)
-						.getFile();
+				filePath = GoogleSecurity.class.getClassLoader()
+						.getResource(filePath).getFile();
 			}
 			File privateKeyFile = new File(filePath);
 			// Get service account credential
 			String[] scopes = serviceAccount.getScopesArray();
 			result = new GoogleCredential.Builder()
-			.setTransport(HTTP_TRANSPORT)
-			.setJsonFactory(JSON_FACTORY)
+			.setTransport(HTTP_TRANSPORT).setJsonFactory(JSON_FACTORY)
 			.setServiceAccountId(serviceAccount.getEmailAddress())
 			.setServiceAccountScopes(scopes)
-			.setServiceAccountPrivateKeyFromP12File(
-					privateKeyFile)
-					.setServiceAccountUser(emailAddress)
-					.build();
+			.setServiceAccountPrivateKeyFromP12File(privateKeyFile)
+			.setServiceAccountUser(emailAddress).build();
 		} catch (Exception err) {
 			M_log.warn("Failed to Google Authorize " + emailAddress);
 			err.printStackTrace();
@@ -90,40 +80,51 @@ public class GoogleSecurity {
 	}
 
 	/**
-	 * Generate the access token that is need to Authorizes the service account to 
-	 * access user's protected data for user requests
+	 * Generate the access token that is need to Authorizes the service account
+	 * to access user's protected data for user requests
 	 * 
 	 * 
-	 * @param userEmailAddress	User's full email address
-	 * @param serviceAccount	Google Service Account for authorizing with Google
+	 * @param userEmailAddress
+	 *            User's full email address
+	 * @param serviceAccount
+	 *            Google Service Account for authorizing with Google
 	 * @return
 	 */
 	static public String getGoogleAccessToken(
-			GoogleServiceAccount serviceAccount,
-			String userEmailAddress)
-	{
+			GoogleServiceAccount serviceAccount, String userEmailAddress) {
 		String result = null;
 		try {
-			GoogleCredential credential =
-					authorize(serviceAccount, userEmailAddress);
+			GoogleCredential credential = authorize(serviceAccount,
+					userEmailAddress);
 			credential.refreshToken();
 			result = credential.getAccessToken();
 		} catch (Exception err) {
-			StringBuilder sb =new StringBuilder();
+			StringBuilder sb = new StringBuilder();
 			sb.append("Failed to get access token for user \"");
 			sb.append(userEmailAddress);
 			sb.append("\" and service account ");
 			sb.append(serviceAccount);
-			M_log.error(sb.toString(),err);
+			M_log.error(sb.toString(), err);
 		}
 		return result;
 	}
 
+	/**
+	 * This creates the Drive object that is useful to interact with the Google
+	 * Drive tool for doing various activities like inserting the permission and
+	 * so. More info in below link
+	 * https://developers.google.com/resources/api-libraries
+	 * /documentation/drive/v2/java/latest/
+	 * 
+	 * @param credential
+	 * @return
+	 */
 	static public Drive getGoogleDrive(GoogleCredential credential) {
-		Drive result = new Drive
-				.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-		.setApplicationName(APPLICATION_NAME)
-		.build();
+		Drive result = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY,
+				credential).setApplicationName(APPLICATION_NAME).build();
+		if (result == null) {
+			M_log.error("Failed to Instantiate the Drive object, this might lead to error in permissions");
+		}
 		return result;
 	}
 }

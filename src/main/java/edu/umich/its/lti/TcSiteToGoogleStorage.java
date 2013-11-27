@@ -30,9 +30,9 @@ import org.apache.commons.logging.LogFactory;
 import edu.umich.its.lti.utils.SettingsClientUtils;
 
 /**
- * This class manages persistence of relationships between TC (Tool Consumer)sites and Google
- * folders. Storage is done in one file for each TC(Tool Consumer) site, listing its linked
- * Google folders.
+ * This class manages persistence of relationships between TC (Tool
+ * Consumer)sites and Google folders. Storage is done in one file for each
+ * TC(Tool Consumer) site, listing its linked Google folders.
  * 
  * @author ranaseef
  * 
@@ -46,24 +46,35 @@ public class TcSiteToGoogleStorage {
 	// Static public methods ----------------------------------------
 
 	/**
-	 * Adding google linked folder to setting service
+	 * Setting string in the format
+	 * <site_id>,<user_id>,<user_email_address>,<google-folder-id> to setting
+	 * service with the a Folder is shared/linked with the site.
 	 * 
 	 * @return
 	 * @throws IOException
 	 * @throws Exception
 	 */
 	public synchronized static Boolean setLinkingToSettingService(
-			TcSessionData tcSessionData, TcSiteToGoogleLink linking)
-					throws IOException, Exception {
+			TcSessionData tcSessionData, TcSiteToGoogleLink linking) {
 		Boolean state = false;
-		state = SettingsClientUtils.setSetting(tcSessionData,
-				linking.toString());
+		try {
+			state = SettingsClientUtils.setSetting(tcSessionData,
+					linking.toString());
+		} catch (Exception e) {
+			M_log.error("Error: in putting to setting serc=vice",e);
+		}
 
 		return state;
 
 	}
 
-	public synchronized static Boolean setLinkingToSettingServiceWithNoLinking(
+	/**
+	 * This will set empty string when a folder is unshared/Unlinked to the
+	 * setting service
+	 * 
+	 * */
+
+	public synchronized static Boolean setUnLinkingToSettingService(
 			TcSessionData tcSessionData) throws IOException, ServletException {
 		Boolean state = false;
 
@@ -79,14 +90,14 @@ public class TcSiteToGoogleStorage {
 	}
 
 	/**
-	 * Getting the linked folder from the setting service
+	 * Getting the shared/linked folder from the setting service
 	 * 
 	 * @throws ServletException
 	 * 
 	 * */
 	public synchronized static TcSiteToGoogleLink getLinkingFromSettingService(
 			TcSessionData tcSessionData) throws IOException, ServletException {
-		
+
 		TcSiteToGoogleLink result = null;
 		String linkedGoogleFolder = SettingsClientUtils
 				.getSettingString(tcSessionData);
@@ -108,7 +119,8 @@ public class TcSiteToGoogleStorage {
 		String[] fields = line.split(",");
 		if (fields.length != 4) {
 			throw new IllegalArgumentException(
-					"Data line storing link of TC Site to Google Folder is invalid: " + line);
+					"Data line storing link of TC Site to Google Folder is invalid: "
+							+ line);
 		}
 		result.setSiteId(decodeComma(fields[0]));
 		result.setUserId(decodeComma(fields[1]));

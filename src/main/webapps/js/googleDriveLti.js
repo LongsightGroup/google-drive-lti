@@ -502,6 +502,8 @@ function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
 				success: function(data) {
 					if ($.trim(data) == 'SUCCESS') {
 						openPage('Home');
+					}else if ($.trim(data) !== '') {
+						alert(data);
 					}
 
 				}
@@ -552,7 +554,10 @@ function removeRosterPermissions(folderId) {
 				success: function(data) {
 					if ($.trim(data) === 'SUCCESS') {
 						openPage('LinkFolder');
+					}else if ($.trim(data) !== '') {
+						alert(data);
 					}
+					
 				}
 	});
 }
