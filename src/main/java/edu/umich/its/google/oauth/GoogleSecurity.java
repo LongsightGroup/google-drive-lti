@@ -21,6 +21,8 @@
 package edu.umich.its.google.oauth;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,10 +68,11 @@ public class GoogleSecurity {
 			File privateKeyFile = new File(filePath);
 			// Get service account credential
 			String[] scopes = serviceAccount.getScopesArray();
+			List<String> scopesCollection = Arrays.asList(scopes);
 			result = new GoogleCredential.Builder()
 			.setTransport(HTTP_TRANSPORT).setJsonFactory(JSON_FACTORY)
 			.setServiceAccountId(serviceAccount.getEmailAddress())
-			.setServiceAccountScopes(scopes)
+			.setServiceAccountScopes(scopesCollection)
 			.setServiceAccountPrivateKeyFromP12File(privateKeyFile)
 			.setServiceAccountUser(emailAddress).build();
 		} catch (Exception err) {

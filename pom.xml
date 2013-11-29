@@ -55,51 +55,57 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		
 		<dependency>
-			<groupId>com.google.oauth-client</groupId>
-			<artifactId>google-oauth-client-servlet</artifactId>
-			<version>1.13.1-beta</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-servlet</artifactId>
+            <version>1.17.0-rc</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-servlet</artifactId>
+            <version>1.17.0-rc</version>
+            <type>jar</type>
+            <classifier>sources</classifier>
+            <scope>compile</scope>
+        </dependency>
+		
 		<dependency>
-			<groupId>com.google.oauth-client</groupId>
-			<artifactId>google-oauth-client-servlet</artifactId>
-			<version>1.13.1-beta</version>
-			<type>jar</type>
-			<classifier>sources</classifier>
-			<scope>compile</scope>
-		</dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.17.0-rc</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.17.0-rc</version>
+            <type>jar</type>
+            <classifier>sources</classifier>
+            <scope>compile</scope>
+        </dependency>
+		
+		
 		<dependency>
-			<groupId>com.google.api-client</groupId>
-			<artifactId>google-api-client</artifactId>
-			<version>1.13.2-beta</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.api-client</groupId>
-			<artifactId>google-api-client</artifactId>
-			<version>1.13.2-beta</version>
-			<type>jar</type>
-			<classifier>sources</classifier>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.http-client</groupId>
-			<artifactId>google-http-client-jackson</artifactId>
-			<version>1.13.1-beta</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.http-client</groupId>
-			<artifactId>google-http-client-jackson</artifactId>
-			<version>1.13.1-beta</version>
-			<type>jar</type>
-			<classifier>sources</classifier>
-			<scope>compile</scope>
-		</dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-jackson</artifactId>
+            <version>1.17.0-rc</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-jackson</artifactId>
+            <version>1.17.0-rc</version>
+            <type>jar</type>
+            <classifier>sources</classifier>
+            <scope>compile</scope>
+        </dependency>
+		
+		
 		<dependency>
 			<groupId>javax.jdo</groupId>
 			<artifactId>jdo-api</artifactId>
@@ -114,17 +120,13 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+		
 		<dependency>
-			<groupId>com.google.apis</groupId>
-			<artifactId>google-api-services-calendar</artifactId>
-			<version>v3-rev31-1.13.2-beta</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.apis</groupId>
-			<artifactId>google-api-services-drive</artifactId>
-			<version>v2-rev60-1.13.2-beta</version>
-		</dependency>
-
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-drive</artifactId>
+            <version>v2-rev105-1.17.0-rc</version>
+        </dependency>
+		
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
