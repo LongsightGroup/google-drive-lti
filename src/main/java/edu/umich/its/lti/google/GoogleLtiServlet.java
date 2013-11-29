@@ -50,6 +50,7 @@ import edu.umich.its.lti.GoogleCache;
 import edu.umich.its.lti.TcSessionData;
 import edu.umich.its.lti.TcSiteToGoogleLink;
 import edu.umich.its.lti.TcSiteToGoogleStorage;
+import edu.umich.its.lti.utils.OauthCredentials;
 import edu.umich.its.lti.utils.RequestSignatureUtils;
 import edu.umich.its.lti.utils.RosterClientUtils;
 
@@ -404,7 +405,13 @@ public class GoogleLtiServlet extends HttpServlet {
 	private TcSessionData lockInSession(HttpServletRequest request) {
 		// Store TC data in session.
 		String ltiSecret = getGoogleServiceAccount().getLtiSecret();
-		TcSessionData result = new TcSessionData(request, ltiSecret);
+		String ltiKey = getGoogleServiceAccount().getLtiKey();
+		String ltiKeyFromLaunch = request.getParameter("oauth_consumer_key");
+		if(!(ltiKey.equals(ltiKeyFromLaunch))) {
+			M_log.error("The LTI key from the launch of the application is not same as LTI key from the properties file: this is unlikely");
+		}
+		OauthCredentials oauthCredentials = new OauthCredentials(ltiKey,ltiSecret);
+		TcSessionData result = new TcSessionData(request,oauthCredentials);
 		if (getIsEmpty(result.getUserEmailAddress())) {
 			throw new IllegalStateException(
 					"Google Drive LTI was opened by user without email address. Please verify the tool is configured by checking the SEND EMAIL ADDRESSES TO EXTERNAL TOOL option for course (context_id): "
