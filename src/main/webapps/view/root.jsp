@@ -59,7 +59,7 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 					<span class="icon-bar"></span> <span class="icon-bar"></span> <span
 						class="icon-bar"></span>
 				</button>
-				<a class="brand" onclick="openPage('Home');">${requestScope.jspPage.pageTitle}</a>
+				<a class="brand">${requestScope.jspPage.pageTitle}</a>
 				<div class="nav-collapse collapse">
 					<p class="navbar-text pull-right">
 						<%
@@ -78,7 +78,7 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 						<%
 	if (data.getIsInstructor()) {
 %>
-						<li class="active"><a onclick="openPage('LinkFolder');">${header2}</a></li>
+						<li class="active"><a>${header2}</a></li>
 						<%
 	}
 %>
