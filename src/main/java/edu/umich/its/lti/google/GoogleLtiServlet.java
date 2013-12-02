@@ -267,6 +267,11 @@ public class GoogleLtiServlet extends HttpServlet {
 		try {
 			if (verifyPost(request, response)) {
 				TcSessionData tcSessionData = lockInSession(request);
+				if (tcSessionData==null) {
+					doError(request, response,
+							"LTI tool Authorization failed");
+					return;
+				}
 				bundleManipulation(tcSessionData);
 				String googleConfigJson = GoogleConfigJsonWriter
 						.getGoogleDriveConfigJsonScript(tcSessionData);
@@ -404,14 +409,17 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private TcSessionData lockInSession(HttpServletRequest request) {
 		// Store TC data in session.
+		TcSessionData result = null;
 		String ltiSecret = getGoogleServiceAccount().getLtiSecret();
 		String ltiKey = getGoogleServiceAccount().getLtiKey();
 		String ltiKeyFromLaunch = request.getParameter("oauth_consumer_key");
-		if(!(ltiKey.equals(ltiKeyFromLaunch))) {
-			M_log.error("The LTI key from the launch of the application is not same as LTI key from the properties file: this is unlikely");
+		if((ltiKey.equals(ltiKeyFromLaunch))) {
+			OauthCredentials oauthCredentials = new OauthCredentials(ltiKey,ltiSecret);
+			result = new TcSessionData(request,oauthCredentials);
+		}else {
+			M_log.error("The LTI key from the launch of the application is not same as LTI key from the properties file");
+			return result;
 		}
-		OauthCredentials oauthCredentials = new OauthCredentials(ltiKey,ltiSecret);
-		TcSessionData result = new TcSessionData(request,oauthCredentials);
 		if (getIsEmpty(result.getUserEmailAddress())) {
 			throw new IllegalStateException(
 					"Google Drive LTI was opened by user without email address. Please verify the tool is configured by checking the SEND EMAIL ADDRESSES TO EXTERNAL TOOL option for course (context_id): "
@@ -422,6 +430,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		return result;
 	}
 
+	
 	/**
 	 * 
 	 * @param request
