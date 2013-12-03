@@ -44,11 +44,13 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
     
     </script>
 <script
-	src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"
+	src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"
 	type="text/javascript"></script>
+<script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
 <script src="js/utils.js" type="text/javascript"></script>
 <script src="js/google-drive-utils.js" type="text/javascript"></script>
 <script src="js/googleDriveLti.js" type="text/javascript"></script>
+
 </head>
 <body>
 	<div class="navbar navbar-inverse navbar-fixed-top">

@@ -24,6 +24,7 @@
  *
  * @author: Raymond Louis Naseef
  */
+
 if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
 	if (getHasConsoleLogFunction()) {
 		console.log('WARNING: googleDriveLti.js relies upon sibling library google-drive-utils.js');
@@ -49,8 +50,9 @@ var googleFileParents = [];
 var EXPAND_TEXT = '+ <span class="hide-text">Expand this folder</span>';
 var SHRINK_TEXT = '- <span class="hide-text">Collapse this folder</span>';
 
+
 var accessTokenHandler = {
-		"accessToken" : null,
+		"accessToken" : null
 };
 
 /**
