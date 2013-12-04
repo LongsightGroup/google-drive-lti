@@ -14,14 +14,12 @@
 		<p class="muted">${linkingViewInfo}</p>
 	</div>
 	<div class="pull-right">
-		<form class="form-search">
+		<form class="form-search" onsubmit="return false;"> 
 			<div class="input-append" style="margin-right: 73px">
-				<input id="UnlinkedFolderSearchInput" type="text"
-					class="span12 search-query">
-				<button type="button" class="btn"
-					onclick="searchUnlinkedFoldersOwnedByMe();">${requestScope.search}</button>
+				<input id="UnlinkedFolderSearchInput" type="text" class="span12 search-query" onKeyUp="return AutoClick(event);">
+				<button type="button" class="btn" id="searchButton" onclick="searchUnlinkedFoldersOwnedByMe();">${requestScope.search}</button>
 			</div>
-		</form>
+		</form> 
 		<!-- TODO: Remove this div : page layout will need to be fixed
                   <div class="span5 offset1" style="display:none;">
                     <div class="pagination">

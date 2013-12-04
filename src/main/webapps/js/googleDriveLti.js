@@ -209,6 +209,12 @@ function listAncestorsForFileRecursive(currentFileId, parentFileId, rootParent) 
 	}
 }
 
+function AutoClick(e){
+		if(e.keyCode==13){
+		searchUnlinkedFoldersOwnedByMe();
+	}
+}
+
 /**
  * Performs Google search for folders, retrieving all of them if the search
  * value is blank.  When it succeeds, it replaces contents in the table with the
