@@ -43,9 +43,8 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
     var sendEmailCopy='<%=sendEmailCopy %>';
     
     </script>
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"
-	type="text/javascript"></script>
+
+<script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
 <script src="js/utils.js" type="text/javascript"></script>
 <script src="js/google-drive-utils.js" type="text/javascript"></script>
@@ -110,6 +109,6 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 		</footer>
 		<%} %>
 	</div>
-	<script src="bootstrap/js/bootstrap.js"></script>
+<script src="bootstrap/js/bootstrap.js"></script>
 </body>
 </html>
