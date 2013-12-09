@@ -13,7 +13,7 @@ The Google Drive LTI run on its own instance than the Sakai instance
          
 [ SETUP ]
 =========
-1. svn co https://source.sakaiproject.org/contrib/umich/google/lti-utils 
+1. svn co https://source.sakaiproject.org/contrib/umich/lti-utils/trunk 
 
 2. svn co https://source.sakaiproject.org/contrib/umich/lti-proxy/
 
@@ -30,8 +30,9 @@ The Google Drive LTI run on its own instance than the Sakai instance
    googleDriveLti.service.account.email.address=
    googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
    
-   ## LTI password property
+   ## LTI key/password property
    googleDriveLti.service.account.lti.secret=
+   googleDriveLti.service.account.lti.key=
 
 5c. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
 
@@ -98,8 +99,7 @@ HOW TO RUN SECOND TOMCAT INSTANCE FOR LOCAL DEVELOPMENT
         export CATALINA_HOME=$TOMCAT_HOME
 3. open server.xml and change the  below tags something different from the TC1
         <Connector port for protocol="HTTP/1.1"> && <Server port > && <Connector port="8009" protocol="AJP/1.3" >
- 
-
+        
 
 [Configuring Google-Drive-LTI in Sakai ]
 ========================================

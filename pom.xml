@@ -63,14 +63,14 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>com.google.oauth-client</groupId>
             <artifactId>google-oauth-client-servlet</artifactId>
             <version>1.17.0-rc</version>
             <type>jar</type>
             <classifier>sources</classifier>
             <scope>compile</scope>
-        </dependency>
+        </dependency> -->
 		
 		<dependency>
             <groupId>com.google.api-client</groupId>
@@ -79,14 +79,14 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
             <version>1.17.0-rc</version>
             <type>jar</type>
             <classifier>sources</classifier>
             <scope>compile</scope>
-        </dependency>
+        </dependency> -->
 		
 		
 		<dependency>
@@ -96,14 +96,14 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client-jackson</artifactId>
             <version>1.17.0-rc</version>
             <type>jar</type>
             <classifier>sources</classifier>
             <scope>compile</scope>
-        </dependency>
+        </dependency> -->
 		
 		
 		<dependency>
@@ -157,22 +157,22 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>oauth.signpost</groupId>
 			<artifactId>signpost-commonshttp4</artifactId>
 			<version>1.2.1.2</version>
 			<type>jar</type>
 			<classifier>sources</classifier>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
+		</dependency> -->
+		<!-- <dependency>
 			<groupId>oauth.signpost</groupId>
 			<artifactId>signpost-core</artifactId>
 			<version>1.2.1.2</version>
 			<type>jar</type>
 			<classifier>sources</classifier>
 			<scope>compile</scope>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>oauth.signpost</groupId>
 			<artifactId>signpost-core</artifactId>
@@ -210,22 +210,22 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
 			<artifactId>oauth-signature</artifactId>
 			<version>1.17.1</version>
 			<type>jar</type>
 			<classifier>javadoc</classifier>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
+		</dependency> -->
+		<!-- <dependency>
 			<groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
 			<artifactId>oauth-signature</artifactId>
 			<version>1.17.1</version>
 			<type>jar</type>
 			<classifier>sources</classifier>
 			<scope>compile</scope>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>lti</groupId>
 			<artifactId>lti-utils</artifactId>
