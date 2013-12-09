@@ -43,9 +43,7 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
     var sendEmailCopy='<%=sendEmailCopy %>';
     
     </script>
-<!-- <script
-    src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"
-    type="text/javascript"></script> -->
+
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
 <script src="js/utils.js" type="text/javascript"></script>

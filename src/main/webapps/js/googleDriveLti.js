@@ -74,9 +74,9 @@ var accessTokenHandler = {
 function showLinkedGoogleFolders() {
 	var folders = getConfigLinkedFolders();
 	if (typeof(folders) !== 'undefined') {
-		//for (var idx = 0, count = folders.length; idx < count; idx++) {
-			showLinkedGoogleFolder(folders);
-		//}
+		for (var idx = 0, count = folders.length; idx < count; idx++) {
+			showLinkedGoogleFolder(folders[idx]);
+		}
 	}
 }
 
@@ -89,22 +89,21 @@ function showLinkedGoogleFolders() {
  * 
  * @param folderId
  */
-
 function showLinkedGoogleFolder(folderId) {
 	getDriveFile(
 			getGoogleAccessToken(),
 			folderId,
-			function(data,textStatus) {
+			function(data) {
 				// Linked folders are all depth 0 (no parents)
 				showLinkedGoogleFolderCallback(data, 0);
 			},
 			function(data, textStatus, jqXHR) {
 				// Handle error...
 				if (data.status === 404) {
-					giveCurrentUserReadOnlyPermissions(folderId);
+					giveCurrentUserReadOnlyPermissions(folderId)
 				}
-			
 			});
+
 }
 
 /**
@@ -121,8 +120,6 @@ function showLinkedGoogleFolderCallback(file, depth) {
 		}
 	}
 }
-
-
 
 /**
  * This finds any direct children of the given folder, and that I have the right
@@ -528,7 +525,7 @@ function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
  * 
  * @param folderId Google folder's ID
  */
-function giveCurrentUserReadOnlyPermissions(folderId,callback) {
+function giveCurrentUserReadOnlyPermissions(folderId) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
@@ -537,19 +534,18 @@ function giveCurrentUserReadOnlyPermissions(folderId,callback) {
 				"giveCurrentUserAccessReadOnly",
 				false),
 				success: function(data) {
-					if ($.trim(data) == 'SUCCESS') {
-					getDriveFile(
-							getGoogleAccessToken(),
-							folderId,
-							function(data) {
-								// Linked folders are all depth 0 (no parents)
-								showLinkedGoogleFolderCallback(data, 0);
-							});
+					if ($.trim(data) === 'SUCCESS') {
+						getDriveFile(
+								getGoogleAccessToken(),
+								folderId,
+								function(data) {
+									// Linked folders are all depth 0 (no parents)
+									showLinkedGoogleFoldersCallback(data, 0);
+								});
 					}
 				}
 	});
 }
-
 
 /**
  * Removes permissions for people in the roster to the given folder.
