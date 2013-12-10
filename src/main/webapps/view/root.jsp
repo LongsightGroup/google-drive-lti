@@ -49,7 +49,6 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 <script src="js/utils.js" type="text/javascript"></script>
 <script src="js/google-drive-utils.js" type="text/javascript"></script>
 <script src="js/googleDriveLti.js" type="text/javascript"></script>
-
 </head>
 <body>
 	<div class="navbar navbar-inverse navbar-fixed-top">
@@ -105,7 +104,8 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
       %>
 		<%if(role.equals("Learner")){%>
 		<footer>
-			<p>${studentAccessMsg}.</p>
+			<p id="par1" class="hide">${studentAccessMsg}.</p>
+			<p id="par2" class="hide">${studentNoFolderAccessMsg}.</p>
 		</footer>
 		<%} %>
 	</div>

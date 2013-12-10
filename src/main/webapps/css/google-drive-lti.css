@@ -38,6 +38,9 @@ TABLE {
     font-weight: bold;
     margin-top: 20px;
 }
+.hide {
+    display : none;
+}
 
 #spinner {
     background: transparent url("../images/ajax_loader_blue_128.gif") top left no-repeat;

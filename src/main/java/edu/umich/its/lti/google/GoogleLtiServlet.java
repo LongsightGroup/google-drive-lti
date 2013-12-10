@@ -842,6 +842,8 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.logged.in"));
 			request.setAttribute("studentAccessMsg",
 					resource.getString("gd.student.view.access.msg"));
+			request.setAttribute("studentNoFolderAccessMsg",
+					resource.getString("gd.student.view.nofolder.message"));
 			request.setAttribute("linkFolderButton",
 					resource.getString("gd.link.folder.button"));
 			request.setAttribute("unlinkFolderButton",
