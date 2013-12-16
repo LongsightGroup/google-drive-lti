@@ -1051,7 +1051,7 @@ function getGoogleDateOrTime(googleDateIso) {
 				result = hour + ':' + padNumber(min, 2) + ' ' + am_pm;
 			} else {
 				// Not today, show "Month ##"
-				result = MONTHS[googleDate.getMonth() + 1]
+				result = MONTHS[googleDate.getMonth()]
 				+ ' '
 				+ googleDate.getDate();
 			}
