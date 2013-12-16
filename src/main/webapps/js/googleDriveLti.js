@@ -74,9 +74,7 @@ var accessTokenHandler = {
 function showLinkedGoogleFolders() {
 	var folders = getConfigLinkedFolders();
 	if (typeof(folders) !== 'undefined') {
-		for (var idx = 0, count = folders.length; idx < count; idx++) {
-			showLinkedGoogleFolder(folders[idx]);
-		}
+			showLinkedGoogleFolder(folders);
 	}
 }
 
@@ -540,7 +538,7 @@ function giveCurrentUserReadOnlyPermissions(folderId) {
 								folderId,
 								function(data) {
 									// Linked folders are all depth 0 (no parents)
-									showLinkedGoogleFoldersCallback(data, 0);
+									showLinkedGoogleFolderCallback(data, 0);
 								});
 					}
 				}
