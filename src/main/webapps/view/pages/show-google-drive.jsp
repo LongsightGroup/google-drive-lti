@@ -57,7 +57,7 @@
 	if (((TcSessionData)request.getAttribute("TcSessionData")).getIsInstructor()) {
 %>
 <div class="row-fluid header-controls">
-	<h3>${requestScope.jspPage.pageTitle}</h3>
+	<h2>${requestScope.jspPage.pageTitle}</h2>
 	<p class="muted pull-left">${requestScope.info}</p>
 	<p class="pull-right "></p>
 </div>

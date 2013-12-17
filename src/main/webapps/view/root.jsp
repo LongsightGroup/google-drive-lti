@@ -104,8 +104,8 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
       %>
 		<%if(role.equals("Learner")){%>
 		<footer>
-			<p id="par1" class="hide">${studentAccessMsg}.</p>
-			<p id="par2" class="hide">${studentNoFolderAccessMsg}.</p>
+			<div id="par1" class="hide">${studentAccessMsg}.</div>
+			<div id="par2" class="hide alert alert-info">${studentNoFolderAccessMsg}.</div>
 		</footer>
 		<%} %>
 	</div>

@@ -25,6 +25,8 @@
  * @author: Raymond Louis Naseef
  */
 
+
+
 if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
 	if (getHasConsoleLogFunction()) {
 		console.log('WARNING: googleDriveLti.js relies upon sibling library google-drive-utils.js');
@@ -36,7 +38,10 @@ if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
 	}
 }
 
+
+
 var DEBUG_MODE = false;
+
 var SAVE_SITE_ID_IN_GOOGLE = false;
 var SAVE_LINKS_IN_TP = true;
 var FILTER_FOR_FOLDERS = 'mimeType = \'application/vnd.google-apps.folder\'';
@@ -96,9 +101,8 @@ function showLinkedGoogleFolder(folderId) {
 				showLinkedGoogleFolderCallback(data, 0);
 			},
 			function(data, textStatus, jqXHR) {
-				// Handle error...
 				if (data.status === 404) {
-					giveCurrentUserReadOnlyPermissions(folderId)
+					giveCurrentUserReadOnlyPermissions(folderId);
 				}
 			});
 
@@ -531,7 +535,7 @@ function giveCurrentUserReadOnlyPermissions(folderId) {
 				folderId,
 				"giveCurrentUserAccessReadOnly",
 				false),
-				success: function(data) {
+		success: function(data) {
 					if ($.trim(data) === 'SUCCESS') {
 						getDriveFile(
 								getGoogleAccessToken(),
