@@ -15,16 +15,14 @@ The Google Drive LTI run on its own instance than the Sakai instance
 =========
 1. svn co https://source.sakaiproject.org/contrib/umich/lti-utils 
 
-2. svn co https://source.sakaiproject.org/contrib/umich/lti-proxy/
+2. svn co https://source.sakaiproject.org/contrib/umich/google/google-drive-lti
 
-3. svn co https://source.sakaiproject.org/contrib/umich/google/google-drive-lti
-
-4. Google service account creation at https://code.google.com/apis/console/. This is account is created and every body will be using the same account properties and .p12file
+3. Google service account creation at https://code.google.com/apis/console/. This is account is created and every body will be using the same account properties and .p12file
    - Create a public/private key and download private key file (p12 file)
    
-5a.Replace the googleServiceAccounts.properties.template file with googleServiceAccounts.properties
+4a.Replace the googleServiceAccounts.properties.template file with googleServiceAccounts.properties
 
-5b. Define the following properties to googleServiceAccounts.properties
+4b. Define the following properties to googleServiceAccounts.properties
    ## client.id and email.address are created as part of Google service account initial creation. just populate with those values
    googleDriveLti.service.account.client.id=
    googleDriveLti.service.account.email.address=
@@ -34,20 +32,20 @@ The Google Drive LTI run on its own instance than the Sakai instance
    googleDriveLti.service.account.lti.secret=
    googleDriveLti.service.account.lti.key=
 
-5c. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
+4c. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
 
     ## Update googleServiceAccounts.properties
     googleDriveLti.service.account.private.key.file.classpath=true
     googleDriveLti.service.account.private.key.file=/secure/<filename>
 
 
-5f. OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
+4f. OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
 
     ## Update googleServiceAccounts.properties
     googleDriveLti.service.account.private.key.file.classpath=false
     googleDriveLti.service.account.private.key.file=<absolute file location>
     
-5g. If the googleServiceAccounts.properties file is in the $TOMCAT directory then follow the procedures to do this
+4g. If the googleServiceAccounts.properties file is in the $TOMCAT directory then follow the procedures to do this
      1.cd $TOMCAT
      2.create a directory named "google" and add the properties file into it $TOMCAT/google/googleServiceAccounts.properties
      3.Add properties to JAVA_OPTS for Tomcat:
@@ -56,7 +54,7 @@ The Google Drive LTI run on its own instance than the Sakai instance
      
     
 
-6. Enable Basic LTI in sakai.properties
+5. Enable Basic LTI in sakai.properties
    
    #set the variable to Server URL of sakai instance( and not Google-Drive instance) including Protocol eg. http://localhost:8080
    
@@ -74,9 +72,7 @@ The Google Drive LTI run on its own instance than the Sakai instance
 1. cd lti-utils; mvn install
 2. cd google-drive-lti; mvn install
 3. cp target/google-drive-lti.war $TOMCAT2/webapps
-4. cd lti-proxy; mvn install
-5. cp target/lti-proxy.war $TOMCAT2/webapps
-6. do a regular sakai build and deploy to $TOMCAT1 Instance
+4. do a regular sakai build and deploy to $TOMCAT1 Instance
 
 PLEASE REMEMBER TO REVERT THE BELOW CHANGE BEFORE CHECKING IN TO SVN
 HINT: For local development in pom.xml add the <plugin> tag under the <plugins> tag, this will automatically deploy to tomcat. while deploy the project use this build command "mvn clean install sakai:deploy -Dmaven.tomcat.home=$TOMCAT_HOME".
