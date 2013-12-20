@@ -22,4 +22,31 @@
     <servlet-name>GoogleDriveLti</servlet-name>
     <url-pattern>/service/*</url-pattern>
   </servlet-mapping>
+  
+  
+  <servlet>
+    <servlet-name>googledrivelti</servlet-name>
+    <servlet-class>org.mitre.dsmiley.httpproxy.ProxyServlet</servlet-class>
+    <init-param>
+      <param-name>targetUri</param-name>
+      <param-value>https://www.googleapis.com</param-value>
+    </init-param>
+    <init-param>
+      <param-name>log</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>http.protocol.handle-redirects</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>http.protocol.allow-circular-redirects</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>googledrivelti</servlet-name>
+    <url-pattern>/googledrivelti/*</url-pattern>
+  </servlet-mapping>
 </web-app>

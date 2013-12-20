@@ -104,6 +104,7 @@
             <classifier>sources</classifier>
             <scope>compile</scope>
         </dependency>
+        
 		
 		
 		<dependency>
@@ -233,6 +234,11 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+		      <groupId>org.mitre.dsmiley.httpproxy</groupId>
+		      <artifactId>smiley-http-proxy-servlet</artifactId>
+		      <version>1.2</version>
+	    </dependency>
 		<dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
