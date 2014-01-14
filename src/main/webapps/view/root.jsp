@@ -82,8 +82,8 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 						<%
 	}
 %>
-						<li><a href="#about">${about}</a></li>
-						<li><a href="#contact">${help}</a></li>
+						<li><a href="#aboutModal"  role="button" data-toggle="modal">${about}</a></li>
+						<li><a href="#helpModal"  role="button" data-toggle="modal">${help}</a></li>
 					</ul>
 				</div>
 			</div>
@@ -111,4 +111,96 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 	</div>
 <script src="bootstrap/js/bootstrap.js"></script>
 </body>
+
+
+ 
+<div id="aboutModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3 id="myModalLabel">About</h3>
+  </div>
+  <div class="modal-body">
+	<p>Drive LTI provides an easy way to share Google Drive folders and resources with CTools or any other 
+		Sakai-based learning management system.  Google Drive folders, subfolders, documents, 
+		drawings and other Google items can be shared with all members of a CTools site. Drive 
+		LTI automatically accesses the roster of students or participant list in your site.</p>
+	<p>Drive LTI, which was developed by the University of Michigan ITS Teaching & Learning Team, 
+		uses the IMS Learning Tools Interoperability (LTI) standard. It is licensed under the terms 
+		of the <a href="http://opensource.org/licenses/ecl2.php" target="_blank">Educational Community License, version 2.0</a>, 
+		so it is free for you to download and run yourself.  Source code is available at: <a href="http://source.sakaiproject.org/viewsvn/umich/google/google-drive-lti/?root=contrib" target="_blank">http://source.sakaiproject.org/viewsvn/umich/google/google-drive-lti/?root=contrib</a></p>
+
+	<h4>Setup Requirements (for Admins)</h4>
+	<ul>
+		<li>Google Apps for Education instance</li>
+		<li>LTI 1.0 compatible LMS</li>
+		<li>Java/Tomcat hosting environment</li>
+	</ul>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
+</div>
+
+
+<div id="helpModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="width:80%;margin-left:-40%">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3 id="myModalLabel">Using Drive LTI</h3>
+  </div>
+  <div class="modal-body">
+      <h4>Linking to an Existing Google Drive Folder  [this is one time per site]</h4>
+      <p>This only needs to be done one time for each site.</p>
+      <ol>
+          <li>Click <strong>Google Drive</strong> in the left-hand menubar.</li>
+          <li>Click the <strong>Share Folder</strong> button to the right of the folder you wish to link.</li>
+          <li>Select Email Notification Preference.</li>
+          <li>If you would like to send email notifications to all members of your site, click <strong>OK</strong>.  If not, click <strong>Cancel.</strong></li>
+      </ol>
+      <img class="img-polaroid" src="images/help-share-1.png" alt="Sharing Google Drive Folder" />
+      <h4>Linking to a New Google Drive Folder</h4>
+      <ol>
+          <li>Click <strong>Drive LTI</strong> in the left-hand menubar.</li>
+          <li>Select the <strong>Create & Share</strong> Folder button.
+              <p>
+                  (You can also access this folder in your Google Drive.  Your Google Drive must be open, and you will need to click <strong>Open in Drive</strong> in the upper right-hand corner.)
+              </p>
+          </li>
+          <li>Select Email Notification Preference.</li>
+          <li>If you would like to send email notifications to all members of your site, click <strong>OK.</strong>  If not, click <strong>Cancel.</strong></li>
+      </ol>
+      <img class="img-polaroid" src="images/help-share-2.png" alt="Sharing Google Drive Folder" />
+      <h4>Adding a Subfolder</h4>
+      <ol>
+          <li>In the "Add" dropdown menu next to the folder to which you would like to add a subfolder, select <strong>Add Folder.</strong></li>
+          <li>Name the folder.</li>
+          <li>Click <strong>OK.</strong></li>
+      </ol>
+      <img class="img-polaroid" src="images/help-add-3.png" alt="Adding Google Drive Folder" />
+      <h4>Adding Documents, Spreadsheets, Presentations, and Drawings</h4>
+      <ol>
+          <li>In the "Add" dropdown menu next to the folder to which you would like to add an item, select the type (Document, Presentation, etc.).</li>
+          <li>Name the item.</li>
+          <li>Click <strong>OK.</strong></li>
+      </ol>
+      <img class="img-polaroid" src="images/help-add-4.png" alt="Adding Documents, Spreadsheets, Presentations, and Drawings" />
+      <h4>Delete Folders and Other Items</h4>
+      <ol>
+          <li>Click the <strong>Delete</strong> button to the right of the item you wish to delete.</li>
+          <li>Click <strong>OK</strong> to confirm the deletion.
+            <p>NOTE: This cannot be undone. It will delete the item in Google Drive.  Deleting a folder will also delete its contents.s</p>
+          </li>
+      </ol>
+      <img class="img-polaroid" src="images/help-delete-5.png" alt="Delete Folders and Other Items" />
+      <h4>Unsharing a Google Drive Folder</h4>
+      <p>Click the <strong>Unshare</strong> button to the right of the the [top??] folder</p>
+      <p>You will now be able to share a new or existing Google Drive Folder</p>
+      <p>NOTE: Clicking <strong>Unshare</strong> unlinks the folder from CTools, but the user will continue to be able to access the folder and its contents directly from the Google Drive until you turn off the sharing in the Google Drive interface.</p>
+        <img class="img-polaroid" src="images/help-unshare-6.png" alt="Unsharing a Google Drive Folder" />
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
+</div>
+
+
 </html>
