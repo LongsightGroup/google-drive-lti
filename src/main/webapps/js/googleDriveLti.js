@@ -355,13 +355,20 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 	if ($.trim(folderId) === '') {
 		// Do nothing, as the response does not show association succeeded
 		return;	// Quick return to simpify code
-	}
+    }
 
 	if (!unlinked) {
-		var sendNotificationEmails = confirm(sendEmailCopy);
-		giveRosterReadOnlyPermissions(folderId, sendNotificationEmails);
-		removeLinkedFolderFromLinkingTable(folderId);
-
+		var sendNotificationEmails = false;
+        $('#sendMailConf').click(function(){
+            sendNotificationEmails = true;
+            giveRosterReadOnlyPermissions(folderId, sendNotificationEmails);
+            removeLinkedFolderFromLinkingTable(folderId);
+        })
+        $('#notSendMailConf').click(function(){
+            sendNotificationEmails = false;
+            giveRosterReadOnlyPermissions(folderId, sendNotificationEmails);
+            removeLinkedFolderFromLinkingTable(folderId);
+        })
 	} else {
 		removeRosterPermissions(folderId);
 		removeUnlinkedFileTreeFromTable(folderId);
@@ -564,6 +571,7 @@ function removeRosterPermissions(folderId) {
 				success: function(data) {
 					if ($.trim(data) === 'SUCCESS') {
 						openPage('LinkFolder');
+                        $('#unlinkedMessage').show();
 					}else if ($.trim(data) !== '') {
 						alert(data);
 					}
@@ -683,7 +691,7 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
 	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
 	<td> \
-	<a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
+	<a href="#emailConf" role="button" data-toggle="modal" class="btn btn-small linkFolder" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
 	</td> \
 	</tr>';
 
