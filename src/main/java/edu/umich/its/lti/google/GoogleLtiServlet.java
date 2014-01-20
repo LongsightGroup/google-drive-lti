@@ -861,6 +861,9 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.create.file"));
 			request.setAttribute("sendEmailCopy",
 					resource.getString("gd.send.email"));
+			request.setAttribute("contextUrl",
+					getGoogleServiceAccount().getContextURL());
+			
 
 			getServletContext().getRequestDispatcher("/view/root.jsp").forward(
 					request, response);

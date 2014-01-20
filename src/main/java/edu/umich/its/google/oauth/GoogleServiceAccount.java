@@ -60,6 +60,7 @@ public class GoogleServiceAccount {
 	// These constants are used for loading properties from system files
 	private static final String SYSTEM_PROPERTY_FILE_PATH = "googleServicePropsPath";
 	private static final String SYSTEM_PROPERTY_FILE_DEFAULT_NAME = "googleServiceProps.properties";
+	private static final String PROPERTY_SUFFIX_GOOGLE_CONTEXT = ".context";
 
 	// Static methods -----------------------------------------------
 
@@ -128,10 +129,8 @@ public class GoogleServiceAccount {
 	private String scopes;
 	private String ltiSecret;
 	private String ltiKey;
+	private String contextURL;
 	
-
-	
-
 	private String propertiesPrefix;
 
 	// Constructors -------------------------------------------------
@@ -199,6 +198,10 @@ public class GoogleServiceAccount {
 	public String getLtiKey() {
 		return ltiKey;
 	}
+	
+	public String getContextURL() {
+		return contextURL;
+	}
 
 	public String[] getScopesArray() {
 		String[] result;
@@ -209,6 +212,7 @@ public class GoogleServiceAccount {
 		}
 		return result;
 	}
+	
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -255,6 +259,9 @@ public class GoogleServiceAccount {
 	protected void setLtiKey(String ltiKey) {
 		this.ltiKey = ltiKey;
 	}
+	public void setContextURL(String context) {
+		this.contextURL = context;
+	}
 
 	// Private methods ----------------------------------------------
 
@@ -282,6 +289,7 @@ public class GoogleServiceAccount {
 		setScopes(getStringProperty(PROPERTY_SUFFIX_SCOPES));
 		setLtiSecret(getStringProperty(PROPERTY_SUFFIX_LTI_SECRET));
 		setLtiKey(getStringProperty(PROPERTY_SUFFIX_LTI_KEY));
+		setContextURL(getStringProperty(PROPERTY_SUFFIX_GOOGLE_CONTEXT));
 	}
 
 	/**

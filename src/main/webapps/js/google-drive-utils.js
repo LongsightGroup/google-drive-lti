@@ -526,7 +526,7 @@ function _queryDriveFiles(accessToken, query, callback, completeCallback) {
  */
 function _getGoogleDriveUrl(fileId, permissionId) {
 	var host = "../"; // relative path to proxy
-	var proxyName = "google-drive-lti/googledrivelti";
+	var proxyName = contextUrl;
 	var result = host+proxyName+'/drive/v2/files/';
 	if ($.trim(fileId) !== '') {
 		result = result + fileId;

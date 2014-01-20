@@ -14,6 +14,7 @@ String deleteFileFolderCopy =(String)request.getAttribute("deleteFileFolderCopy"
 String createFolderCopy =(String)request.getAttribute("createFolderCopy");
 String createFileCopy =(String)request.getAttribute("createFileCopy");
 String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
+String contextUrl =(String)request.getAttribute("contextUrl");
 %>
 <html lang="en">
 <head>
@@ -41,9 +42,8 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
     var createFolderCopy='<%=createFolderCopy %>';
     var createFileCopy='<%=createFileCopy %>';
     var sendEmailCopy='<%=sendEmailCopy %>';
-    
+    var contextUrl='<%=contextUrl%>';
     </script>
-
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
 <script src="js/utils.js" type="text/javascript"></script>
