@@ -14,14 +14,11 @@ String deleteFileFolderCopy =(String)request.getAttribute("deleteFileFolderCopy"
 String createFolderCopy =(String)request.getAttribute("createFolderCopy");
 String createFileCopy =(String)request.getAttribute("createFileCopy");
 String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
-String sendEmailCopyHead =(String)request.getAttribute("sendEmailCopyHead");
-String confirmUnlikedHead =(String)request.getAttribute("confirmUnlikedHead");
-String confirmUnlikedMessage =(String)request.getAttribute("confirmUnlikedMessage");
 %>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Google Drive</title>
+<title>Bootstrap, from Twitter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="">
 <meta name="author" content="">
@@ -44,11 +41,8 @@ String confirmUnlikedMessage =(String)request.getAttribute("confirmUnlikedMessag
     var createFolderCopy='<%=createFolderCopy %>';
     var createFileCopy='<%=createFileCopy %>';
     var sendEmailCopy='<%=sendEmailCopy %>';
-    var sendEmailHead='<%=sendEmailCopy %>';
-    var sendEmailCopyHead='<%=sendEmailCopyHead %>';
-    var confirmUnlikedHead='<%=confirmUnlikedHead %>';
-    var confirmUnlikedMessage='<%=confirmUnlikedMessage %>';
-  </script>
+    
+    </script>
 
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
@@ -96,11 +90,6 @@ String confirmUnlikedMessage =(String)request.getAttribute("confirmUnlikedMessag
 		</div>
 	</div>
 	<div class="container-fluid">
-        <div id="unlinkedMessage" class="alert alert-success alert-dismissable" style="display:none">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            <strong><%=confirmUnlikedHead %></strong>
-            <p><%=confirmUnlikedMessage %></p>
-        </div>
 		<div class="row-fluid">
 			<div class="span12">
 				<div id="spinner" style="display: none"></div>
@@ -121,10 +110,10 @@ String confirmUnlikedMessage =(String)request.getAttribute("confirmUnlikedMessag
 		<%} %>
 	</div>
 <script src="bootstrap/js/bootstrap.js"></script>
+</body>
 
 
-
-
+ 
 <div id="aboutModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -214,23 +203,4 @@ String confirmUnlikedMessage =(String)request.getAttribute("confirmUnlikedMessag
 </div>
 
 
-<div id="emailConf" data-keyboard="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="emailConfHead" aria-hidden="true">
-  <div class="modal-header">
-    <h3 id="emailConfHead">
-        <%=sendEmailCopyHead %>
-     </h3>
-  </div>
-  <div class="modal-body">
-    <p>
-        <%=sendEmailCopy %>
-    </p>
-  </div>
-  <div class="modal-footer">
-    <button id="notSendMailConf" class="btn" data-dismiss="modal" aria-hidden="true">No</button>
-    <button id="sendMailConf" class="btn" data-dismiss="modal" aria-hidden="true">Yes</button>
-  </div>
-</div>
-
-
-</body>
 </html>

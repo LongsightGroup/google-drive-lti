@@ -859,12 +859,6 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.create.folder"));
 			request.setAttribute("createFileCopy",
 					resource.getString("gd.create.file"));
-			request.setAttribute("confirmUnlikedHead",
-					resource.getString("gd.confirm.link.folder.head"));
-			request.setAttribute("confirmUnlikedMessage",
-					resource.getString("gd.confirm.link.folder.message"));
-			request.setAttribute("sendEmailCopyHead",
-					resource.getString("gd.send.email.head"));
 			request.setAttribute("sendEmailCopy",
 					resource.getString("gd.send.email"));
 
