@@ -51,10 +51,15 @@ The Google Drive LTI run on its own instance than the Sakai instance
      3.Add properties to JAVA_OPTS for Tomcat:
         -DgoogleServicePropsPath=$TOMCAT/google/googleServiceAccounts.properties
         
-     
-    
+5.   GoogleDriveLTI if deployed to AWS vs local/deluxe servers. 
 
-5. Enable Basic LTI in sakai.properties
+      googleDriveLti.context=google-drive-lti/googledrivelti -Local/deluxe
+      OR
+      googleDriveLti.context=googledrivelti  - AWS   
+        
+   
+
+6. Enable Basic LTI in sakai.properties
    
    #set the variable to Server URL of sakai instance( and not Google-Drive instance) including Protocol eg. http://localhost:8080
    
