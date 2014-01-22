@@ -20,9 +20,9 @@ The Google Drive LTI run on its own instance than the Sakai instance
 3. Google service account creation at https://code.google.com/apis/console/. This is account is created and every body will be using the same account properties and .p12file
    - Create a public/private key and download private key file (p12 file)
    
-4a.Replace the googleServiceAccounts.properties.template file with googleServiceAccounts.properties
+4a.Replace the googleServiceProps.properties.template file with googleServiceProps.properties
 
-4b. Define the following properties to googleServiceAccounts.properties
+4b. Define the following properties to googleServiceProps.properties
    ## client.id and email.address are created as part of Google service account initial creation. just populate with those values
    googleDriveLti.service.account.client.id=
    googleDriveLti.service.account.email.address=
@@ -34,34 +34,37 @@ The Google Drive LTI run on its own instance than the Sakai instance
 
 4c. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
 
-    ## Update googleServiceAccounts.properties
+    ## Update googleServiceProps.properties
     googleDriveLti.service.account.private.key.file.classpath=true
     googleDriveLti.service.account.private.key.file=/secure/<filename>
 
 
 4f. OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
 
-    ## Update googleServiceAccounts.properties
+    ## Update googleServiceProps.properties
     googleDriveLti.service.account.private.key.file.classpath=false
     googleDriveLti.service.account.private.key.file=<absolute file location>
     
-4g. If the googleServiceAccounts.properties file is in the $TOMCAT directory then follow the procedures to do this
+4g. If the googleServiceProps.properties file is in the $TOMCAT directory then follow the procedures to do this
      1.cd $TOMCAT
-     2.create a directory named "google" and add the properties file into it $TOMCAT/google/googleServiceAccounts.properties
+     2.create a directory named "google" and add the properties file into it $TOMCAT/google/googleServiceProps.properties
      3.Add properties to JAVA_OPTS for Tomcat:
-        -DgoogleServicePropsPath=$TOMCAT/google/googleServiceAccounts.properties
+        -DgoogleServicePropsPath=$TOMCAT/google/googleServiceProps.properties
         
-5.   GoogleDriveLTI if deployed to AWS vs local/deluxe servers. 
+5. Set the context portion of the service URL, depending upon whether the service is running locally or is hosted on 
+Amazon Web Services (AWS).  Use either option 5a or 5b, but not both.
 
-      googleDriveLti.context=google-drive-lti/googledrivelti -Local/deluxe
-      OR
-      googleDriveLti.context=googledrivelti  - AWS   
-        
-   
+5a. If running locally (either on localhost or another host in the same domain):
+
+    googleDriveLti.context=google-drive-lti/googledrivelti
+
+5b. If hosted on AWS:
+
+    googleDriveLti.context=googledrivelti
 
 6. Enable Basic LTI in sakai.properties
    
-   #set the variable to Server URL of sakai instance( and not Google-Drive instance) including Protocol eg. http://localhost:8080
+   #set the variable to Server URL of sakai instance (not Google-Drive instance) including Protocol eg. http://localhost:8080
    
    sakai.lti.serverUrl=
 
