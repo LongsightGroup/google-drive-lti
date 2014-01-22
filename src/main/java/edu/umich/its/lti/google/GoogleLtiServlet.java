@@ -855,10 +855,10 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.delete.undone.folder"));
 			request.setAttribute("deleteFileFolderCopy",
 					resource.getString("gd.delete.file.folder"));
-			request.setAttribute("createFolderCopy",
-					resource.getString("gd.create.folder"));
-			request.setAttribute("createFileCopy",
-					resource.getString("gd.create.file"));
+			request.setAttribute("createItemPrompt",
+					resource.getString("gd.create.item.prompt"));
+			request.setAttribute("createItemPromptError",
+					resource.getString("gd.create.item.prompt.error"));
 			request.setAttribute("sendEmailCopy",
 					resource.getString("gd.send.email"));
 			request.setAttribute("contextUrl",

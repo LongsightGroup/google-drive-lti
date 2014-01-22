@@ -11,8 +11,8 @@ String deleteButton =(String)request.getAttribute("deleteButton");
 String undoneCopy =(String)request.getAttribute("undoneCopy");
 String deleteUndoneFolderCopy =(String)request.getAttribute("deleteUndoneFolderCopy");
 String deleteFileFolderCopy =(String)request.getAttribute("deleteFileFolderCopy");
-String createFolderCopy =(String)request.getAttribute("createFolderCopy");
-String createFileCopy =(String)request.getAttribute("createFileCopy");
+String createItemPrompt =(String)request.getAttribute("createItemPrompt");
+String createItemPromptError =(String)request.getAttribute("createItemPromptError");
 String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 String contextUrl =(String)request.getAttribute("contextUrl");
 %>
@@ -39,8 +39,8 @@ String contextUrl =(String)request.getAttribute("contextUrl");
     var undoneCopy='<%=undoneCopy %>';
     var deleteUndoneFolderCopy='<%=deleteUndoneFolderCopy %>';
     var deleteFileFolderCopy='<%=deleteFileFolderCopy %>';
-    var createFolderCopy='<%=createFolderCopy %>';
-    var createFileCopy='<%=createFileCopy %>';
+    var createItemPrompt='<%=createItemPrompt %>';
+    var createItemPromptError='<%=createItemPromptError %>';
     var sendEmailCopy='<%=sendEmailCopy %>';
     var contextUrl='<%=contextUrl%>';
     </script>

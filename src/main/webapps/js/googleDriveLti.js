@@ -315,31 +315,75 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
 }
 
 /**
- * Creates new folder with "My Drive" as its parent. 
+ * Prompt user for an item title. If an empty string is entered, prompt again.
+ * 
+ * @param itemType
+ *            'folder', 'document', 'drawing', etc.
+ * @param defaultTitle
+ *            default value for title shown in dialog
+ * @returns non-empty title string or null if user selected "Cancel"
+ */
+function itemTitlePromptDialog(itemType, defaultTitle) {
+	var defaultItemPrompt = createItemPrompt + itemType + '.';
+	var itemPrompt = defaultItemPrompt;
+	var itemTitle = defaultTitle;
+
+	if (defaultTitle === null) {
+		itemTitle = '';
+	}
+
+	do {
+		itemTitle = prompt(itemPrompt, itemTitle);
+
+		// A null value means the user selected "Cancel"
+		if (itemTitle === null) {
+			return null;
+		} else {
+			itemTitle = $.trim(itemTitle);
+		}
+
+		if (itemTitle === '') {
+			itemPrompt = defaultItemPrompt + '\n\n' + createItemPromptError;
+		}
+	} while (itemTitle === '')
+
+	return itemTitle;
+}
+
+/**
+ * Creates new folder with "My Drive" as its parent.
  */
 function assignNewFolder() {
-	var folderTitle = prompt(createFolderCopy,getConfigCourseTitle());
-	if ($.trim(folderTitle) === '') {
-		return;	// Quick return to simplify code
+	var folderTitle = itemTitlePromptDialog('folder', getConfigCourseTitle());
+
+	if (folderTitle === null) {
+		return;
 	}
+
 	// This would be the place to avoid duplicate existing file names.
 
-	createFile(getGoogleAccessToken(),
-			'',
+	// Empty string causes parent folder to be "My Drive".
+	var parentFolderId = '';
+
+	createFile(
+			getGoogleAccessToken(),
+			parentFolderId,
 			folderTitle,
 			getConfigCourseId(),
 			'application/vnd.google-apps.folder',
 			function(data) {
-		var folderId = '';
-		var folderTitle = '';
-		if ((typeof(data) !== 'undefined') && ($.trim(data.id) !== '')) {
-			folderId = data.id;
-			folderTitle = data.title
-		}
-		linkFolderToSite(folderId, function() {
-			notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, true, false);
-		});
-	});
+				var folderId = '';
+				var folderTitle = '';
+				if ((typeof (data) !== 'undefined') && ($.trim(data.id) !== '')) {
+					folderId = data.id;
+					folderTitle = data.title
+				}
+
+				linkFolderToSite(folderId, function() {
+					notifyUserSiteLinkChangedWithFolder(folderId, folderTitle,
+							true, false);
+				});
+			});
 }
 
 /**
@@ -590,20 +634,26 @@ function getUpdateLtiParams(folderId, requestedAction, sendNotificationEmails) {
 	+ '&tp_id=' + escapeUrl(getConfigTpId());
 }
 
-function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
-{
-	var title = prompt(createFileCopy + '' + fileType, '');
-	if ($.trim(title) === '') {
-		return;	// Quick return to simplify code
+function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth) {
+	var title = itemTitlePromptDialog(fileType, null);
+
+	if (title === null) {
+		return;
 	}
-	createFile(getGoogleAccessToken(),
-			parentFolderId,
-			title,
-			'',
-			'application/vnd.google-apps.' + fileType,
-			function(file) {
-		addFileToFileTreeTable(file, parentFolderId, linkedFolderId, depth + 1);
-	});
+
+	// Files are not associated with courses, use empty ID string
+	var courseId = '';
+
+	createFile(
+		getGoogleAccessToken(),
+		parentFolderId,
+		title,
+		courseId,
+		'application/vnd.google-apps.' + fileType,
+		function(file) {
+			addFileToFileTreeTable(file, parentFolderId, linkedFolderId,
+					depth + 1);
+		});
 }
 
 function openFile(title, sourceUrl, googleFileMimeType, inDialog) {
