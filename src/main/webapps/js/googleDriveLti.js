@@ -905,7 +905,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	}
 	var dropdownTemplate = '';
 	var isFolder = (getIsFolder(file.mimeType));
-	var expandShrinkOption = '<a href="#">&nbsp;</a>';
+	var expandShrinkOption = '';
 	if (isFolder) {
 		expandShrinkOption = '<a href="#" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');">&nbsp;</a>';
 	}
