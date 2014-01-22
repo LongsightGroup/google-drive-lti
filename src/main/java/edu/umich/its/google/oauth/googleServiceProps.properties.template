@@ -5,7 +5,6 @@ googleDriveLti.service.account.client.id=
 googleDriveLti.service.account.email.address=
 googleDriveLti.service.account.private.key.file.classpath=true
 googleDriveLti.service.account.private.key.file=
-#googleDriveLti.service.account.private.key.file=
 googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
 googleDriveLti.service.account.lti.secret=
 googleDriveLti.service.account.lti.key=
