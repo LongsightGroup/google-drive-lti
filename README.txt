@@ -121,3 +121,11 @@ The following LTI (aka External Tool) settings must be set
 	- Launch Key: 
 
 
+[Known Problems]
+================
+
+The current implementation assumes that the Sakai instance (or LTI Consumer) 
+sufficiently secures a user's account information and email address.
+Otherwise, if a user is able to change the email address sent to the 
+Google LTI provider, they will have (add/delete) access to that user's 
+Google Drive resources. 
