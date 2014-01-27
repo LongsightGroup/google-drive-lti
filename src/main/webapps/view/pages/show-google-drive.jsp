@@ -85,7 +85,10 @@ $(document).ready(function() {
    } else {
         $('#par2').show();
    }
-    	showLinkedGoogleFolders();
+
+    if (showLinkedGoogleFolders() != null) {
+        $('#par3').show();
+    }
 });
 
 </script>

@@ -731,7 +731,8 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (accessToken != null) {
 			response.getWriter().print(accessToken);
 		} else {
-			logErrorWritingResponse(response, "Error: unable to get access token.");
+			M_log.warn("ERROR: User \"" + tcSessionData.getUserSourceDid() + "\" does not have a valid Google account for Google Drive LTI.  Unable to get access token.  (Email: " + userEmailAddress + "; ID: " + tcSessionData.getUserId() + ")");
+			response.getWriter().print("ERROR");
 		}
 	}
 
@@ -844,6 +845,8 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.student.view.access.msg"));
 			request.setAttribute("studentNoFolderAccessMsg",
 					resource.getString("gd.student.view.nofolder.message"));
+			request.setAttribute("studentInvalidAccountMsg",
+					resource.getString("gd.student.view.invalid.account.message"));
 			request.setAttribute("linkFolderButton",
 					resource.getString("gd.link.folder.button"));
 			request.setAttribute("unlinkFolderButton",

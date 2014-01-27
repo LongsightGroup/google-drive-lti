@@ -106,6 +106,7 @@ String contextUrl =(String)request.getAttribute("contextUrl");
 		<footer>
 			<div id="par1" class="hide">${studentAccessMsg}.</div>
 			<div id="par2" class="hide alert alert-info">${studentNoFolderAccessMsg}.</div>
+			<div id="par3" class="hide alert alert-error">${studentInvalidAccountMsg}</div>
 		</footer>
 		<%} %>
 	</div>

@@ -79,7 +79,7 @@ var accessTokenHandler = {
 function showLinkedGoogleFolders() {
 	var folders = getConfigLinkedFolders();
 	if (typeof(folders) !== 'undefined') {
-			showLinkedGoogleFolder(folders);
+			return showLinkedGoogleFolder(folders);
 	}
 }
 
@@ -93,19 +93,26 @@ function showLinkedGoogleFolders() {
  * @param folderId
  */
 function showLinkedGoogleFolder(folderId) {
-	getDriveFile(
-			getGoogleAccessToken(),
-			folderId,
-			function(data) {
-				// Linked folders are all depth 0 (no parents)
-				showLinkedGoogleFolderCallback(data, 0);
-			},
-			function(data, textStatus, jqXHR) {
-				if (data.status === 404) {
-					giveCurrentUserReadOnlyPermissions(folderId);
-				}
-			});
-
+	var accessToken = getGoogleAccessToken();
+	
+	if (accessToken === 'ERROR') {
+		return 'ERROR';
+	} else {
+		getDriveFile(
+				accessToken,
+				folderId,
+				function(data) {
+					// Linked folders are all depth 0 (no parents)
+					showLinkedGoogleFolderCallback(data, 0);
+				},
+				function(data, textStatus, jqXHR) {
+					if (data.status === 404) {
+						giveCurrentUserReadOnlyPermissions(folderId);
+					}
+				});
+	
+		return null;
+	}
 }
 
 /**
