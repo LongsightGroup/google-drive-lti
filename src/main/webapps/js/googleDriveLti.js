@@ -946,6 +946,9 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	}
 	// Using trim so null/undefined id is empty string ('')
 	var childOfParentId = getClassForFoldersChildren(parentFolderId);
+
+	file.title = $('<escapeHtmlHack/>').text(file.title).html();
+
 	var newEntry = FILE_TREE_TABLE_ROW_TEMPLATE
 	.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
 	.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
