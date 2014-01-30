@@ -79,7 +79,7 @@ var accessTokenHandler = {
 function showLinkedGoogleFolders() {
 	var folders = getConfigLinkedFolders();
 	if (typeof(folders) !== 'undefined') {
-			return showLinkedGoogleFolder(folders);
+			showLinkedGoogleFolder(folders);
 	}
 }
 
@@ -93,26 +93,19 @@ function showLinkedGoogleFolders() {
  * @param folderId
  */
 function showLinkedGoogleFolder(folderId) {
-	var accessToken = getGoogleAccessToken();
-	
-	if (accessToken === 'ERROR') {
-		return 'ERROR';
-	} else {
-		getDriveFile(
-				accessToken,
-				folderId,
-				function(data) {
-					// Linked folders are all depth 0 (no parents)
-					showLinkedGoogleFolderCallback(data, 0);
-				},
-				function(data, textStatus, jqXHR) {
-					if (data.status === 404) {
-						giveCurrentUserReadOnlyPermissions(folderId);
-					}
-				});
-	
-		return null;
-	}
+	getDriveFile(
+		getGoogleAccessToken(),
+		folderId,
+		function(data) {
+			// Linked folders are all depth 0 (no parents)
+			showLinkedGoogleFolderCallback(data, 0);
+		},
+		function(data, textStatus, jqXHR) {
+			if (data.status === 404) {
+				giveCurrentUserReadOnlyPermissions(folderId);
+			}
+		}
+	);
 }
 
 /**
@@ -452,21 +445,19 @@ function getIsInstructor() {
 }
 
 /**
- * Returns access token, retrieved from GoogleLinks server if the token is null.
+ * Returns access token, retrieved from Google if we don't have it already.
  */
 function getGoogleAccessToken() {
 	if ($.trim(accessTokenHandler.accessToken) === '') {
 		accessTokenHandler.accessToken = requestGoogleAccessToken();
 	}
+	
 	return accessTokenHandler.accessToken;
 }
 
-/**
- * Removes permissions for people in the roster to the given folder.
- * Permissions for the instructor and owners of the folder are not affected.
- */
 function requestGoogleAccessToken() {
 	var result = null;
+
 	result = $.ajax({
 		url: getPageUrl(),
 		async: false,
@@ -476,6 +467,7 @@ function requestGoogleAccessToken() {
 			"tp_id" : getConfigTpId()
 		}
 	}).responseText;
+
 	return result;
 }
 
