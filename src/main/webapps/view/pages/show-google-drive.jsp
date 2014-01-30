@@ -76,20 +76,22 @@
 	</tbody>
 </table>
 <script type="text/javascript">
+	// On startup: display Google resources on the screen
 
-// On startup: display Google resources on the screen
-$(document).ready(function() {
-	var list = getConfigLinkedFolders();
-    if(list && list.length > 0) {
-        $('#par1').show();
-   } else {
-        $('#par2').show();
-   }
+	$(document).ready(function() {
+		if (getGoogleAccessToken() === 'ERROR') {
+			$('#par3').show();
+		} else {
+			var list = getConfigLinkedFolders();
 
-    if (showLinkedGoogleFolders() != null) {
-        $('#par3').show();
-    }
-});
+			if (list && list.length > 0) {
+				$('#par1').show();
+			} else {
+				$('#par2').show();
+			}
 
+			showLinkedGoogleFolders();
+		}
+	});
 </script>
 

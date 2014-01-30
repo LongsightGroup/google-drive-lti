@@ -99,22 +99,20 @@ String contextUrl =(String)request.getAttribute("contextUrl");
 				</div>
 			</div>
 		</div>
-		<%
-     String role= data.getUserRoles();
-      %>
-		<%if(role.equals("Learner")){%>
 		<footer>
+			<%
+				String role = data.getUserRoles();
+				if (role.equals("Learner")) {
+			%>
 			<div id="par1" class="hide">${studentAccessMsg}.</div>
 			<div id="par2" class="hide alert alert-info">${studentNoFolderAccessMsg}.</div>
-			<div id="par3" class="hide alert alert-error">${studentInvalidAccountMsg}</div>
+			<%} %>
+			<div id="par3" class="hide alert alert-error">${invalidAccountMsg}</div>
 		</footer>
-		<%} %>
 	</div>
 <script src="bootstrap/js/bootstrap.js"></script>
 </body>
 
-
- 
 <div id="aboutModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>

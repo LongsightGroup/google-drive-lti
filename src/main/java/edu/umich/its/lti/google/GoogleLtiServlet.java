@@ -714,24 +714,37 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 
 	/**
-	 * Returns access token for Google Drive and the given user to the browser.
+	 * Send response to the browser with the access token for Google Drive and the given user email address.
+	 * 
+	 * If the user's email address is empty, write a message to the log and to the response.
+	 * 
+	 * If the access token string returned from Google is null, an error has occurred.  Most likely it means
+	 * the user doesn't have a valid Google account.  Write a message to the log, then send the string "ERROR" as the
+	 * response.
 	 */
 	private void getGoogleAccessToken(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws IOException {
 		String userEmailAddress = tcSessionData.getUserEmailAddress();
+		
 		if (getIsEmpty(userEmailAddress)) {
 			logErrorWritingResponse(
 					response,
 					"Error: unable to get access token - the ToolProvider(TP) server does not know the user's email address.");
 			return;
 		}
+		
 		String accessToken = GoogleSecurity.getGoogleAccessToken(
 				getGoogleServiceAccount(), userEmailAddress);
+		
 		if (accessToken != null) {
 			response.getWriter().print(accessToken);
 		} else {
-			M_log.warn("ERROR: User \"" + tcSessionData.getUserSourceDid() + "\" does not have a valid Google account for Google Drive LTI.  Unable to get access token.  (Email: " + userEmailAddress + "; ID: " + tcSessionData.getUserId() + ")");
+			M_log.warn("ERROR: User \""
+					+ tcSessionData.getUserSourceDid()
+					+ "\" does not have a valid Google account for Google Drive LTI.  Unable to get access token.  (Email: "
+					+ userEmailAddress + "; ID: " + tcSessionData.getUserId()
+					+ ")");
 			response.getWriter().print("ERROR");
 		}
 	}
@@ -845,8 +858,8 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.student.view.access.msg"));
 			request.setAttribute("studentNoFolderAccessMsg",
 					resource.getString("gd.student.view.nofolder.message"));
-			request.setAttribute("studentInvalidAccountMsg",
-					resource.getString("gd.student.view.invalid.account.message"));
+			request.setAttribute("invalidAccountMsg",
+					resource.getString("gd.invalid.account.message"));
 			request.setAttribute("linkFolderButton",
 					resource.getString("gd.link.folder.button"));
 			request.setAttribute("unlinkFolderButton",

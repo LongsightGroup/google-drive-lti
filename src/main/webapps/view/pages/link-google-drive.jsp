@@ -46,7 +46,10 @@
 <script type="text/javascript">
 
 	$(document).ready(function() {
-		
+		if (getGoogleAccessToken() === 'ERROR') {
+			$('#par3').show();
+		}
+
 		getAncestorsForLinkedFolders();
 		searchUnlinkedFoldersOwnedByMe();
 		checkBackButtonHit();
