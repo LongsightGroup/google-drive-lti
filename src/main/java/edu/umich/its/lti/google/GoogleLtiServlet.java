@@ -726,17 +726,18 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws IOException {
 		String userEmailAddress = tcSessionData.getUserEmailAddress();
-		
+
 		if (getIsEmpty(userEmailAddress)) {
 			logErrorWritingResponse(
 					response,
 					"Error: unable to get access token - the ToolProvider(TP) server does not know the user's email address.");
 			return;
 		}
-		
-		String accessToken = GoogleSecurity.getGoogleAccessToken(
-				getGoogleServiceAccount(), userEmailAddress);
-		
+
+		// Throws exception for bad email and other reasons.  Should we catch it?
+		String accessToken =  GoogleSecurity.getGoogleAccessToken(
+			getGoogleServiceAccount(), userEmailAddress);
+
 		if (accessToken != null) {
 			response.getWriter().print(accessToken);
 		} else {
