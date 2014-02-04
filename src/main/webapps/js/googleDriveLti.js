@@ -356,6 +356,7 @@ function itemTitlePromptDialog(itemType, defaultTitle) {
 function assignNewFolder() {
 	var folderTitle = itemTitlePromptDialog('folder', getConfigCourseTitle());
 
+	// User clicked "Cancel" button
 	if (folderTitle === null) {
 		return;
 	}
@@ -636,6 +637,7 @@ function getUpdateLtiParams(folderId, requestedAction, sendNotificationEmails) {
 function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth) {
 	var title = itemTitlePromptDialog(fileType, null);
 
+	// User clicked "Cancel" button
 	if (title === null) {
 		return;
 	}
@@ -747,10 +749,11 @@ function addFolderToLinkFolderTable(folder) {
 	if ($('#' + getLinkingTableRowIdForFolder(folder.id)).length > 0) {
 		return;
 	}
+	
 	var newEntry = LINK_FOLDER_TABLE_ROW_TEMPLATE
 	.replace(/\[TrFolderId\]/g, escapeSingleQuotes(getLinkingTableRowIdForFolder(folder.id)))
 	.replace(/\[FolderIdOnclickParam\]/g, escapeAllQuotes(folder.id))
-	.replace(/\[FolderTitle\]/g, folder.title)
+	.replace(/\[FolderTitle\]/g, escapeHtml(folder.title))
 	.replace(/\[FolderTitleOnclickParam\]/g, escapeAllQuotes(folder.title))
 	.replace(/\[GoogleIconLink\]/g, folder.iconLink)
 	.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder));
@@ -939,13 +942,11 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	// Using trim so null/undefined id is empty string ('')
 	var childOfParentId = getClassForFoldersChildren(parentFolderId);
 
-	file.title = $('<escapeHtmlHack/>').text(file.title).html();
-
 	var newEntry = FILE_TREE_TABLE_ROW_TEMPLATE
 	.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
 	.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
 	.replace(/\[LinkedFolderId\]/g, getClassForLinkedFolder(linkedFolderId))
-	.replace(/\[FileTitle\]/g, file.title)
+	.replace(/\[FileTitle\]/g, escapeHtml(file.title))
 	.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
 	.replace(/\[ActionTemplate\]/g, actionTemplate)
 	.replace(/\[GoogleIconLink\]/g, file.iconLink)
