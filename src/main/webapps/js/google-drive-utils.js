@@ -72,24 +72,20 @@ function createFile(accessToken, parentFolderId, fileTitle, fileDescription, goo
 	if (!verifyAllArgumentsNotEmpty(accessToken, fileTitle)) {
 		return;	// Quick return to simplify code
 	}
-	// Some credit for making this work belongs to answers at: http://stackoverflow.com/questions/4159701/jquery-posting-valid-json-in-request-body
-	var requestData = null;
+
+	var requestData = {
+		'access_token' : accessToken,
+		'description' : fileDescription,
+		'mimeType' : googleFileMimeType,
+		'title' : fileTitle,
+	};
+
 	if ($.trim(parentFolderId) !== '') {
-		requestData = '{ \
-			"access_token" : "' + escapeJson(accessToken) + '", \
-			"title": "' + escapeJson(fileTitle) + '", \
-			"description": "' + escapeJson(fileDescription) + '", \
-			"parents" : [{"id":"' + escapeJson(parentFolderId) + '"}], \
-			"mimeType": "' + escapeJson(googleFileMimeType) + '" \
-			}';
-	} else {
-		requestData = '{ \
-			"access_token" : "' + escapeJson(accessToken) + '", \
-			"title": "' + escapeJson(fileTitle) + '", \
-			"description": "' + escapeJson(fileDescription) + '", \
-			"mimeType": "' + escapeJson(googleFileMimeType) + '" \
-			}';
+		requestData['parents'] = [ {
+			'id' : parentFolderId,
+		} ]
 	}
+
 	$.ajax({
 		url: _getGoogleDriveUrl(),
 		beforeSend: function(xhr) {
@@ -97,7 +93,7 @@ function createFile(accessToken, parentFolderId, fileTitle, fileDescription, goo
 			xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
 		},
 		type : 'POST',
-		data : requestData,
+		data : JSON.stringify(requestData),
 		dataType : 'json',
 		success: function(data, textStatus, jqXHR) {
 			if (typeof(callback) === 'function') {
