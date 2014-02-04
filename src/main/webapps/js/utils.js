@@ -3,6 +3,9 @@
  * Author: Raymond Louis Naseef
  */
 
+function escapeHtml(value) {
+	return $('<escapeHtmlHack/>').text(value).html();
+}
 
 function escapeJson(value) {
 	return ($.trim(value) === '') ? '' : value.replace(/"/g,'\\"');
