@@ -55,6 +55,7 @@ var googleFileParents = [];
 var EXPAND_TEXT = '+ <span class="hide-text">Expand this folder</span>';
 var SHRINK_TEXT = '- <span class="hide-text">Collapse this folder</span>';
 
+var keepSpinnerVisible = false;
 
 var accessTokenHandler = {
 		"accessToken" : null
@@ -79,7 +80,7 @@ var accessTokenHandler = {
 function showLinkedGoogleFolders() {
 	var folders = getConfigLinkedFolders();
 	if (typeof(folders) !== 'undefined') {
-			showLinkedGoogleFolder(folders);
+		showLinkedGoogleFolder(folders);
 	}
 }
 
@@ -102,7 +103,16 @@ function showLinkedGoogleFolder(folderId) {
 		},
 		function(data, textStatus, jqXHR) {
 			if (data.status === 404) {
+				// Should we display an "updating permissions" message here?
 				giveCurrentUserReadOnlyPermissions(folderId);
+
+				keepSpinnerVisible = true;
+
+				// Try again in ten seconds
+				setTimeout(function(){
+					keepSpinnerVisible = false;
+					showLinkedGoogleFolder(folderId);
+				}, 10000);
 			}
 		}
 	);
@@ -118,8 +128,9 @@ function showLinkedGoogleFolderCallback(file, depth) {
 	if ((typeof(file) === 'object') && (file !== null) && (typeof(file.id) === 'string')) {
 		if (!findFileInFileTreeTable(file.id)) {
 			addFileToFileTreeTable(file, null, file.id, depth);
-			getFoldersChildren(file, file.id, depth);
 		}
+		
+		getFoldersChildren(file, file.id, depth);
 	}
 }
 
@@ -158,10 +169,10 @@ function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDe
 			var file = files[fileIdx];
 			if (!findFileInFileTreeTable(file.id)) {
 				addFileToFileTreeTable(file, parentFolder.id, linkedFolderId, childDepth);
-				// If folder, search for its children (recursively)
-				if (file.mimeType === 'application/vnd.google-apps.folder') {
-					getFoldersChildren(file, linkedFolderId, childDepth);
-				}
+			}
+			// If folder, search for its children (recursively)
+			if (file.mimeType === 'application/vnd.google-apps.folder') {
+				getFoldersChildren(file, linkedFolderId, childDepth);
 			}
 		}
 	}
@@ -1216,7 +1227,9 @@ $(document).ready(function(){
 		$('#spinner').show();
 	});
 	$(document).ajaxStop(function(){
-		$('#spinner').hide();
+		if (!keepSpinnerVisible) {
+			$('#spinner').hide();
+		}
 	});
 })
 
