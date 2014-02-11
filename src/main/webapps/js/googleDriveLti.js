@@ -61,30 +61,6 @@ var accessTokenHandler = {
 		"accessToken" : null
 };
 
-var refreshTimeoutMilliseconds = 10000;
-var previousCount = null;
-var currentCount = null;
-
-function refreshDisplay() {
-	console.log("refreshDisplay...");
-
-	if (previousCount == currentCount) {
-		console.log("refresh aborted; " + previousCount + " == " + currentCount);
-		return;
-	}
-
-	console.log("refresh continues; " + previousCount + " != " + currentCount);
-
-	previousCount = currentCount;
-
-	setTimeout(function() {
-		keepSpinnerVisible = false;
-		refreshDisplay();
-	}, refreshTimeoutMilliseconds);
-	
-	showLinkedGoogleFolders();
-}
-
 /**
  * Retrieves and displays folders linked with this site, with functions
  * allowing the user to interact with the Google resources.
@@ -102,7 +78,6 @@ function refreshDisplay() {
  * site, and as child of "My Drive" or any other folder they own.
  */
 function showLinkedGoogleFolders() {
-	currentCount = 0;
 	var folders = getConfigLinkedFolders();
 	if (typeof(folders) !== 'undefined') {
 		showLinkedGoogleFolder(folders);
@@ -128,16 +103,8 @@ function showLinkedGoogleFolder(folderId) {
 		},
 		function(data, textStatus, jqXHR) {
 			if (data.status === 404) {
-				// Should we display an "updating permissions" message here?
+				$('#permissionUpdate').show();
 				giveCurrentUserReadOnlyPermissions(folderId);
-
-				keepSpinnerVisible = true;
-
-				// Try again in ten seconds
-				refreshDisplay();
-//				setTimeout(function(){
-//					refreshDisplay();
-//				}, refreshTimeoutMilliseconds);
 			}
 		}
 	);
@@ -151,8 +118,6 @@ function showLinkedGoogleFolder(folderId) {
  */
 function showLinkedGoogleFolderCallback(file, depth) {
 	if ((typeof(file) === 'object') && (file !== null) && (typeof(file.id) === 'string')) {
-		currentCount++;
-		
 		if (!findFileInFileTreeTable(file.id)) {
 			addFileToFileTreeTable(file, null, file.id, depth);
 		}
@@ -193,8 +158,6 @@ function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDe
 	if ((data != null) && (typeof(data.items) !== 'undefined')) {
 		var files = data.items;
 		for (var fileIdx in files) {
-			currentCount++;
-			
 			var file = files[fileIdx];
 			if (!findFileInFileTreeTable(file.id)) {
 				addFileToFileTreeTable(file, parentFolder.id, linkedFolderId, childDepth);
