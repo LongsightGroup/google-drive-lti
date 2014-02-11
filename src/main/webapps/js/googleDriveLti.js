@@ -1,4 +1,5 @@
-/* JavaScript library for working with Google Drive.  This library is intended
+/**
+ * JavaScript library for working with Google Drive.  This library is intended
  * for use in Basic LTI, and includes code written in other JavaScript library,
  * google-drive.js in sibling project google-integration-prototype here in
  * google-sandbox.
@@ -23,22 +24,21 @@
  *      direct children, so many threads may be running at the same time.
  *
  * @author: Raymond Louis Naseef
+ * 
+ * @author lsloan@umich.edu (Lance E Sloan)
  */
 
-
-
-if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
+if (typeof(getDriveFile) === 'undefined') {
 	if (getHasConsoleLogFunction()) {
-		console.log('WARNING: googleDriveLti.js relies upon sibling library google-drive-utils.js');
-	}
-}
-if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
-	if (getHasConsoleLogFunction()) {
-		console.log('WARNING: googleDriveLit.js relies upon sibling library utils.js');
+		console.log('ERROR: googleDriveLti.js requires google-drive-utils.js');
 	}
 }
 
-
+if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
+	if (getHasConsoleLogFunction()) {
+		console.log('ERROR: googleDriveLti.js requires utils.js');
+	}
+}
 
 var DEBUG_MODE = false;
 
