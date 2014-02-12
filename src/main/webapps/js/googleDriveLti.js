@@ -232,7 +232,7 @@ function searchUnlinkedFoldersOwnedByMe() {
 	var searchValue = $('#UnlinkedFolderSearchInput').val();
 	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
 	if ($.trim(searchValue) !== '') {
-		query = query + " AND title contains '" + escapeSingleQuotes(searchValue) + "'";
+		query = query + " AND title contains '" + escapeAllQuotes(searchValue) + "'";
 	}
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
 			function(data) {
@@ -754,9 +754,9 @@ function addFolderToLinkFolderTable(folder) {
 	}
 	
 	var newEntry = LINK_FOLDER_TABLE_ROW_TEMPLATE
-	.replace(/\[TrFolderId\]/g, escapeSingleQuotes(getLinkingTableRowIdForFolder(folder.id)))
+	.replace(/\[TrFolderId\]/g, getLinkingTableRowIdForFolder(folder.id))
 	.replace(/\[FolderIdOnclickParam\]/g, escapeAllQuotes(folder.id))
-	.replace(/\[FolderTitle\]/g, escapeHtml(folder.title))
+	.replace(/\[FolderTitle\]/g, escapeDoubleQuotes(escapeHtml(folder.title)))
 	.replace(/\[FolderTitleOnclickParam\]/g, escapeAllQuotes(folder.title))
 	.replace(/\[GoogleIconLink\]/g, folder.iconLink)
 	.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder));
@@ -768,11 +768,9 @@ function addFolderToLinkFolderTable(folder) {
  * open the given Google file.
  */
 function getFunctionCallToOpenFile(file) {
-	return "openFile("
-	+ "'" + escapeSingleQuotes(file.title)
-	+ "', '" + escapeSingleQuotes(file.alternateLink)
-	+ "', '" + escapeSingleQuotes(file.mimeType)
-	+ "');";
+	return "openFile('" + escapeAllQuotes(escapeHtml(file.title)) + "', '"
+			+ escapeAllQuotes(file.alternateLink) + "', '"
+			+ escapeAllQuotes(file.mimeType) + "');";
 }
 
 /**
@@ -949,7 +947,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
 	.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
 	.replace(/\[LinkedFolderId\]/g, getClassForLinkedFolder(linkedFolderId))
-	.replace(/\[FileTitle\]/g, escapeHtml(file.title))
+	.replace(/\[FileTitle\]/g,  escapeDoubleQuotes(escapeHtml(file.title)))
 	.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
 	.replace(/\[ActionTemplate\]/g, actionTemplate)
 	.replace(/\[GoogleIconLink\]/g, file.iconLink)

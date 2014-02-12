@@ -10,12 +10,12 @@ function escapeHtml(value) {
 function escapeJson(value) {
 	return ($.trim(value) === '') ? '' : value.replace(/"/g,'\\"');
 }
-
-function escapeSingleQuotes(value) {
-	return ($.trim(value) === '') ? '' : value.replace(/'/g, "\\'");
+function escapeDoubleQuotes(value) {
+	return ($.trim(value) === '') ? '' : value.replace(/"/g,'&quot;');
 }
 
 function escapeAllQuotes(value) {
+	// Using "&apos;" for "'" causes trouble when making values for onclick attributes.  Why?
 	return ($.trim(value) === '') ? '' : value.replace(/'/g, "\\'").replace(/"/g,'&quot;');
 }
 
