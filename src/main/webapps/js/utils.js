@@ -1,7 +1,14 @@
-/* This relies upon jQuery library
+/**
+ *  Various small utility support functions.
  * 
  * Author: Raymond Louis Naseef
+ * 
+ * @author lsloan@umich.edu (Lance E Sloan)
  */
+
+if (typeof(jQuery) === 'undefined') {
+	console.log('ERROR: utils.js requires jQuery');
+}
 
 function escapeHtml(value) {
 	return $('<escapeHtmlHack/>').text(value).html();
@@ -162,14 +169,3 @@ function isScrolledIntoView($elem)
 	return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
 			&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
 }
-
-
-
-/**
- * resize the iframe based on the contained document height.
- * used after DOM operations that add or substract to the doc height
- */
-
-
-
-

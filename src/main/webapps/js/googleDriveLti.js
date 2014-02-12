@@ -28,6 +28,10 @@
  * @author lsloan@umich.edu (Lance E Sloan)
  */
 
+if (typeof(jQuery) === 'undefined') {
+	console.log('ERROR: googleDriveLti.js requires jQuery');
+}
+
 if (typeof(getDriveFile) === 'undefined') {
 	if (getHasConsoleLogFunction()) {
 		console.log('ERROR: googleDriveLti.js requires google-drive-utils.js');
