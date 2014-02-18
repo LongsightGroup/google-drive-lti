@@ -59,8 +59,6 @@ var googleFileParents = [];
 var EXPAND_TEXT = '+ <span class="hide-text">Expand this folder</span>';
 var SHRINK_TEXT = '- <span class="hide-text">Collapse this folder</span>';
 
-var keepSpinnerVisible = false;
-
 var accessTokenHandler = {
 		"accessToken" : null
 };
@@ -1221,9 +1219,7 @@ $(document).ready(function(){
 		$('#spinner').show();
 	});
 	$(document).ajaxStop(function(){
-		if (!keepSpinnerVisible) {
-			$('#spinner').hide();
-		}
+		$('#spinner').hide();
 	});
 })
 
