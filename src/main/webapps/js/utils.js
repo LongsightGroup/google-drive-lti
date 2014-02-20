@@ -169,3 +169,28 @@ function isScrolledIntoView($elem)
 	return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
 			&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
 }
+
+/**
+ * sprintf() from https://github.com/alexei/sprintf.js would be great, but it's
+ * overkill for this project.  
+ * 
+ * Call like: sprintf('%s, %s!', 'Hello', 'world')
+ * 
+ * @param format
+ *            string with "%s" placeholder(s)
+ * @param arg
+ *            string values to be placed into format
+ * @returns format with each occurrence of "%s" replaced by corresponding arg
+ */
+function sprintf(format) {
+	var formatted = null;
+	var args = arguments;
+	var i = 1;
+	
+	if (format !== null) {
+		formatted = format.replace(/%((%)|s)/g, function(m) {
+			return m[2] || args[i++]
+		});
+	}
+	return formatted;
+};

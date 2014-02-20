@@ -10,10 +10,11 @@ String unlinkFolderButton =(String)request.getAttribute("unlinkFolderButton");
 String deleteButton =(String)request.getAttribute("deleteButton");
 String undoneCopy =(String)request.getAttribute("undoneCopy");
 String deleteUndoneFolderCopy =(String)request.getAttribute("deleteUndoneFolderCopy");
-String deleteFileFolderCopy =(String)request.getAttribute("deleteFileFolderCopy");
 String createItemPrompt =(String)request.getAttribute("createItemPrompt");
 String createItemPromptError =(String)request.getAttribute("createItemPromptError");
 String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
+String buttonYes =(String)request.getAttribute("buttonYes");
+String buttonNo =(String)request.getAttribute("buttonNo");
 String contextUrl =(String)request.getAttribute("contextUrl");
 %>
 <html lang="en">
@@ -38,14 +39,16 @@ String contextUrl =(String)request.getAttribute("contextUrl");
     var deleteFolderButton='<%=deleteButton %>';
     var undoneCopy='<%=undoneCopy %>';
     var deleteUndoneFolderCopy='<%=deleteUndoneFolderCopy %>';
-    var deleteFileFolderCopy='<%=deleteFileFolderCopy %>';
     var createItemPrompt='<%=createItemPrompt %>';
     var createItemPromptError='<%=createItemPromptError %>';
     var sendEmailCopy='<%=sendEmailCopy %>';
+    var buttonYes='<%=buttonYes %>';
+    var buttonNo='<%=buttonNo %>';
     var contextUrl='<%=contextUrl%>';
     </script>
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
+<script src="js/bootbox.4.1.0.min.js"></script>
 <script src="js/utils.js" type="text/javascript"></script>
 <script src="js/google-drive-utils.js" type="text/javascript"></script>
 <script src="js/googleDriveLti.js" type="text/javascript"></script>

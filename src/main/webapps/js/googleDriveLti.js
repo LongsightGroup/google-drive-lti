@@ -32,6 +32,10 @@ if (typeof(jQuery) === 'undefined') {
 	console.log('ERROR: googleDriveLti.js requires jQuery');
 }
 
+if (typeof(bootbox) === 'undefined') {
+	console.log('ERROR: googleDriveLti.js requires bootbox');
+}
+
 if (typeof(getDriveFile) === 'undefined') {
 	if (getHasConsoleLogFunction()) {
 		console.log('ERROR: googleDriveLti.js requires google-drive-utils.js');
@@ -62,6 +66,10 @@ var SHRINK_TEXT = '- <span class="hide-text">Collapse this folder</span>';
 var accessTokenHandler = {
 		"accessToken" : null
 };
+
+bootbox.setDefaults({
+	closeButton : false
+});
 
 /**
  * Retrieves and displays folders linked with this site, with functions
@@ -305,18 +313,32 @@ function unlinkFolderFromSite(folderId, folderTitle) {
 }
 
 function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
-	var msg = deleteFileFolderCopy + fileTitle + undoneCopy;
-	var isFolder = getIsFolder(fileMimeType);
-	if (isFolder) {
-		msg = deleteFileFolderCopy + fileTitle + deleteUndoneFolderCopy;
+	var deleteConfirmationMessage = null;
+
+	if (getIsFolder(fileMimeType)) {
+		deleteConfirmationMessage = sprintf(deleteUndoneFolderCopy, escapeHtml(fileTitle));
+	} else {
+		deleteConfirmationMessage = sprintf(undoneCopy, escapeHtml(fileTitle));
 	}
-	if (confirm(msg)) {
-		deleteDriveFile(getGoogleAccessToken(), fileId, function() {
-			// This is deleted, not unlinked, but the result is essentially the
-			// same on the page (nobody can see it any longer)
-			removeFileTreeFromTable(fileId);
-		});
-	}
+
+	bootbox.confirm({
+		message : deleteConfirmationMessage,
+		buttons : {
+			confirm : {
+				label : buttonYes
+			},
+			cancel : {
+				label : buttonNo
+			}
+		},
+		callback : function(userConfirmed) {
+			if (userConfirmed === true) {
+				deleteDriveFile(getGoogleAccessToken(), fileId, function() {
+					removeFileTreeFromTable(fileId);
+				});
+			}
+		}
+	});
 }
 
 /**
@@ -328,8 +350,8 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
  *            default value for title shown in dialog
  * @returns non-empty title string or null if user selected "Cancel"
  */
-function itemTitlePromptDialog(itemType, defaultTitle) {
-	var defaultItemPrompt = createItemPrompt + itemType + '.';
+function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
+	var defaultItemPrompt = sprintf(createItemPrompt, itemType);
 	var itemPrompt = defaultItemPrompt;
 	var itemTitle = defaultTitle;
 
@@ -337,59 +359,69 @@ function itemTitlePromptDialog(itemType, defaultTitle) {
 		itemTitle = '';
 	}
 
-	do {
-		itemTitle = prompt(itemPrompt, itemTitle);
+	var displayPrompt = function() {
+		bootbox.prompt({
+			title : itemPrompt,
+			value : itemTitle,
+			callback : function(itemTitle) {
+				if (itemTitle !== null) {
+					itemTitle = $.trim(itemTitle);
 
-		// A null value means the user selected "Cancel"
-		if (itemTitle === null) {
-			return null;
-		} else {
-			itemTitle = $.trim(itemTitle);
-		}
+					if (itemTitle === '') {
+						// Empty responses are invalid. Prompt again
+						// with error message.
+						itemPrompt = defaultItemPrompt + '<br/><br/><em>'
+								+ createItemPromptError + '</em>';
+						displayPrompt();
+						return;
+					}
+				}
 
-		if (itemTitle === '') {
-			itemPrompt = defaultItemPrompt + '\n\n' + createItemPromptError;
-		}
-	} while (itemTitle === '')
+				if (typeof (validResponseCallback) === 'function') {
+					validResponseCallback(itemTitle);
+				}
+			}
+		});
+	};
 
-	return itemTitle;
+	displayPrompt();
 }
 
 /**
  * Creates new folder with "My Drive" as its parent.
  */
 function assignNewFolder() {
-	var folderTitle = itemTitlePromptDialog('folder', getConfigCourseTitle());
+	itemTitlePromptDialog('folder', getConfigCourseTitle(), function(folderTitle) {
+		// User clicked "Cancel" button
+		if (folderTitle === null) {
+			return;
+		}
 
-	// User clicked "Cancel" button
-	if (folderTitle === null) {
-		return;
-	}
+		// This would be the place to avoid duplicate existing file names.
 
-	// This would be the place to avoid duplicate existing file names.
+		// Empty string causes parent folder to be "My Drive".
+		var parentFolderId = '';
 
-	// Empty string causes parent folder to be "My Drive".
-	var parentFolderId = '';
+		createFile(
+				getGoogleAccessToken(),
+				parentFolderId,
+				folderTitle,
+				getConfigCourseId(),
+				'application/vnd.google-apps.folder',
+				function(data) {
+					var folderId = '';
+					var folderTitle = '';
+					if ((typeof (data) !== 'undefined') && ($.trim(data.id) !== '')) {
+						folderId = data.id;
+						folderTitle = data.title
+					}
 
-	createFile(
-			getGoogleAccessToken(),
-			parentFolderId,
-			folderTitle,
-			getConfigCourseId(),
-			'application/vnd.google-apps.folder',
-			function(data) {
-				var folderId = '';
-				var folderTitle = '';
-				if ((typeof (data) !== 'undefined') && ($.trim(data.id) !== '')) {
-					folderId = data.id;
-					folderTitle = data.title
-				}
-
-				linkFolderToSite(folderId, function() {
-					notifyUserSiteLinkChangedWithFolder(folderId, folderTitle,
-							true, false);
+					linkFolderToSite(folderId, function() {
+						notifyUserSiteLinkChangedWithFolder(folderId, folderTitle,
+								true, false);
+					});
 				});
-			});
+	});
 }
 
 /**
@@ -398,20 +430,33 @@ function assignNewFolder() {
  * 
  * @param folderData
  * @param newFolder
- * @param unlinked  true = folder was unlinked from site; false = folder was
- * linked with the site
+ * @param unlinked
+ *            true = folder was unlinked from site; false = folder was linked
+ *            with the site
  */
 function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, unlinked) {
 	if ($.trim(folderId) === '') {
-		// Do nothing, as the response does not show association succeeded
-		return;	// Quick return to simpify code
+		// Do nothing, because empty folderId shows the association failed
+		return;
 	}
 
 	if (!unlinked) {
-		var sendNotificationEmails = confirm(sendEmailCopy);
-		giveRosterReadOnlyPermissions(folderId, sendNotificationEmails);
-		removeLinkedFolderFromLinkingTable(folderId);
-
+		bootbox.confirm({
+			message : sendEmailCopy,
+			buttons : {
+				confirm : {
+					label : buttonYes
+				},
+				cancel : {
+					label : buttonNo
+				}
+			},
+			callback : function(sendNotificationEmails) {
+				giveRosterReadOnlyPermissions(folderId,
+						sendNotificationEmails);
+				removeLinkedFolderFromLinkingTable(folderId);
+			}
+		});
 	} else {
 		removeRosterPermissions(folderId);
 		removeUnlinkedFileTreeFromTable(folderId);
@@ -640,26 +685,26 @@ function getUpdateLtiParams(folderId, requestedAction, sendNotificationEmails) {
 }
 
 function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth) {
-	var title = itemTitlePromptDialog(fileType, null);
+	itemTitlePromptDialog(fileType, null, function(title) {
+		// User clicked "Cancel" button
+		if (title === null) {
+			return;
+		}
 
-	// User clicked "Cancel" button
-	if (title === null) {
-		return;
-	}
+		// Files are not associated with courses, use empty ID string
+		var courseId = '';
 
-	// Files are not associated with courses, use empty ID string
-	var courseId = '';
-
-	createFile(
-		getGoogleAccessToken(),
-		parentFolderId,
-		title,
-		courseId,
-		'application/vnd.google-apps.' + fileType,
-		function(file) {
-			addFileToFileTreeTable(file, parentFolderId, linkedFolderId,
-					depth + 1);
-		});
+		createFile(
+				getGoogleAccessToken(),
+				parentFolderId,
+				title,
+				courseId,
+				'application/vnd.google-apps.' + fileType,
+				function(file) {
+					addFileToFileTreeTable(file, parentFolderId, linkedFolderId,
+							depth + 1);
+				});
+	});
 }
 
 function openFile(title, sourceUrl, googleFileMimeType, inDialog) {
@@ -807,7 +852,7 @@ function linkFolder(folderId, folderTitle) {
  * @param reason
  */
 function notifyUserFolderCannotBeLinked(folderTitle, reason) {
-	alert('Unable to link folder ' + folderTitle + ': ' + reason);
+	bootbox.alert('Unable to link folder ' + folderTitle + ': ' + reason);
 }
 
 /**

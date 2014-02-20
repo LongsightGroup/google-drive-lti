@@ -869,17 +869,19 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.unlink.button"));
 
 			request.setAttribute("undoneCopy",
-					resource.getString("gd.delete.undone"));
+					resource.getString("gd.delete.file.prompt"));
 			request.setAttribute("deleteUndoneFolderCopy",
-					resource.getString("gd.delete.undone.folder"));
-			request.setAttribute("deleteFileFolderCopy",
-					resource.getString("gd.delete.file.folder"));
+					resource.getString("gd.delete.folder.prompt"));
 			request.setAttribute("createItemPrompt",
 					resource.getString("gd.create.item.prompt"));
 			request.setAttribute("createItemPromptError",
 					resource.getString("gd.create.item.prompt.error"));
 			request.setAttribute("sendEmailCopy",
 					resource.getString("gd.send.email"));
+			request.setAttribute("buttonYes",
+					resource.getString("gd.button.yes"));
+			request.setAttribute("buttonNo",
+					resource.getString("gd.button.no"));
 			request.setAttribute("contextUrl",
 					getGoogleServiceAccount().getContextURL());
 			
