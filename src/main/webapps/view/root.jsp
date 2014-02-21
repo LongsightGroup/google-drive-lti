@@ -16,6 +16,8 @@ String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 String buttonYes =(String)request.getAttribute("buttonYes");
 String buttonNo =(String)request.getAttribute("buttonNo");
 String contextUrl =(String)request.getAttribute("contextUrl");
+String deleteFileErrorPrompt =(String)request.getAttribute("deleteFileErrorPrompt");
+String deleteFolderErrorPrompt =(String)request.getAttribute("deleteFolderErrorPrompt");
 %>
 <html lang="en">
 <head>
@@ -45,6 +47,9 @@ String contextUrl =(String)request.getAttribute("contextUrl");
     var buttonYes='<%=buttonYes %>';
     var buttonNo='<%=buttonNo %>';
     var contextUrl='<%=contextUrl%>';
+    var deleteFileErrorPrompt='<%=deleteFileErrorPrompt %>';
+    var deleteFolderErrorPrompt='<%=deleteFolderErrorPrompt %>';
+    
     </script>
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>

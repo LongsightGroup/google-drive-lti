@@ -230,7 +230,7 @@
 		<dependency>
 			<groupId>lti</groupId>
 			<artifactId>lti-utils</artifactId>
-			<version>0.0.4-SNAPSHOT</version>
+			<version>1.0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>

@@ -25,8 +25,10 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 
@@ -43,6 +45,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.Permission;
+import com.google.api.services.drive.model.PermissionList;
 
 import edu.umich.its.google.oauth.GoogleSecurity;
 import edu.umich.its.google.oauth.GoogleServiceAccount;
@@ -169,6 +172,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String PARAM_ACTION_OPEN_PAGE = "openPage";
 	private static final String PARAM_OPEN_PAGE_NAME = "pageName";
 	private static final String PARAM_ACCESS_TOKEN = "access_token";
+	private static final String PARAM_OWNER_ACCESS_TOKEN ="getOwnerToken";
 	private static final String PARAM_FILE_ID = "file_id";
 	private static final String PARAM_SEND_NOTIFICATION_EMAILS = "send_notification_emails";
 	private static final String PARAM_TP_ID = "tp_id";
@@ -243,7 +247,9 @@ public class GoogleLtiServlet extends HttpServlet {
 				removePermissions(request, response, tcSessionData);
 			} else if (PARAM_ACTION_GET_ACCESS_TOKEN.equals(requestedAction)) {
 				getGoogleAccessToken(request, response, tcSessionData);
-			} else if (PARAM_ACTION_OPEN_PAGE.equals(requestedAction)) {
+			}else if (PARAM_OWNER_ACCESS_TOKEN.equals(requestedAction)) {
+				getOwnerAccessToken(request, response, tcSessionData);
+			}else if (PARAM_ACTION_OPEN_PAGE.equals(requestedAction)) {
 				loadJspPage(request, response, tcSessionData);
 			} else {
 				M_log.warn("Request action unknown: \"" + requestedAction
@@ -532,8 +538,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void insertRosterPermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws ServletException, IOException {
-		List<String> emailAddresses = getRoster(request, tcSessionData);
-		int count=insertPermissions(request, response, tcSessionData, emailAddresses);
+		HashMap<String, HashMap<String, String>> roster = getRoster(request, tcSessionData);
+		int count=insertPermissions(request, response, tcSessionData, roster);
 		// Title set in request by insertPermissions: get and clear it
 		request.removeAttribute(FOLDER_TITLE);
 		if(count>0) {
@@ -544,7 +550,15 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void insertCurrentUserPermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws ServletException, IOException {
+		String userRole=null;
 		String emailAddress = tcSessionData.getUserEmailAddress();
+	 if(tcSessionData.getIsInstructor()) {
+			userRole="Instructor";
+		}
+	 else
+	 {
+		 userRole="Learner";
+	 }
 		if (getIsEmpty(emailAddress)) {
 			logErrorWritingResponse(
 					response,
@@ -552,26 +566,17 @@ public class GoogleLtiServlet extends HttpServlet {
 			return;
 		}
 		List<String> emailAddresses = new ArrayList<String>();
+		HashMap<String, String> singleUser = new HashMap<String, String>();
+		singleUser.put(emailAddress, userRole);
 		emailAddresses.add(emailAddress);
-		if (insertPermissions(request, response, tcSessionData, emailAddresses) == 1) {
+		if (insertCurrentPermissionsForSingleUser(request, response, tcSessionData, singleUser) == 1) {
 			response.getWriter().print(SUCCESS);
 		}
 	}
-
-	/**
-	 * Gives people with the given email addresses read-only access to the given
-	 * folder. The instructor is expected to be the owner of the folder and
-	 * their permissions are not touched.
-	 * 
-	 * If people already have higher permissions, this will not affect that.
-	 * This would be the case because the instructor already gave them those
-	 * permissions.
-	 * 
-	 * @return Number of permissions that were successfully inserted
-	 */
-	private int insertPermissions(HttpServletRequest request,
+	
+	private int insertCurrentPermissionsForSingleUser(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData,
-			List<String> emailAddresses) throws ServletException, IOException {
+			HashMap<String,String> singleUser) throws ServletException, IOException {
 		int result = 0;
 		try {
 			if (!validatePermissionsRequiredParams(request, response,
@@ -593,18 +598,75 @@ public class GoogleLtiServlet extends HttpServlet {
 			boolean sendNotificationEmails = Boolean.parseBoolean(request
 					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each given person
-			for (int rosterIdx = 0; rosterIdx < emailAddresses.size(); rosterIdx++) {
-				String userEmailAddress = emailAddresses.get(rosterIdx);
-				// TODO: consider doing formal check this is valid email address
-				if (!getIsEmpty(userEmailAddress)
-						&& !handler.getIsInstructor(userEmailAddress)) {
+			for ( Entry<String, String> entry : singleUser.entrySet()) {
+			    String emailAddress = entry.getKey();
+			    String roles = entry.getValue();
+			    if (!getIsEmpty(emailAddress)
+						&& !handler.getIsInstructor(emailAddress)) {
 					// If result not null, the user has permission >= inserted
-					if (null != handler.insertPermission(userEmailAddress,
+					if (null != handler.insertPermission(emailAddress,roles,
 							sendNotificationEmails)) {
 						result++;
 					}
 				}
 			}
+			
+		} catch (Exception err) {
+			M_log.warn("Error insertPermissions():", err);
+		}
+		return result;
+	}
+	
+	/**
+	 * Gives people with the given email addresses read-only access to the given
+	 * folder. The instructor is expected to be the owner of the folder and
+	 * their permissions are not touched.
+	 * 
+	 * If people already have higher permissions, this will not affect that.
+	 * This would be the case because the instructor already gave them those
+	 * permissions.
+	 * 
+	 * @return Number of permissions that were successfully inserted
+	 */
+	
+	private int insertPermissions(HttpServletRequest request,
+			HttpServletResponse response, TcSessionData tcSessionData,
+			HashMap<String,HashMap<String, String>> roster) throws ServletException, IOException {
+		int result = 0;
+		try {
+			if (!validatePermissionsRequiredParams(request, response,
+					tcSessionData)) {
+				return 0;
+			}
+			FolderPermissionsHandler handler = getHandler(request, response,
+					tcSessionData);
+			// google file object
+			File file = handler.getFile();
+			if (file == null) {
+				logErrorWritingResponse(
+						response,
+						resource.getString("permission.error.four"));
+				return 0; // Quick return to simplify code
+			}
+			// Ugly way to pass title to the calling method
+			request.setAttribute(FOLDER_TITLE, file.getTitle());
+			boolean sendNotificationEmails = Boolean.parseBoolean(request
+					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
+			// Insert permission for each given person
+			for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
+			    String emailAddress = entry.getKey();
+			    HashMap<String, String> value = entry.getValue();
+			    String roles = value.get("role");
+			    if (!getIsEmpty(emailAddress)
+						&& !handler.getIsInstructor(emailAddress)) {
+					// If result not null, the user has permission >= inserted
+					if (null != handler.insertPermission(emailAddress,roles,
+							sendNotificationEmails)) {
+						result++;
+					}
+				}
+			}
+			
 		} catch (Exception err) {
 			M_log.warn("Error insertPermissions():", err);
 		}
@@ -654,6 +716,42 @@ public class GoogleLtiServlet extends HttpServlet {
 		result = new FolderPermissionsHandler(link, drive, fileId);
 		return result;
 	}
+	
+	/**
+	 * This function is useful in finding the list of users on file
+	 * or folder  and from that list we are able to get the owner of the file/folder
+	 * and grab owner's email address and generate the Owner access token 
+	 * to delete a file/folder
+	 * by a user who only has can edit right on the folder/file.
+	 * 
+	 */
+	
+	private void getOwnerAccessToken(HttpServletRequest request,
+			HttpServletResponse response, TcSessionData tcSessionData) {
+		String fileId = request.getParameter(PARAM_FILE_ID);
+		String userEmailAddress = tcSessionData.getUserEmailAddress();
+		String ownerOfTheFileEmailAddress=null;
+		GoogleCredential credential = GoogleSecurity.authorize(
+				getGoogleServiceAccount(), userEmailAddress);
+		Drive drive = GoogleSecurity.getGoogleDrive(credential);
+		try {
+			PermissionList list = drive.permissions().list(fileId).execute();
+            List<Permission> items = list.getItems();
+            for (Permission permission : items) {
+            	String role = permission.getRole();
+            	if(role.equals("owner")) {
+            		 ownerOfTheFileEmailAddress = permission.getEmailAddress();
+            		 break;
+            	}
+			}
+            getGoogleOwnerAccessToken(request, response, tcSessionData,ownerOfTheFileEmailAddress);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 
 	/**
 	 * Removes read-only access to the given folder to people in the roster.
@@ -666,6 +764,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * deleting permission is the simplest method available for removing a
 	 * person's permissions to the file.
 	 */
+	
 	private void removePermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws ServletException, IOException {
@@ -687,23 +786,23 @@ public class GoogleLtiServlet extends HttpServlet {
 			boolean sendNotificationEmails = Boolean.parseBoolean(request
 					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each person in the roster
-			List<String> roster = getRoster(request, tcSessionData);
+			HashMap<String,HashMap<String, String>> roster = getRoster(request,tcSessionData);
 			int updateCount = 0;
-			for (int rosterIdx = 0; rosterIdx < roster.size(); rosterIdx++) {
-				String userEmailAddress = roster.get(rosterIdx);
-				// TODO: consider doing formal check this is valid email address
-				boolean isEmpty = getIsEmpty(userEmailAddress);
-				boolean isInstructor = handler
-						.getIsInstructor(userEmailAddress);
-				if (!isEmpty && !isInstructor) {
+			for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
+			    String emailAddress = entry.getKey();
+			    HashMap<String, String> value = entry.getValue();
+			    String roles = value.get("role");
+			    if (!getIsEmpty(emailAddress)
+						&& !handler.getIsInstructor(emailAddress)) {
 					// If result not null, the user has permission >= inserted
-					Permission permission = handler.insertPermission(
-							userEmailAddress, sendNotificationEmails);
+					Permission permission = handler.insertPermission(emailAddress,roles,
+							sendNotificationEmails);
 					if (permission != null) {
 						if (handler.removePermission(permission.getId())) {
 							updateCount++;
 						}
 					}
+					
 				}
 			}
 			response.getWriter().print(SUCCESS);
@@ -749,6 +848,26 @@ public class GoogleLtiServlet extends HttpServlet {
 			response.getWriter().print("ERROR");
 		}
 	}
+	
+	private void getGoogleOwnerAccessToken(HttpServletRequest request,
+			HttpServletResponse response, TcSessionData tcSessionData,String ownerEmailAddress)
+					throws IOException {
+		String accessToken = GoogleSecurity.getGoogleAccessToken(
+				getGoogleServiceAccount(), ownerEmailAddress);
+		
+		if (accessToken != null) {
+			response.getWriter().print(accessToken);
+		} else {
+			M_log.warn("ERROR: User \""
+					+ tcSessionData.getUserSourceDid()
+					+ "\" got error in generating access token.  (Email: "
+					+ ownerEmailAddress + "; ID: " + tcSessionData.getUserId()
+					+ ")");
+			response.getWriter().print("ERROR");
+		}
+	}
+	
+	
 
 	private GoogleServiceAccount getGoogleServiceAccount() {
 		return new GoogleServiceAccount(GOOGLE_SERVICE_ACCOUNT_PROPS_PREFIX);
@@ -792,9 +911,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * Makes direct server-to-server request to get the site's roster, and
 	 * returns list of users' email addresses.
 	 */
-	private List<String> getRoster(HttpServletRequest request,
+	
+	private HashMap<String,HashMap<String, String>> getRoster(HttpServletRequest request,
 			TcSessionData tcSessionData) throws ServletException, IOException {
-		return RosterClientUtils.getRoster(tcSessionData);
+		return RosterClientUtils.getRosterFull(tcSessionData);
 	}
 
 	private void logErrorWritingResponse(HttpServletResponse response, String message)
@@ -848,6 +968,11 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.delete.button"));
 			request.setAttribute("addButton",
 					resource.getString("gd.add.button"));
+			
+			request.setAttribute("deleteFileErrorPrompt",
+					resource.getString("gd.delete.file.error.prompt"));
+			request.setAttribute("deleteFolderErrorPrompt",
+					resource.getString("gd.delete.folder.error.prompt"));
 
 			request.setAttribute("header2", resource.getString("gd.header2"));
 			request.setAttribute("about",
@@ -934,14 +1059,19 @@ public class GoogleLtiServlet extends HttpServlet {
 			return getLink().getUserEmailAddress().equals(userEmailAddress);
 		}
 
-		private Permission insertPermission(String userEmailAddress,
+		private Permission insertPermission(String userEmailAddress,String role,
 				boolean sendNotificationEmails) {
 			Permission result = null;
 			try {
 				Permission newPermission = new Permission();
 				newPermission.setValue(userEmailAddress);
 				newPermission.setType("user");
+				if(role.equals("Instructor")) {
+					newPermission.setRole("writer");
+				}
+				else {
 				newPermission.setRole("reader");
+				}
 				result = getDrive().permissions()
 						.insert(getFileId(), newPermission)
 						.setSendNotificationEmails(sendNotificationEmails)

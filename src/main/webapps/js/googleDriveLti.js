@@ -312,9 +312,56 @@ function unlinkFolderFromSite(folderId, folderTitle) {
 	}
 }
 
-function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
+function deleteGoogleFile(fileId, fileTitle, fileMimeType,role) {
+	if(role==="writer"){
+		$.ajax({
+			url: getPageUrl(),
+			type: 'GET',
+			data: getUpdateLtiParams(
+					fileId,
+					"getOwnerToken",
+					false),
+					success: function(ownerToken) {
+						var deleteMsg=null;
+						if($.trim(ownerToken) == 'ERROR'){
+						if (getIsFolder(fileMimeType)) {
+						deleteMsg = sprintf(deleteFolderErrorPrompt,escapeHtml(fileTitle));
+						}
+						else{
+						deleteMsg=sprintf(deleteFileErrorPrompt,escapeHtml(fileTitle));
+						}
+						bootbox.alert(deleteMsg);
+						}
+						else{
+						var deleteConfirmationMessage = null;
+						if (getIsFolder(fileMimeType)) {
+							deleteConfirmationMessage = sprintf(deleteUndoneFolderCopy, escapeHtml(fileTitle));
+						} else {
+							deleteConfirmationMessage = sprintf(undoneCopy, escapeHtml(fileTitle));
+						}
+						bootbox.confirm({
+							message : deleteConfirmationMessage,
+							buttons : {
+								confirm : {
+									label : buttonYes
+								},
+								cancel : {
+									label : buttonNo
+								}
+							},
+							callback : function(userConfirmed) {
+								if (userConfirmed === true) {
+									deleteDriveFile(ownerToken, fileId, function() {
+										removeFileTreeFromTable(fileId);
+									});
+								}
+							}
+						});
+						}
+					}
+		})
+	}else if(role ==="owner") {
 	var deleteConfirmationMessage = null;
-
 	if (getIsFolder(fileMimeType)) {
 		deleteConfirmationMessage = sprintf(deleteUndoneFolderCopy, escapeHtml(fileTitle));
 	} else {
@@ -339,6 +386,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType) {
 			}
 		}
 	});
+}
 }
 
 /**
@@ -521,7 +569,6 @@ function requestGoogleAccessToken() {
 
 	return result;
 }
-
 
 function checkBackButtonHit(){
 	$.ajax({
@@ -978,7 +1025,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	} else {
 		if (getIsInstructor()) {
 			actionTitle = deleteFolderButton;
-			actionOnClick = 'deleteGoogleFile(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\', \'' + escapeAllQuotes(file.mimeType) + '\');';
+			actionOnClick = 'deleteGoogleFile(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\', \'' + escapeAllQuotes(file.mimeType) + '\', \'' + escapeAllQuotes(file.userPermission.role) + '\');';
 		}
 	}
 	var actionTemplate = '';
