@@ -325,10 +325,10 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType,role) {
 						var deleteMsg=null;
 						if($.trim(ownerToken) == 'ERROR'){
 						if (getIsFolder(fileMimeType)) {
-						deleteMsg = sprintf(deleteFolderErrorPrompt,escapeHtml(fileTitle));
+						deleteMsg = sprintf(deleteFolderErrorAlert,escapeHtml(fileTitle));
 						}
 						else{
-						deleteMsg=sprintf(deleteFileErrorPrompt,escapeHtml(fileTitle));
+						deleteMsg=sprintf(deleteFileErrorAlert,escapeHtml(fileTitle));
 						}
 						bootbox.alert(deleteMsg);
 						}
@@ -896,10 +896,11 @@ function linkFolder(folderId, folderTitle) {
 
 /**
  * 
+ * @param folderTitle
  * @param reason
  */
 function notifyUserFolderCannotBeLinked(folderTitle, reason) {
-	bootbox.alert('Unable to link folder ' + folderTitle + ': ' + reason);
+	bootbox.alert(sprintf(linkFolderErrorAlert, folderTitle, reason);
 }
 
 /**

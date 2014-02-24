@@ -969,10 +969,10 @@ public class GoogleLtiServlet extends HttpServlet {
 			request.setAttribute("addButton",
 					resource.getString("gd.add.button"));
 			
-			request.setAttribute("deleteFileErrorPrompt",
-					resource.getString("gd.delete.file.error.prompt"));
-			request.setAttribute("deleteFolderErrorPrompt",
-					resource.getString("gd.delete.folder.error.prompt"));
+			request.setAttribute("deleteFileErrorAlert",
+					resource.getString("gd.delete.file.error.alert"));
+			request.setAttribute("deleteFolderErrorAlert",
+					resource.getString("gd.delete.folder.error.alert"));
 
 			request.setAttribute("header2", resource.getString("gd.header2"));
 			request.setAttribute("about",
@@ -1001,6 +1001,8 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.create.item.prompt"));
 			request.setAttribute("createItemPromptError",
 					resource.getString("gd.create.item.prompt.error"));
+			request.setAttribute("linkFolderErrorAlert",
+					resource.getString("gd.link.folder.error.alert"));
 			request.setAttribute("sendEmailCopy",
 					resource.getString("gd.send.email"));
 			request.setAttribute("buttonYes",

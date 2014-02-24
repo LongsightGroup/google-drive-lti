@@ -12,12 +12,13 @@ String undoneCopy =(String)request.getAttribute("undoneCopy");
 String deleteUndoneFolderCopy =(String)request.getAttribute("deleteUndoneFolderCopy");
 String createItemPrompt =(String)request.getAttribute("createItemPrompt");
 String createItemPromptError =(String)request.getAttribute("createItemPromptError");
+String linkFolderErrorAlert =(String)request.getAttribute("linkFolderErrorAlert");
 String sendEmailCopy =(String)request.getAttribute("sendEmailCopy");
 String buttonYes =(String)request.getAttribute("buttonYes");
 String buttonNo =(String)request.getAttribute("buttonNo");
 String contextUrl =(String)request.getAttribute("contextUrl");
-String deleteFileErrorPrompt =(String)request.getAttribute("deleteFileErrorPrompt");
-String deleteFolderErrorPrompt =(String)request.getAttribute("deleteFolderErrorPrompt");
+String deleteFileErrorAlert =(String)request.getAttribute("deleteFileErrorAlert");
+String deleteFolderErrorAlert =(String)request.getAttribute("deleteFolderErrorAlert");
 %>
 <html lang="en">
 <head>
@@ -43,12 +44,13 @@ String deleteFolderErrorPrompt =(String)request.getAttribute("deleteFolderErrorP
     var deleteUndoneFolderCopy='<%=deleteUndoneFolderCopy %>';
     var createItemPrompt='<%=createItemPrompt %>';
     var createItemPromptError='<%=createItemPromptError %>';
+    var linkFolderErrorAlert='<%=linkFolderErrorAlert %>';
     var sendEmailCopy='<%=sendEmailCopy %>';
     var buttonYes='<%=buttonYes %>';
     var buttonNo='<%=buttonNo %>';
     var contextUrl='<%=contextUrl%>';
-    var deleteFileErrorPrompt='<%=deleteFileErrorPrompt %>';
-    var deleteFolderErrorPrompt='<%=deleteFolderErrorPrompt %>';
+    var deleteFileErrorAlert='<%=deleteFileErrorAlert %>';
+    var deleteFolderErrorAlert='<%=deleteFolderErrorAlert %>';
     
     </script>
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
