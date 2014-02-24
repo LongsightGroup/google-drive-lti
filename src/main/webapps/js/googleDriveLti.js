@@ -900,7 +900,7 @@ function linkFolder(folderId, folderTitle) {
  * @param reason
  */
 function notifyUserFolderCannotBeLinked(folderTitle, reason) {
-	bootbox.alert(sprintf(linkFolderErrorAlert, folderTitle, reason);
+	bootbox.alert(sprintf(linkFolderErrorAlert, folderTitle, reason));
 }
 
 /**
