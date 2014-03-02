@@ -19,6 +19,7 @@ String buttonNo =(String)request.getAttribute("buttonNo");
 String contextUrl =(String)request.getAttribute("contextUrl");
 String deleteFileErrorAlert =(String)request.getAttribute("deleteFileErrorAlert");
 String deleteFolderErrorAlert =(String)request.getAttribute("deleteFolderErrorAlert");
+String errorMsg404 =(String)request.getAttribute("errorMsg404");
 %>
 <html lang="en">
 <head>
@@ -118,6 +119,7 @@ String deleteFolderErrorAlert =(String)request.getAttribute("deleteFolderErrorAl
 			<div id="par2" class="hide alert alert-info">${studentNoFolderAccessMsg}.</div>
 			<%} %>
 			<div id="par3" class="hide alert alert-error">${invalidAccountMsg}</div>
+			<div id="par4" class="hide alert alert-error">${errorMsg404}</div>
 			<div id="permissionUpdate" class="hide alert alert-error">${permissionUpdate}</div>
 		</footer>
 	</div>

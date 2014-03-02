@@ -205,6 +205,7 @@ function getDriveFile(accessToken, fileId, callback, errorCallback, completeCall
 		},
 		type: 'GET',
 		dataType: 'json',
+		cache:false,
 		success: function(data, textStatus, jqXHR) {
 			if (typeof(callback) === 'function') {
 				callback(data, textStatus, jqXHR);

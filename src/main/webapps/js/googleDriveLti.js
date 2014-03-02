@@ -109,16 +109,22 @@ function showLinkedGoogleFolder(folderId) {
 		folderId,
 		function(data) {
 			// Linked folders are all depth 0 (no parents)
-			showLinkedGoogleFolderCallback(data, 0);
+			if(!data.labels.trashed){
+				showLinkedGoogleFolderCallback(data, 0);
+			}
+			else{
+				handleUnlinkingFolder(folderId);
+			}
 		},
 		function(data, textStatus, jqXHR) {
 			if (data.status === 404) {
-				$('#permissionUpdate').show();
-				giveCurrentUserReadOnlyPermissions(folderId);
+				checkSharedFolderDeletionStatus(folderId);
 			}
 		}
 	);
 }
+
+
 
 /**
  * Displays the given folder on the page, so the user can open it in another
@@ -586,6 +592,68 @@ function checkBackButtonHit(){
 
 				}
 	});
+}
+/**
+ * This case help to determines if the  404 error occurs while showing a shared folder is due to user 
+ * don't has permission or shared folder has been deleted from the google drive interface. 
+ * This function call check to get the instructor email address from the setting service and generates a token
+ * and with generated token check if the shared folder exist or not. If the folder don't exist we are simply 
+ * unlinking the shared folder from the site. If their is error occurs in generation of instructor token,
+ * we are displaying the error message as this case is not very likely to happen. 
+ */
+
+function checkSharedFolderDeletionStatus(sharedFolderId){
+	$.ajax({
+		url: getPageUrl(),
+		type: 'GET',
+		data: getUpdateLtiParams(
+				sharedFolderId,
+				"getIntructorTokenSS",
+				false),
+				success: function(token) {
+					if($.trim(token) ==='ERROR'){
+						$('#par1').hide();
+						$('#par4').show();
+					}else{
+					getDriveFile(
+							token,
+							sharedFolderId,
+							function(data) {
+								if(!data.labels.trashed){
+								$('#permissionUpdate').show();
+								giveCurrentUserReadOnlyPermissions(sharedFolderId);
+								}
+								else{
+									handleUnlinkingFolder(sharedFolderId);
+								}
+							},
+						    function(data, textStatus, jqXHR) {
+								if (data.status === 404) {
+									handleUnlinkingFolder(sharedFolderId);
+								} 
+								
+							}
+					);
+					}
+				}
+	});
+}
+
+
+function handleUnlinkingFolder(folderId){
+	unlinkFolderToSite(folderId,function() {
+		actionAfterChecking();
+	});
+}
+
+function actionAfterChecking(){
+	if (getIsInstructor() ){
+		openPage('LinkFolder');
+		}
+	else{
+		$('#par1').hide();
+		$('#par2').show();
+	}
 }
 
 /**

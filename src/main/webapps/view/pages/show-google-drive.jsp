@@ -83,14 +83,14 @@
 			$('#par3').show();
 		} else {
 			var list = getConfigLinkedFolders();
-
 			if (list && list.length > 0) {
 				$('#par1').show();
 			} else {
 				$('#par2').show();
 			}
-
+			
 			showLinkedGoogleFolders();
+
 		}
 	});
 </script>

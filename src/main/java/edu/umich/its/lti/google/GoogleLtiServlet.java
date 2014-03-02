@@ -173,6 +173,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String PARAM_OPEN_PAGE_NAME = "pageName";
 	private static final String PARAM_ACCESS_TOKEN = "access_token";
 	private static final String PARAM_OWNER_ACCESS_TOKEN ="getOwnerToken";
+	private static final String PARAM_INSTRUCTOR_ACCESS_TOKEN_SETTING_SERVICE ="getIntructorTokenSS";
 	private static final String PARAM_FILE_ID = "file_id";
 	private static final String PARAM_SEND_NOTIFICATION_EMAILS = "send_notification_emails";
 	private static final String PARAM_TP_ID = "tp_id";
@@ -249,6 +250,8 @@ public class GoogleLtiServlet extends HttpServlet {
 				getGoogleAccessToken(request, response, tcSessionData);
 			}else if (PARAM_OWNER_ACCESS_TOKEN.equals(requestedAction)) {
 				getOwnerAccessToken(request, response, tcSessionData);
+			}else if (PARAM_INSTRUCTOR_ACCESS_TOKEN_SETTING_SERVICE.equals(requestedAction)){
+				getInstructorEmailAddressFromSettingService(request, response, tcSessionData);
 			}else if (PARAM_ACTION_OPEN_PAGE.equals(requestedAction)) {
 				loadJspPage(request, response, tcSessionData);
 			} else {
@@ -848,6 +851,31 @@ public class GoogleLtiServlet extends HttpServlet {
 			response.getWriter().print("ERROR");
 		}
 	}
+	/**
+	 * This case help to determines if the  404 error occurs while showing a shared folder is due to user 
+	 * don't has permission or shared folder has been deleted from the google drive interface. 
+	 * This function call check to get the instructor email address from the setting service and generates a token
+	 * and with generated token check if the shared folder exist or not.
+	 * 
+	 */
+	
+	private void getInstructorEmailAddressFromSettingService(HttpServletRequest request,
+			HttpServletResponse response, TcSessionData tcSessionData) throws IOException  {
+		try {
+			TcSiteToGoogleLink link = TcSiteToGoogleStorage
+			.getLinkingFromSettingService(tcSessionData);
+			if(link!=null) {
+			String instructorEmailAddress = link.getUserEmailAddress();
+			getGoogleOwnerAccessToken(request, response, tcSessionData, instructorEmailAddress);
+			}
+			else {
+			response.getWriter().print("ERROR");
+			}
+		} catch (Exception e) {
+			M_log.error("Failed to Unshare info into the Setting Service");
+			response.getWriter().print("ERROR");
+		}
+	}
 	
 	private void getGoogleOwnerAccessToken(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData,String ownerEmailAddress)
@@ -992,6 +1020,8 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.link.folder.button"));
 			request.setAttribute("unlinkFolderButton",
 					resource.getString("gd.unlink.button"));
+			request.setAttribute("errorMsg404",
+					resource.getString("gd.error.msg.404"));
 
 			request.setAttribute("undoneCopy",
 					resource.getString("gd.delete.file.prompt"));
