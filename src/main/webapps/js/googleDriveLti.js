@@ -60,8 +60,8 @@ var FILE_DEPTH_PADDING_PX = 30;
 //all a file's ancestors can be done by finding file's parent, then finding
 //entry for each parent's parent.
 var googleFileParents = [];
-var EXPAND_TEXT = '+ <span class="sr-only">Expand this folder</span>';
-var SHRINK_TEXT = '- <span class="sr-only">Collapse this folder</span>';
+var EXPAND_TEXT = '+ <span class="sr-only">Expand folder</span>';
+var SHRINK_TEXT = '- <span class="sr-only">Collapse folder</span>';
 
 var accessTokenHandler = {
 		"accessToken" : null
