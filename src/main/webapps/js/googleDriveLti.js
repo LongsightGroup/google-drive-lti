@@ -60,8 +60,8 @@ var FILE_DEPTH_PADDING_PX = 30;
 //all a file's ancestors can be done by finding file's parent, then finding
 //entry for each parent's parent.
 var googleFileParents = [];
-var EXPAND_TEXT = '+ <span class="hide-text">Expand this folder</span>';
-var SHRINK_TEXT = '- <span class="hide-text">Collapse this folder</span>';
+var EXPAND_TEXT = '+ <span class="sr-only">Expand this folder</span>';
+var SHRINK_TEXT = '- <span class="sr-only">Collapse this folder</span>';
 
 var accessTokenHandler = {
 		"accessToken" : null
@@ -1073,11 +1073,12 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	var isFolder = (getIsFolder(file.mimeType));
 	var expandShrinkOption = '';
 	if (isFolder) {
-		expandShrinkOption = '<a href="#" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');">&nbsp;</a>';
+		expandShrinkOption = '<a href="#" class="expandShrink" "onclick="toggleExpandShrink(\'' + file.id + '\');"><em></em> <span class="expandShringFolderTitle  sr-only">' + file.title + '</span></a>';
 	}
 	// Add text to parent folder for expanding/shrinking functionality
 	if ($.trim(parentFolderId) !== '') {
-		$('#' + getTableRowIdForFile(parentFolderId)).find('a.expandShrink:not(.shrinkable)').addClass('shrinkable').html(SHRINK_TEXT);
+        var folderTitle =  $('#' + getTableRowIdForFile(parentFolderId)).find('span.title').text();
+		$('#' + getTableRowIdForFile(parentFolderId)).find('a.expandShrink:not(.shrinkable)').addClass('shrinkable').html("<em>" + SHRINK_TEXT + '</em><span class="expandShringFolderTitle sr-only">' + folderTitle + '</span>');
 	}
 	if (getIsInstructor() && isFolder) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
@@ -1152,11 +1153,11 @@ function toggleExpandShrink(folderId) {
 	if ($expandShrinkSpan.hasClass('shrunk')) {
 		$expandShrinkSpan.removeClass('shrunk');
 		expand = true;
-		$expandShrinkSpan.html(SHRINK_TEXT);
+		$expandShrinkSpan.find('em').html(SHRINK_TEXT);
 		expandOrShrinkChildren(folderId, false);
 	} else {
 		$expandShrinkSpan.addClass('shrunk');
-		$expandShrinkSpan.html(EXPAND_TEXT);
+		$expandShrinkSpan.find('em').html(EXPAND_TEXT);
 		expandOrShrinkChildren(folderId, true);
 	}
 }
