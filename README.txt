@@ -51,14 +51,13 @@ The Google Drive LTI run on its own instance than the Sakai instance
      3.Add properties to JAVA_OPTS for Tomcat:
         -DgoogleServicePropsPath=$TOMCAT/google/googleServiceProps.properties
         
-5. Set the context portion of the service URL, depending upon whether the service is running locally or is hosted on 
-Amazon Web Services (AWS).  Use either option 5a or 5b, but not both.
+5. Set the context portion of the LTI service URL
 
-5a. If running locally (either on localhost or another host in the same domain):
+5a. This is the default configuration (deploy google-drive-lti.war web application):
 
     googleDriveLti.context=google-drive-lti/googledrivelti
 
-5b. If hosted on AWS:
+5b. This is an alternate configuration (deployed web application is ROOT application, such as is done by Amazon AWS Elastic Beanstalk):
 
     googleDriveLti.context=googledrivelti
 
