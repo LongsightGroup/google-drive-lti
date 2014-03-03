@@ -899,7 +899,7 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
 	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
 	<td> \
-	<a class="btn btn-small" href="#" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
+	<a class="btn btn-small" href="#" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'<span class="sr-only">[FolderTitle]</span></a> \
 	</td> \
 	</tr>';
 
@@ -1090,11 +1090,11 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	var actionTitle = null;
 	var actionOnClick = '';
 	if (getIsInstructor() && isFolder && (treeDepth === 0)) {
-		actionTitle = unlinkFolderButton;
+		actionTitle = unlinkFolderButton + ' <span class="sr-only">' + file.title + '</span>';
 		actionOnClick = 'unlinkFolderFromSite(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\');';
 	} else {
 		if (getIsInstructor()) {
-			actionTitle = deleteFolderButton;
+			actionTitle = deleteFolderButton + ' <span class="sr-only">' + file.title + '</span>';
 			actionOnClick = 'deleteGoogleFile(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\', \'' + escapeAllQuotes(file.mimeType) + '\', \'' + escapeAllQuotes(file.userPermission.role) + '\');';
 		}
 	}
