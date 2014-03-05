@@ -60,8 +60,8 @@ var FILE_DEPTH_PADDING_PX = 30;
 //all a file's ancestors can be done by finding file's parent, then finding
 //entry for each parent's parent.
 var googleFileParents = [];
-var EXPAND_TEXT = '+ <span class="sr-only">Expand folder</span>';
-var SHRINK_TEXT = '- <span class="sr-only">Collapse folder</span>';
+var EXPAND_TEXT = '+ <span class="hide-text">Expand this folder</span>';
+var SHRINK_TEXT = '- <span class="hide-text">Collapse this folder</span>';
 
 var accessTokenHandler = {
 		"accessToken" : null
@@ -895,11 +895,11 @@ function getPageUrl() {
 }
 
 var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
-	<td><a class="itemLink" href="#" onclick="[OpenFileCall]" title="[FolderTitle]"> \
+	<td><a class="itemLink" onclick="[OpenFileCall]" title="[FolderTitle]"> \
 	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
 	<td> \
-	<a class="btn btn-small" href="#" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'<span class="sr-only">[FolderTitle]</span></a> \
+	<a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
 	</td> \
 	</tr>';
 
@@ -1042,7 +1042,7 @@ function getLatterIsAncestor(childFileId, ancestorFolderId) {
 }
 
 var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \
-	<td style="[FileIndentCss]">[ExpandShrink]<a class="itemLink" href="#" onclick="[OpenFileCall]" title="[FileTitle]"> \
+	<td style="[FileIndentCss]">[ExpandShrink]<a class="itemLink" onclick="[OpenFileCall]" title="[FileTitle]"> \
 	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;<span class="title">[FileTitle]</span> \
 	</a></td> \
 	<td>&nbsp;[DropdownTemplate]</td> \
@@ -1050,7 +1050,7 @@ var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParent
 	<td>[LastModified]</td> \
 	</tr>';
 
-var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-small" href="#" onclick="[ActionOnClick]">[ActionTitle]</a>';
+var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
 
 /**
  * Displays the given Google file on the screen, allowing the user to click on
@@ -1073,12 +1073,11 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	var isFolder = (getIsFolder(file.mimeType));
 	var expandShrinkOption = '';
 	if (isFolder) {
-		expandShrinkOption = '<a href="#" class="expandShrink" "onclick="toggleExpandShrink(\'' + file.id + '\');"><em></em> <span class="expandShringFolderTitle  sr-only">' + file.title + '</span></a>';
+		expandShrinkOption = '<a href="#" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');">&nbsp;</a>';
 	}
 	// Add text to parent folder for expanding/shrinking functionality
 	if ($.trim(parentFolderId) !== '') {
-        var folderTitle =  $('#' + getTableRowIdForFile(parentFolderId)).find('span.title').text();
-		$('#' + getTableRowIdForFile(parentFolderId)).find('a.expandShrink:not(.shrinkable)').addClass('shrinkable').html("<em>" + SHRINK_TEXT + '</em><span class="expandShringFolderTitle sr-only">' + folderTitle + '</span>');
+		$('#' + getTableRowIdForFile(parentFolderId)).find('a.expandShrink:not(.shrinkable)').addClass('shrinkable').html(SHRINK_TEXT);
 	}
 	if (getIsInstructor() && isFolder) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
@@ -1090,11 +1089,11 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	var actionTitle = null;
 	var actionOnClick = '';
 	if (getIsInstructor() && isFolder && (treeDepth === 0)) {
-		actionTitle = unlinkFolderButton + ' <span class="sr-only">' + file.title + '</span>';
+		actionTitle = unlinkFolderButton;
 		actionOnClick = 'unlinkFolderFromSite(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\');';
 	} else {
 		if (getIsInstructor()) {
-			actionTitle = deleteFolderButton + ' <span class="sr-only">' + file.title + '</span>';
+			actionTitle = deleteFolderButton;
 			actionOnClick = 'deleteGoogleFile(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\', \'' + escapeAllQuotes(file.mimeType) + '\', \'' + escapeAllQuotes(file.userPermission.role) + '\');';
 		}
 	}
@@ -1153,11 +1152,11 @@ function toggleExpandShrink(folderId) {
 	if ($expandShrinkSpan.hasClass('shrunk')) {
 		$expandShrinkSpan.removeClass('shrunk');
 		expand = true;
-		$expandShrinkSpan.find('em').html(SHRINK_TEXT);
+		$expandShrinkSpan.html(SHRINK_TEXT);
 		expandOrShrinkChildren(folderId, false);
 	} else {
 		$expandShrinkSpan.addClass('shrunk');
-		$expandShrinkSpan.find('em').html(EXPAND_TEXT);
+		$expandShrinkSpan.html(EXPAND_TEXT);
 		expandOrShrinkChildren(folderId, true);
 	}
 }
