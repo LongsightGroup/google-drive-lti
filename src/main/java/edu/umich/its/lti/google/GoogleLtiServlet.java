@@ -213,7 +213,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	// Protected methods ---------------------------------------------
 
 	/**
-	 * Returns a simple page indicating they found this servlet.
+	 * Returns a simple page indicating they found this servlets.
 	 */
 	@Override
 	protected void doGet(HttpServletRequest request,
