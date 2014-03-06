@@ -290,9 +290,13 @@ public class GoogleLtiServlet extends HttpServlet {
 						.getLinkingFromSettingService(tcSessionData);
 				if (link != null) {
 					loadJspPage(request, response, tcSessionData, JspPage.Home);
-				} else
+				} else if(tcSessionData.getIsInstructor()) {
 					loadJspPage(request, response, tcSessionData,
 							JspPage.LinkFolder);
+					}
+				else {
+					loadJspPage(request, response, tcSessionData, JspPage.Home);
+				}
 			}
 		} catch (Exception e) {
 			M_log.error("POST request failed", e);
