@@ -1024,25 +1024,43 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.link.folder.button"));
 			request.setAttribute("unlinkFolderButton",
 					resource.getString("gd.unlink.button"));
+			request.setAttribute("unlinkFolderAlert",
+					resource.getString("gd.unlink.folder.alert"));
+			request.setAttribute("linkFolderAlert",
+					resource.getString("gd.link.folder.alert"));
 			request.setAttribute("errorMsg404",
-					resource.getString("gd.error.msg.404"));
+							resource.getString("gd.error.msg.404"));
 
-			request.setAttribute("undoneCopy",
+			request.setAttribute("deleteFilePrompt",
 					resource.getString("gd.delete.file.prompt"));
-			request.setAttribute("deleteUndoneFolderCopy",
+			request.setAttribute("deleteFolderPrompt",
 					resource.getString("gd.delete.folder.prompt"));
+			request.setAttribute("deleteItemPromptHeader",
+					resource.getString("gd.delete.item.prompt.header"));
+			request.setAttribute("createItemPromptHeader",
+					resource.getString("gd.create.item.prompt.header"));
 			request.setAttribute("createItemPrompt",
 					resource.getString("gd.create.item.prompt"));
 			request.setAttribute("createItemPromptError",
 					resource.getString("gd.create.item.prompt.error"));
+			request.setAttribute("createItemAlert",
+					resource.getString("gd.create.item.alert"));
+			request.setAttribute("deleteItemAlert",
+					resource.getString("gd.delete.item.alert"));
 			request.setAttribute("linkFolderErrorAlert",
 					resource.getString("gd.link.folder.error.alert"));
-			request.setAttribute("sendEmailCopy",
-					resource.getString("gd.send.email"));
+			request.setAttribute("sendEmailPrompt",
+					resource.getString("gd.send.email.prompt"));
+			request.setAttribute("sendEmailPromptHeader",
+					resource.getString("gd.send.email.prompt.header"));
 			request.setAttribute("buttonYes",
 					resource.getString("gd.button.yes"));
 			request.setAttribute("buttonNo",
 					resource.getString("gd.button.no"));
+			request.setAttribute("buttonCreate",
+					resource.getString("gd.button.create"));
+			request.setAttribute("buttonDelete",
+					resource.getString("gd.button.delete"));
 			request.setAttribute("contextUrl",
 					getGoogleServiceAccount().getContextURL());
 			

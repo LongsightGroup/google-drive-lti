@@ -228,6 +228,10 @@ function getIsFolder(fileMimeType) {
 	return (fileMimeType === 'application/vnd.google-apps.folder');
 }
 
+function getItemTypeFromMimeType(itemMimeType) {
+	return (itemMimeType + '').replace('application/vnd.google-apps.','');
+}
+
 /**
  * Returns one page of data from Google.  This uses Google paging to continue
  * getting data after Google's initial response.

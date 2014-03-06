@@ -43,7 +43,7 @@
 			*/
 %>
 				<li><a tabindex="-1"
-					onclick="openDialogToCreateFile('<%=fileTypeLowerCase%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton}
+					onclick="openDialogToCreateFile('<%=fileType%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton}
 						<%=fileType%></a></li>
 				<%
 		}
@@ -70,6 +70,8 @@
     }
 %>
 
+<div id="alertContainer" class="clearfix"></div>
+
 <table class="table table-striped table-bordered table-hover"
 	width="100%">
 	<tbody id="FileTreeTableTbody">
@@ -83,14 +85,14 @@
 			$('#par3').show();
 		} else {
 			var list = getConfigLinkedFolders();
+
 			if (list && list.length > 0) {
 				$('#par1').show();
 			} else {
 				$('#par2').show();
 			}
-			
-			showLinkedGoogleFolders();
 
+			showLinkedGoogleFolders();
 		}
 	});
 </script>

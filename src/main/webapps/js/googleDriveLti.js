@@ -318,81 +318,83 @@ function unlinkFolderFromSite(folderId, folderTitle) {
 	}
 }
 
-function deleteGoogleFile(fileId, fileTitle, fileMimeType,role) {
-	if(role==="writer"){
-		$.ajax({
-			url: getPageUrl(),
-			type: 'GET',
-			data: getUpdateLtiParams(
-					fileId,
-					"getOwnerToken",
-					false),
-					success: function(ownerToken) {
-						var deleteMsg=null;
-						if($.trim(ownerToken) == 'ERROR'){
-						if (getIsFolder(fileMimeType)) {
-						deleteMsg = sprintf(deleteFolderErrorAlert,escapeHtml(fileTitle));
-						}
-						else{
-						deleteMsg=sprintf(deleteFileErrorAlert,escapeHtml(fileTitle));
-						}
-						bootbox.alert(deleteMsg);
-						}
-						else{
-						var deleteConfirmationMessage = null;
-						if (getIsFolder(fileMimeType)) {
-							deleteConfirmationMessage = sprintf(deleteUndoneFolderCopy, escapeHtml(fileTitle));
-						} else {
-							deleteConfirmationMessage = sprintf(undoneCopy, escapeHtml(fileTitle));
-						}
-						bootbox.confirm({
-							message : deleteConfirmationMessage,
-							buttons : {
-								confirm : {
-									label : buttonYes
-								},
-								cancel : {
-									label : buttonNo
-								}
-							},
-							callback : function(userConfirmed) {
-								if (userConfirmed === true) {
-									deleteDriveFile(ownerToken, fileId, function() {
-										removeFileTreeFromTable(fileId);
-									});
-								}
-							}
-						});
-						}
-					}
-		})
-	}else if(role ==="owner") {
-	var deleteConfirmationMessage = null;
-	if (getIsFolder(fileMimeType)) {
-		deleteConfirmationMessage = sprintf(deleteUndoneFolderCopy, escapeHtml(fileTitle));
-	} else {
-		deleteConfirmationMessage = sprintf(undoneCopy, escapeHtml(fileTitle));
-	}
+function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
+	var isFolder = getIsFolder(fileMimeType);
+	var itemType = getItemTypeFromMimeType(fileMimeType);
 
-	bootbox.confirm({
-		message : deleteConfirmationMessage,
-		buttons : {
-			confirm : {
-				label : buttonYes
-			},
-			cancel : {
-				label : buttonNo
+	if (role === "writer") {
+		$.ajax({
+			url : getPageUrl(),
+			type : 'GET',
+			data : getUpdateLtiParams(fileId, "getOwnerToken", false),
+			success : function(ownerToken) {
+				var deleteMsg = null;
+				if ($.trim(ownerToken) == 'ERROR') {
+					if (isFolder) {
+						deleteMsg = sprintf(deleteFolderErrorAlert,
+								escapeHtml(fileTitle));
+					} else {
+						deleteMsg = sprintf(deleteFileErrorAlert,
+								escapeHtml(fileTitle));
+					}
+					bootbox.alert(deleteMsg);
+				} else {
+					var deleteConfirmationMessage = null;
+					if (isFolder) {
+						deleteConfirmationMessage = sprintf(
+								deleteFolderPrompt, escapeHtml(fileTitle));
+					} else {
+						deleteConfirmationMessage = sprintf(deleteFilePrompt, itemType,
+								escapeHtml(fileTitle));
+					}
+					bootbox.confirm({
+						title: sprintf(deleteItemPromptHeader, itemType),
+						message : deleteConfirmationMessage,
+						buttons : {
+							confirm : {
+								label : buttonDelete
+							}
+						},
+						callback : function(userConfirmed) {
+							if (userConfirmed === true) {
+								deleteDriveFile(ownerToken, fileId, function() {
+									removeFileTreeFromTable(fileId);
+									showInfo($('#alertContainer'), sprintf(deleteItemAlert, itemType, fileTitle));
+								});
+							}
+						}
+					});
+				}
 			}
-		},
-		callback : function(userConfirmed) {
-			if (userConfirmed === true) {
-				deleteDriveFile(getGoogleAccessToken(), fileId, function() {
-					removeFileTreeFromTable(fileId);
-				});
-			}
+		})
+	} else if (role === "owner") {
+		var deleteConfirmationMessage = null;
+		if (isFolder) {
+			deleteConfirmationMessage = sprintf(deleteFolderPrompt,
+					escapeHtml(fileTitle));
+		} else {
+			deleteConfirmationMessage = sprintf(deleteFilePrompt, itemType,
+					escapeHtml(fileTitle));
 		}
-	});
-}
+
+		bootbox.confirm({
+			title: sprintf(deleteItemPromptHeader, itemType),
+			message : deleteConfirmationMessage,
+			buttons : {
+				confirm : {
+					label : buttonDelete
+				}
+			},
+			callback : function(userConfirmed) {
+				if (userConfirmed === true) {
+					deleteDriveFile(getGoogleAccessToken(), fileId, function() {
+						removeFileTreeFromTable(fileId);
+						showInfo($('#alertContainer'), sprintf(deleteItemAlert, itemType, fileTitle));
+					});
+				}
+			}
+		});
+	}
 }
 
 /**
@@ -405,7 +407,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType,role) {
  * @returns non-empty title string or null if user selected "Cancel"
  */
 function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
-	var defaultItemPrompt = sprintf(createItemPrompt, itemType);
+	var defaultItemPrompt = sprintf(createItemPrompt, itemType.toLowerCase());
 	var itemPrompt = defaultItemPrompt;
 	var itemTitle = defaultTitle;
 
@@ -414,9 +416,15 @@ function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
 	}
 
 	var displayPrompt = function() {
-		bootbox.prompt({
-			title : itemPrompt,
+		var promptDialog = bootbox.prompt({
+			inputType: 'text',
+			title : sprintf(createItemPromptHeader, itemType),
 			value : itemTitle,
+			buttons : {
+				confirm : {
+					label : buttonCreate
+				}
+			},
 			callback : function(itemTitle) {
 				if (itemTitle !== null) {
 					itemTitle = $.trim(itemTitle);
@@ -424,7 +432,7 @@ function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
 					if (itemTitle === '') {
 						// Empty responses are invalid. Prompt again
 						// with error message.
-						itemPrompt = defaultItemPrompt + '<br/><br/><em>'
+						itemPrompt = defaultItemPrompt + '<br/><em>'
 								+ createItemPromptError + '</em>';
 						displayPrompt();
 						return;
@@ -436,6 +444,12 @@ function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
 				}
 			}
 		});
+
+		// Bootbox doesn't support the "message" property for prompt dialogs, so
+		// wedge it in.
+		$('form.bootbox-form', promptDialog).prepend($('<label>', {
+			html : itemPrompt
+		}));
 	};
 
 	displayPrompt();
@@ -496,7 +510,8 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 
 	if (!unlinked) {
 		bootbox.confirm({
-			message : sendEmailCopy,
+			title : sendEmailPromptHeader,
+			message : sendEmailPrompt,
 			buttons : {
 				confirm : {
 					label : buttonYes
@@ -509,11 +524,13 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 				giveRosterPermissions(folderId,
 						sendNotificationEmails);
 				removeLinkedFolderFromLinkingTable(folderId);
+				showInfo($('#alertContainer'), sprintf(linkFolderAlert, folderTitle));
 			}
 		});
 	} else {
 		removeRosterPermissions(folderId);
 		removeUnlinkedFileTreeFromTable(folderId);
+		showInfo($('#alertContainer'), sprintf(unlinkFolderAlert, folderTitle));
 	}
 }
 
@@ -804,6 +821,7 @@ function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 			return;
 		}
 
+		var fileTypeLowerCase = fileType.toLowerCase();
 		// Files are not associated with courses, use empty ID string
 		var courseId = '';
 
@@ -812,11 +830,13 @@ function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 				parentFolderId,
 				title,
 				courseId,
-				'application/vnd.google-apps.' + fileType,
+				'application/vnd.google-apps.' + fileTypeLowerCase,
 				function(file) {
 					addFileToFileTreeTable(file, parentFolderId, linkedFolderId,
 							depth + 1);
 				});
+		
+		showInfo($('#alertContainer'), sprintf(createItemAlert, fileTypeLowerCase, title));
 	});
 }
 
