@@ -864,7 +864,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	
 	private void getInstructorEmailAddressFromSettingService(HttpServletRequest request,
-			HttpServletResponse response, TcSessionData tcSessionData) throws IOException  {
+			HttpServletResponse response, TcSessionData tcSessionData) throws Exception  {
 		try {
 			TcSiteToGoogleLink link = TcSiteToGoogleStorage
 			.getLinkingFromSettingService(tcSessionData);
@@ -876,7 +876,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			response.getWriter().print("ERROR");
 			}
 		} catch (Exception e) {
-			M_log.error("Failed to Unshare info into the Setting Service");
+			M_log.error("Failed to Unshare info into the Setting Service",e);
 			response.getWriter().print("ERROR");
 		}
 	}
