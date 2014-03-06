@@ -36,6 +36,7 @@
 	</div>
 </div>
 
+<div id="alertContainer" class="clearfix"></div>
 
 <table class="table table-striped table-bordered table-hover"
 	width="100%">
