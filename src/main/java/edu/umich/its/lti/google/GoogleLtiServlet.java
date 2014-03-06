@@ -729,11 +729,12 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * and grab owner's email address and generate the Owner access token 
 	 * to delete a file/folder
 	 * by a user who only has can edit right on the folder/file.
+	 * @throws Exception 
 	 * 
 	 */
 	
 	private void getOwnerAccessToken(HttpServletRequest request,
-			HttpServletResponse response, TcSessionData tcSessionData) {
+			HttpServletResponse response, TcSessionData tcSessionData) throws Exception {
 		String fileId = request.getParameter(PARAM_FILE_ID);
 		String userEmailAddress = tcSessionData.getUserEmailAddress();
 		String ownerOfTheFileEmailAddress=null;
@@ -752,9 +753,9 @@ public class GoogleLtiServlet extends HttpServlet {
 			}
             getGoogleOwnerAccessToken(request, response, tcSessionData,ownerOfTheFileEmailAddress);
 			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			M_log.error("Failed to get the owner email address for the a given folder",e);
+			response.getWriter().print("ERROR");
 		}
 		
 	}
