@@ -506,7 +506,7 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 				}
 			},
 			callback : function(sendNotificationEmails) {
-				giveRosterReadOnlyPermissions(folderId,
+				giveRosterPermissions(folderId,
 						sendNotificationEmails);
 				removeLinkedFolderFromLinkingTable(folderId);
 			}
@@ -621,7 +621,7 @@ function checkSharedFolderDeletionStatus(sharedFolderId){
 							function(data) {
 								if(!data.labels.trashed){
 								$('#permissionUpdate').show();
-								giveCurrentUserReadOnlyPermissions(sharedFolderId);
+								giveCurrentUserPermissions(sharedFolderId);
 								}
 								else{
 									handleUnlinkingFolder(sharedFolderId);
@@ -708,41 +708,39 @@ function unlinkFolderToSite(folderId, callback) {
 
 /**
  * Sends request to TP to give people in the roster read-only access to the
- * given folder (people with higher permissions are not affected by this call).
+ * to students for the given shared folder. Multiple instructors in the roster 
+ * who are not owner of the shared folder are given can edit access.
  */
-function giveRosterReadOnlyPermissions(folderId, sendNotificationEmails) {
+function giveRosterPermissions(folderId, sendNotificationEmails) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
 		data: getUpdateLtiParams(
 				folderId,
-				"giveRosterAccessReadOnly",
+				"giveRosterAccess",
 				sendNotificationEmails),
 				success: function(data) {
-					if ($.trim(data) == 'SUCCESS') {
 						openPage('Home');
-					}else if ($.trim(data) !== '') {
-						alert(data);
-					}
 
+						
 				}
 	});
 }
 
 /**
  * Gives access to the currently logged in user.  This is called when request to
- * get linked folder fails due to 404 error; that may occur when student is
- * added to the roster after the folder has been linked.
+ * get linked folder fails due to 404 error; hat may occur when student/or instructor is
+ * added to the class roster after the folder has been linked.
  * 
  * @param folderId Google folder's ID
  */
-function giveCurrentUserReadOnlyPermissions(folderId) {
+function giveCurrentUserPermissions(folderId) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
 		data: getUpdateLtiParams(
 				folderId,
-				"giveCurrentUserAccessReadOnly",
+				"giveCurrentUserAccess",
 				false),
 		success: function(data) {
 					if ($.trim(data) === 'SUCCESS') {

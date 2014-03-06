@@ -165,8 +165,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String PARAM_ACTION_CHECK_BACK_BUTTON = "checkBackButton";
 	private static final String PARAM_ACTION_LINK_GOOGLE_FOLDER = "linkGoogleFolder";
 	private static final String PARAM_ACTION_UNLINK_GOOGLE_FOLDER = "unlinkGoogleFolder";
-	private static final String PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY = "giveRosterAccessReadOnly";
-	private static final String PARAM_ACTION_GIVE_CURRENT_USER_ACCESS_READ_ONLY = "giveCurrentUserAccessReadOnly";
+	private static final String PARAM_ACTION_GIVE_ROSTER_ACCESS = "giveRosterAccess";
+	private static final String PARAM_ACTION_GIVE_CURRENT_USER_ACCESS = "giveCurrentUserAccess";
 	private static final String PARAM_ACTION_REMOVE_ROSTER_ACCESS = "removeRosterAccess";
 	private static final String PARAM_ACTION_GET_ACCESS_TOKEN = "getAccessToken";
 	private static final String PARAM_ACTION_OPEN_PAGE = "openPage";
@@ -237,10 +237,10 @@ public class GoogleLtiServlet extends HttpServlet {
 			} else if (PARAM_ACTION_UNLINK_GOOGLE_FOLDER
 					.equals(requestedAction)) {
 				unlinkGoogleFolder(request, response, tcSessionData);
-			} else if (PARAM_ACTION_GIVE_ROSTER_ACCESS_READ_ONLY
+			} else if (PARAM_ACTION_GIVE_ROSTER_ACCESS
 					.equals(requestedAction)) {
 				insertRosterPermissions(request, response, tcSessionData);
-			} else if (PARAM_ACTION_GIVE_CURRENT_USER_ACCESS_READ_ONLY
+			} else if (PARAM_ACTION_GIVE_CURRENT_USER_ACCESS
 					.equals(requestedAction)) {
 				insertCurrentUserPermissions(request, response, tcSessionData);
 			} else if (PARAM_ACTION_REMOVE_ROSTER_ACCESS
@@ -542,12 +542,10 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws ServletException, IOException {
 		HashMap<String, HashMap<String, String>> roster = getRoster(request, tcSessionData);
-		int count=insertPermissions(request, response, tcSessionData, roster);
+		insertPermissions(request, response, tcSessionData, roster);
 		// Title set in request by insertPermissions: get and clear it
 		request.removeAttribute(FOLDER_TITLE);
-		if(count>0) {
 		response.getWriter().print(SUCCESS);
-		}
 	}
 
 	private void insertCurrentUserPermissions(HttpServletRequest request,
@@ -621,8 +619,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 	
 	/**
-	 * Gives people with the given email addresses read-only access to the given
-	 * folder. The instructor is expected to be the owner of the folder and
+	 * Gives people with the given email addresses read-only access to students
+	 * for the given shared folder. Multiple instructors in the roster who are not owner of the shared folder
+	 * are given can edit access.The instructor who is expected to be the owner of the shared folder 
 	 * their permissions are not touched.
 	 * 
 	 * If people already have higher permissions, this will not affect that.
