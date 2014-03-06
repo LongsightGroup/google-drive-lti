@@ -359,7 +359,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 							if (userConfirmed === true) {
 								deleteDriveFile(ownerToken, fileId, function() {
 									removeFileTreeFromTable(fileId);
-									showInfo($('#alertContainer'), sprintf(deleteItemAlert, itemType, fileTitle));
+									showInfo($('#alertContainer'), sprintf(deleteItemAlert, itemType, escapeHtml(fileTitle)));
 								});
 							}
 						}
@@ -389,7 +389,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 				if (userConfirmed === true) {
 					deleteDriveFile(getGoogleAccessToken(), fileId, function() {
 						removeFileTreeFromTable(fileId);
-						showInfo($('#alertContainer'), sprintf(deleteItemAlert, itemType, fileTitle));
+						showInfo($('#alertContainer'), sprintf(deleteItemAlert, itemType, escapeHtml(fileTitle)));
 					});
 				}
 			}
@@ -836,7 +836,7 @@ function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 							depth + 1);
 				});
 		
-		showInfo($('#alertContainer'), sprintf(createItemAlert, fileTypeLowerCase, title));
+		showInfo($('#alertContainer'), sprintf(createItemAlert, fileTypeLowerCase, escapeHtml(title)));
 	});
 }
 
