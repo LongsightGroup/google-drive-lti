@@ -29,6 +29,7 @@ String contextUrl =(String)request.getAttribute("contextUrl");
 String deleteFileErrorAlert =(String)request.getAttribute("deleteFileErrorAlert");
 String deleteFolderErrorAlert =(String)request.getAttribute("deleteFolderErrorAlert");
 String errorMsg404 =(String)request.getAttribute("errorMsg404");
+String errorMessageIe8 =(String)request.getAttribute("errorMessageIe8");
 %>
 <html lang="en">
 <head>
@@ -122,6 +123,7 @@ String errorMsg404 =(String)request.getAttribute("errorMsg404");
 		<div class="row-fluid">
 			<div class="span12">
 				<div id="spinner" style="display: none"></div>
+				<!--[if IE 8]><div class="alert alert-error">${errorMessageIe8}</div><![endif]-->
 				<div class="grey_container">
 					<jsp:include page="${requestScope.jspPage.pageFileUrl}"
 						flush="false" />

@@ -1069,6 +1069,8 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.link.folder.alert"));
 			request.setAttribute("errorMsg404",
 							resource.getString("gd.error.msg.404"));
+			request.setAttribute("errorMessageIe8",
+					resource.getString("gd.error.message.ie8"));
 
 			request.setAttribute("deleteFilePrompt",
 					resource.getString("gd.delete.file.prompt"));
