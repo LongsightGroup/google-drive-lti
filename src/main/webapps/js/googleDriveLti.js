@@ -637,7 +637,6 @@ function checkSharedFolderDeletionStatus(sharedFolderId){
 							sharedFolderId,
 							function(data) {
 								if(!data.labels.trashed){
-								$('#permissionUpdate').show();
 								giveCurrentUserPermissions(sharedFolderId);
 								}
 								else{
@@ -691,9 +690,10 @@ function linkFolderToSite(folderId, callback) {
 							googleDriveConfig = data;
 						}
 						callback(data);
-					} else if (typeof(data) === 'string') {
-						alert(data);
-					}
+					} 
+				},
+				error: function(data){
+					bootbox.alert(data.responseText);
 				}
 	});
 }
@@ -716,9 +716,10 @@ function unlinkFolderToSite(folderId, callback) {
 							googleDriveConfig = data;
 						}
 						callback(data);
-					} else if (typeof(data) === 'string') {
-						alert(data);
-					}
+					} 
+				},
+				error:function(data){
+					bootbox.alert(data.responseText);
 				}
 	});
 }
@@ -761,6 +762,7 @@ function giveCurrentUserPermissions(folderId) {
 				false),
 		success: function(data) {
 					if ($.trim(data) === 'SUCCESS') {
+						$('#permissionUpdate').show();
 						getDriveFile(
 								getGoogleAccessToken(),
 								folderId,
@@ -769,7 +771,10 @@ function giveCurrentUserPermissions(folderId) {
 									showLinkedGoogleFolderCallback(data, 0);
 								});
 					}
-				}
+				},
+		 error: function(data){
+			bootbox.alert(data.responseText);
+		}		
 	});
 }
 
@@ -788,9 +793,13 @@ function removeRosterPermissions(folderId) {
 				success: function(data) {
 					if ($.trim(data) === 'SUCCESS') {
 						openPage('LinkFolder');
-					}else if ($.trim(data) !== '') {
-						alert(data);
 					}
+					
+				},
+				error:function(data){
+					bootbox.alert(data.responseText, function() {
+						openPage('LinkFolder');
+						});
 					
 				}
 	});

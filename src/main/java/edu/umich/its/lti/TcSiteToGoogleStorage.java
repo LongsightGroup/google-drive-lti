@@ -61,7 +61,7 @@ public class TcSiteToGoogleStorage {
 			state = SettingsClientUtils.setSetting(tcSessionData,
 					linking.toString());
 		} catch (Exception e) {
-			M_log.error("Error: in putting to setting serc=vice",e);
+			M_log.error("Error: in putting to setting service",e);
 		}
 
 		return state;

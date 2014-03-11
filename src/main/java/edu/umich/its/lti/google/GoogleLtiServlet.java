@@ -81,6 +81,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static String GOOGLE_DRIVE = "";
 	private static String LINK_GOOGLE_DRIVE = "";
 	static ResourceBundle resource;
+	//to keep track of the removal of permissions failure.
+	static int flag=0;
+	
 
 	// Enum ---------------------------------------------------------
 
@@ -226,7 +229,6 @@ public class GoogleLtiServlet extends HttpServlet {
 				return;
 			}
 			TcSessionData tcSessionData = retrieveLockFromSession(request);
-			bundleManipulation(tcSessionData);
 			if (!verifyGet(request, response, tcSessionData, requestedAction)) {
 				return; // Quick return to simplify code
 			}
@@ -275,13 +277,13 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response) {
 		try {
 			if (verifyPost(request, response)) {
+				bundleManipulation(request);
 				TcSessionData tcSessionData = lockInSession(request);
 				if (tcSessionData==null) {
 					doError(request, response,
-							"LTI tool Authorization failed");
+							resource.getString("gd.post.failure"));
 					return;
 				}
-				bundleManipulation(tcSessionData);
 				String googleConfigJson = GoogleConfigJsonWriter
 						.getGoogleDriveConfigJsonScript(tcSessionData);
 				request.setAttribute(JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
@@ -311,10 +313,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * 
 	 * @param tcSessionData
 	 */
-	private void bundleManipulation(TcSessionData tcSessionData) {
+	private void bundleManipulation(HttpServletRequest request) {
 		String language = null;
 		String country = null;
-		String locale = tcSessionData.getLocale();
+		String locale = request.getParameter("launch_presentation_locale");
 		StringTokenizer tempStringTokenizer = new StringTokenizer(locale, "_");
 		if (tempStringTokenizer.hasMoreTokens()) {
 			language = tempStringTokenizer.nextToken();
@@ -337,11 +339,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * @param request
 	 * @param response
 	 * @param tcSessionData
-	 * @throws IOException
-	 * @throws ServletException
+	 * @throws Exception 
 	 */
 	private void linkGoogleFolder(HttpServletRequest request,
-			HttpServletResponse response, TcSessionData tcSessionData) {
+			HttpServletResponse response, TcSessionData tcSessionData) throws Exception  {
 		String folderId = request.getParameter(PARAM_FILE_ID);
 		TcSiteToGoogleLink newLink = new TcSiteToGoogleLink(
 				tcSessionData.getContextId(),
@@ -350,15 +351,21 @@ public class GoogleLtiServlet extends HttpServlet {
 		// relationship between the folder and the site is being set in the
 		// Setting service.
 		try {
-			TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,
-					newLink);
+			if(TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,
+					newLink)) {
 			response.getWriter().print(
 					GoogleConfigJsonWriter
 					.getGoogleDriveConfigJson(tcSessionData));
+			}
+			else {
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				response.getWriter().print(resource.getString("gd.error.linking.setting.service"));
+			}
+				
 		} catch (Exception e) {
-			M_log.error(
-					"Failed to set the shared folder info into the Setting service",
-					e);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().print(resource.getString("gd.error.linking.setting.service"));
+			M_log.error("Failed to set the shared folder information into the Setting service",e);
 		}
 	}
 
@@ -369,19 +376,26 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * @param request
 	 * @param response
 	 * @param tcSessionData
-	 * @throws IOException
-	 * @throws ServletException
+	 * @throws Exception 
 	 */
 	private void unlinkGoogleFolder(HttpServletRequest request,
-			HttpServletResponse response, TcSessionData tcSessionData) {
+			HttpServletResponse response, TcSessionData tcSessionData) throws Exception {
 		try {
-			if (TcSiteToGoogleStorage
+			if(
+			TcSiteToGoogleStorage
 					.setUnLinkingToSettingService(tcSessionData)) {
 				response.getWriter().print(
 						GoogleConfigJsonWriter
 						.getGoogleDriveConfigJson(tcSessionData));
 			}
+			else {
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				response.getWriter().print(resource.getString("gd.error.unlinking.setting.service"));
+			}
+			
 		} catch (Exception e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().print(resource.getString("gd.error.unlinking.setting.service"));
 			M_log.error("Failed to Unshare info into the Setting Service");
 		}
 
@@ -554,7 +568,7 @@ public class GoogleLtiServlet extends HttpServlet {
 
 	private void insertCurrentUserPermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
-					throws ServletException, IOException {
+					throws Exception {
 		String userRole=null;
 		String emailAddress = tcSessionData.getUserEmailAddress();
 	 if(tcSessionData.getIsInstructor()) {
@@ -565,9 +579,9 @@ public class GoogleLtiServlet extends HttpServlet {
 		 userRole="Learner";
 	 }
 		if (getIsEmpty(emailAddress)) {
-			logErrorWritingResponse(
-					response,
-					"Error: unable to handle permissions - the ToolConsumer(TC) did not sent the current user's email address.");
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().print(resource.getString("gd.error.permission.single.user"));
+			M_log.error("Error: unable to handle permissions - the ToolConsumer(TC) did not sent the current user's email address.");
 			return;
 		}
 		List<String> emailAddresses = new ArrayList<String>();
@@ -577,11 +591,16 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (insertCurrentPermissionsForSingleUser(request, response, tcSessionData, singleUser) == 1) {
 			response.getWriter().print(SUCCESS);
 		}
+		else {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().print(resource.getString("gd.error.permission.single.user"));
+			
+		}
 	}
 	
 	private int insertCurrentPermissionsForSingleUser(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData,
-			HashMap<String,String> singleUser) throws ServletException, IOException {
+			HashMap<String,String> singleUser) throws Exception {
 		int result = 0;
 		try {
 			if (!validatePermissionsRequiredParams(request, response,
@@ -593,9 +612,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			// google file object
 			File file = handler.getFile();
 			if (file == null) {
-				logErrorWritingResponse(
-						response,
-						resource.getString("permission.error.four"));
+				M_log.error("Error: unable to modify Google Folder permissions, as the folder was not retrieved from Google Drive.");
 				return 0; // Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
@@ -617,7 +634,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			}
 			
 		} catch (Exception err) {
-			M_log.warn("Error insertPermissions():", err);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			M_log.error("Error occurred while inserting permission for single user", err);
 		}
 		return result;
 	}
@@ -649,9 +667,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			// google file object
 			File file = handler.getFile();
 			if (file == null) {
-				logErrorWritingResponse(
-						response,
-						resource.getString("permission.error.four"));
+				M_log.error("Error: unable to modify Google Folder permissions, as the folder was not retrieved from Google Drive.");
 				return 0; // Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
@@ -700,8 +716,6 @@ public class GoogleLtiServlet extends HttpServlet {
 				sb.append(" - did not find link with course #");
 				sb.append(tcSessionData.getContextId());
 				M_log.warn(sb.toString());
-				logErrorWritingResponse(response,
-						resource.getString("permission.error.five"));
 				return null;
 			}
 			instructorEmailAddress = link.getUserEmailAddress();
@@ -714,7 +728,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			googleCredential = getGoogleCredential(request);
 		} else {
 			// This is unlikely to happen for whole roster, but will be
-			// useful for code modifying a single student's permissions
+			// useful for code modifying a single student's/ or other instructor 
+			//permissions in roster
 			googleCredential = GoogleSecurity.authorize(
 					getGoogleServiceAccount(), instructorEmailAddress);
 		}
@@ -774,19 +789,21 @@ public class GoogleLtiServlet extends HttpServlet {
 	
 	private void removePermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
-					throws ServletException, IOException {
+					throws Exception {
 		try {
 			if (!validatePermissionsRequiredParams(request, response,
 					tcSessionData)) {
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				response.getWriter().print(resource.getString("permission.error.six"));
 				return;
 			}
 			FolderPermissionsHandler handler = getHandler(request, response,
 					tcSessionData);
 			File file = handler.getFile();
 			if (file == null) {
-				logErrorWritingResponse(
-						response,
-						resource.getString("permission.error.four"));
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				M_log.error("Error: unable to modify Google Folder permissions, as the folder was not retrieved from Google Drive.");
+				response.getWriter().print(resource.getString("permission.error.six"));
 				return; // Quick return to simplify code
 			}
 			// Get credential for the instructor owning the folder
@@ -794,29 +811,57 @@ public class GoogleLtiServlet extends HttpServlet {
 					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each person in the roster
 			HashMap<String,HashMap<String, String>> roster = getRoster(request,tcSessionData);
-			int updateCount = 0;
-			for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
-			    String emailAddress = entry.getKey();
-			    HashMap<String, String> value = entry.getValue();
-			    String roles = value.get("role");
-			    if (!getIsEmpty(emailAddress)
-						&& !handler.getIsInstructor(emailAddress)) {
-					// If result not null, the user has permission >= inserted
-					Permission permission = handler.insertPermission(emailAddress,roles,
-							sendNotificationEmails);
-					if (permission != null) {
-						if (handler.removePermission(permission.getId())) {
-							updateCount++;
-						}
-					}
-					
-				}
-			}
-			response.getWriter().print(SUCCESS);
+			removePermissionCheck(handler, sendNotificationEmails, roster, response);
 		} catch (Exception err) {
-			err.printStackTrace();
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().print(resource.getString("permission.error.six"));
+			M_log.error("Removal of permission for the folders is unsuccesful",err);
 		}
 
+	}
+
+	/*
+	 * Extracted to separate method to make the recursive call to handle the if removal  permissions is a failure 
+	 * and try again for the second time and then permission is failure again then display the user with the useful message.
+	 */
+	private void removePermissionCheck(FolderPermissionsHandler handler,
+			boolean sendNotificationEmails,
+			HashMap<String, HashMap<String, String>> roster, HttpServletResponse response) throws Exception {
+		int rostersize = roster.size();
+		int updateCount = 0;
+		for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
+		    String emailAddress = entry.getKey();
+		    HashMap<String, String> value = entry.getValue();
+		    String roles = value.get("role");
+		    if (!getIsEmpty(emailAddress)
+					&& !handler.getIsInstructor(emailAddress)) {
+				// If result not null, the user has permission >= inserted
+				Permission permission = handler.insertPermission(emailAddress,roles,
+						sendNotificationEmails);
+				if (permission != null) {
+					if (handler.removePermission(permission.getId())) {
+						updateCount++;
+					}
+				}
+				
+			}
+		}
+		if(updateCount==(rostersize-1)) {
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.getWriter().print(SUCCESS);
+		}
+		else {
+			if(flag<1) {
+			flag++;
+			removePermissionCheck(handler, sendNotificationEmails, roster, response);
+			}
+			else {
+				flag=0;
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				response.getWriter().print(resource.getString("permission.error.six"));
+			}
+			
+		}
 	}
 
 	/**
@@ -907,24 +952,18 @@ public class GoogleLtiServlet extends HttpServlet {
 
 	private boolean validatePermissionsRequiredParams(
 			HttpServletRequest request, HttpServletResponse response,
-			TcSessionData tcSessionData) throws IOException {
+			TcSessionData tcSessionData) throws Exception {
 		boolean result = true;
 		if (getIsEmpty(tcSessionData.getUserEmailAddress())) {
-			logErrorWritingResponse(
-					response,
-					resource.getString("permission.error.one"));
+			M_log.error("Error: unable to handle permissions - the request did not specify the instructor.");
 			result = false;
 		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
-			logErrorWritingResponse(
-					response,
-					resource.getString("permission.error.two"));
+			M_log.error("Error: unable to handle permissions - the request did not include valid access token.");
 			result = false;
 		}
 		if (getIsEmpty(PARAM_FILE_ID)) {
-			logErrorWritingResponse(
-					response,
-					resource.getString("permission.error.three"));
+			M_log.error("Error: unable to insert permissions, as no file ID was included in the request.");
 			result = false;
 		}
 		return result;
