@@ -683,19 +683,18 @@ function linkFolderToSite(folderId, callback) {
 		data: getUpdateLtiParams(
 				folderId,
 				"linkGoogleFolder",
-				false),
-				success: function(data) {
+				false)
+	}).done(function(data){
 					if ((typeof(data) === 'object') && (data !== null)) {
 						if ($.trim(data.tp_id) !== '') {
 							googleDriveConfig = data;
 						}
 						callback(data);
 					} 
-				},
-				error: function(data){
-					bootbox.alert(data.responseText);
-				}
-	});
+	}).fail(function(data){
+			bootbox.alert(data.responseText);
+	})
+				
 }
 
 /**
@@ -705,23 +704,21 @@ function unlinkFolderToSite(folderId, callback) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
+		dataType: 'json',
 		data: getUpdateLtiParams(
 				folderId,
 				"unlinkGoogleFolder",
-				false),
-				dataType: 'json',
-				success: function(data) {
+				false)
+	}).done(function(data) {
 					if (typeof(data) === 'object' && (data !== null)) {
 						if ($.trim(data.tp_id) !== '') {
 							googleDriveConfig = data;
 						}
 						callback(data);
 					} 
-				},
-				error:function(data){
-					bootbox.alert(data.responseText);
-				}
-	});
+	}).fail(function(data){
+				bootbox.alert(data.responseText);
+	})			
 }
 
 /**

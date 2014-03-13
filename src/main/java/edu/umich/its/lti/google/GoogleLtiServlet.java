@@ -351,8 +351,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		// relationship between the folder and the site is being set in the
 		// Setting service.
 		try {
-			if(TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,
-					newLink)) {
+			if(TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,newLink)) {
 			response.getWriter().print(
 					GoogleConfigJsonWriter
 					.getGoogleDriveConfigJson(tcSessionData));
@@ -360,12 +359,31 @@ public class GoogleLtiServlet extends HttpServlet {
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				response.getWriter().print(resource.getString("gd.error.linking.setting.service"));
+				StringBuilder s=new StringBuilder();
+				s.append("A request for ");
+				s.append("sharing of Folder failed for the Site Id: \"");
+				s.append(tcSessionData.getContextId());
+				s.append("\" User Id: \"");
+				s.append(tcSessionData.getUserId());
+				s.append("\" Email Address: \"");
+				s.append(tcSessionData.getUserEmailAddress());
+				s.append("\"");
+				M_log.error(s.toString());
 			}
 				
 		} catch (Exception e) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("gd.error.linking.setting.service"));
-			M_log.error("Failed to set the shared folder information into the Setting service",e);
+			StringBuilder s=new StringBuilder();
+			s.append("A request for ");
+			s.append("sharing of Folder failed for the Site Id: \"");
+			s.append(tcSessionData.getContextId());
+			s.append("\" User Id: \"");
+			s.append(tcSessionData.getUserId());
+			s.append("\" Email Address: \"");
+			s.append(tcSessionData.getUserEmailAddress());
+			s.append("\"");
+			M_log.error(s.toString(),e);
 		}
 	}
 
@@ -391,12 +409,31 @@ public class GoogleLtiServlet extends HttpServlet {
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				response.getWriter().print(resource.getString("gd.error.unlinking.setting.service"));
+				StringBuilder s=new StringBuilder();
+				s.append("A request for ");
+				s.append("unsharing of Folder failed for the Site Id: \"");
+				s.append(tcSessionData.getContextId());
+				s.append("\" User Id: \"");
+				s.append(tcSessionData.getUserId());
+				s.append("\" Email Address: \"");
+				s.append(tcSessionData.getUserEmailAddress());
+				s.append("\"");
+				M_log.error(s.toString());
 			}
 			
 		} catch (Exception e) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("gd.error.unlinking.setting.service"));
-			M_log.error("Failed to Unshare info into the Setting Service");
+			StringBuilder s=new StringBuilder();
+			s.append("A request for ");
+			s.append("unsharing of Folder failed for the Site Id: \"");
+			s.append(tcSessionData.getContextId());
+			s.append("\" User Id: \"");
+			s.append(tcSessionData.getUserId());
+			s.append("\" Email Address: \"");
+			s.append(tcSessionData.getUserEmailAddress());
+			s.append("\"");
+			M_log.error(s.toString(),e);
 		}
 
 	}

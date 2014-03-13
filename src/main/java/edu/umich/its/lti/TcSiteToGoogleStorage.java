@@ -49,20 +49,15 @@ public class TcSiteToGoogleStorage {
 	 * Setting string in the format
 	 * <site_id>,<user_id>,<user_email_address>,<google-folder-id> to setting
 	 * service with the a Folder is shared/linked with the site.
+	 * @throws Exception 
+	 * @throws ServletException 
 	 * 
-	 * @return
-	 * @throws IOException
-	 * @throws Exception
 	 */
 	public synchronized static Boolean setLinkingToSettingService(
-			TcSessionData tcSessionData, TcSiteToGoogleLink linking) {
+			TcSessionData tcSessionData, TcSiteToGoogleLink linking) throws Exception {
 		Boolean state = false;
-		try {
 			state = SettingsClientUtils.setSetting(tcSessionData,
 					linking.toString());
-		} catch (Exception e) {
-			M_log.error("Error: in putting to setting service",e);
-		}
 
 		return state;
 
@@ -71,11 +66,13 @@ public class TcSiteToGoogleStorage {
 	/**
 	 * This will set empty string when a folder is unshared/Unlinked to the
 	 * setting service
+	 * @throws IOException 
+	 * @throws ServletException 
 	 * 
 	 * */
 
 	public synchronized static Boolean setUnLinkingToSettingService(
-			TcSessionData tcSessionData) throws IOException, ServletException {
+			TcSessionData tcSessionData) throws ServletException, IOException  {
 		Boolean state = false;
 
 		TcSiteToGoogleLink linkBeforeDeletion = null;
