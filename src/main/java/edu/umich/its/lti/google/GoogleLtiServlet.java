@@ -281,7 +281,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				TcSessionData tcSessionData = lockInSession(request);
 				if (tcSessionData==null) {
 					doError(request, response,
-							resource.getString("gd.post.failure"));
+							resource.getString("gd.launch.post.failure"));
 					return;
 				}
 				String googleConfigJson = GoogleConfigJsonWriter
