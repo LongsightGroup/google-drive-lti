@@ -103,14 +103,16 @@ function showLinkedGoogleFolders() {
  * 
  * @param folderId
  */
-function showLinkedGoogleFolder(folderId) {
+function showLinkedGoogleFolder(folderId, foldersOnly) {	
+	foldersOnly = (foldersOnly === true);
+	
 	getDriveFile(
 		getGoogleAccessToken(),
 		folderId,
 		function(data) {
 			// Linked folders are all depth 0 (no parents)
 			if(!data.labels.trashed){
-				showLinkedGoogleFolderCallback(data, 0);
+				showLinkedGoogleFolderCallback(data, 0, foldersOnly);
 			}
 			else{
 				handleUnlinkingFolder(folderId);
@@ -132,31 +134,46 @@ function showLinkedGoogleFolder(folderId) {
  * 
  * See showLinkedGoogleFolders() for description of this function's responsibilities.
  */
-function showLinkedGoogleFolderCallback(file, depth) {
+function showLinkedGoogleFolderCallback(file, depth, foldersOnly) {
+	foldersOnly = (foldersOnly === true);
+
 	if ((typeof(file) === 'object') && (file !== null) && (typeof(file.id) === 'string')) {
 		if (!findFileInFileTreeTable(file.id)) {
-			addFileToFileTreeTable(file, null, file.id, depth);
+			addFileToFileTreeTable(file, null, file.id, depth, foldersOnly);
 		}
 		
-		getFoldersChildren(file, file.id, depth);
+		getFoldersChildren(file, file.id, depth, foldersOnly);
 	}
 }
 
 /**
  * This finds any direct children of the given folder, and that I have the right
- * to view, and displays them on the page.  This is recursive, and will find the
- * tree of files I have access to in the folder tree.  It will not find
- * a folder's grand-children if I do not have read access to its sub-folders,
- * even if I have rights to see the grand-children.
+ * to view, and displays them on the page. This is recursive, and will find the
+ * tree of files I have access to in the folder tree. It will not find a
+ * folder's grand-children if I do not have read access to its sub-folders, even
+ * if I have rights to see the grand-children.
  * 
- * @param folder	The parent folder to search
- * @param linkedFolderId ID of the linked folder this file belongs to
- * @param $parentList		The <ul> on the page for the parent folder
+ * @param folder
+ *            The parent folder to search
+ * @param linkedFolderId
+ *            ID of the linked folder this file belongs to
+ * @param depth
+ *            Number of indentation levels
+ * @param fodlersOnly
+ *            Boolean indicating whether only folders should be queried
  */
-function getFoldersChildren(folder, linkedFolderId, depth) {
-	var query = '\'' + folder.id + '\' in parents';
+function getFoldersChildren(folder, linkedFolderId, depth, foldersOnly) {
+	foldersOnly = (foldersOnly === true);
+
+	var query = "'" + folder.id + "' in parents";
+
+	if (foldersOnly) {
+		query += " and mimeType = 'application/vnd.google-apps.folder'";
+	}
+
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {
-		getFoldersChildrenCallback(data, folder, linkedFolderId, depth);
+		getFoldersChildrenCallback(data, folder, linkedFolderId, depth,
+				foldersOnly);
 	});
 }
 
@@ -169,18 +186,18 @@ function getFoldersChildren(folder, linkedFolderId, depth) {
  * @param linkedFolderId ID of the linked folder this file belongs to
  * @param parentDepth # of parents from this file's parent folder to linked folder
  */
-function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDepth) {
+function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDepth, foldersOnly) {
 	var childDepth = parentDepth + 1;
 	if ((data != null) && (typeof(data.items) !== 'undefined')) {
 		var files = data.items;
 		for (var fileIdx in files) {
 			var file = files[fileIdx];
 			if (!findFileInFileTreeTable(file.id)) {
-				addFileToFileTreeTable(file, parentFolder.id, linkedFolderId, childDepth);
+				addFileToFileTreeTable(file, parentFolder.id, linkedFolderId, childDepth, foldersOnly);
 			}
 			// If folder, search for its children (recursively)
 			if (file.mimeType === 'application/vnd.google-apps.folder') {
-				getFoldersChildren(file, linkedFolderId, childDepth);
+				getFoldersChildren(file, linkedFolderId, childDepth, foldersOnly);
 			}
 		}
 	}
@@ -265,14 +282,14 @@ function searchUnlinkedFoldersOwnedByMe() {
 function searchUnlinkedFoldersOwnedByMeCallback(data, courseId) {
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
 	{
-		var files = sortFilesByTitle(data.items);
-		for (var fileIdx in files) {
-			var file = files[fileIdx];
-			if (!getIsFolderLinked(file)) {
+		var folders = sortFilesByTitle(data.items);
+		for (var folderIndex in folders) {
+			var folder = folders[folderIndex];
+			if (!getIsFolderLinked(folder)) {
 				// Get folder's ancestors (specifying root=false, as Google response does not indicate).
-				listAncestorsForFileRecursive(file.id, file.id, false);
+				listAncestorsForFileRecursive(folder.id, folder.id, false);
 				// Add to the table
-				addFolderToLinkFolderTable(file);
+				addFolderToLinkFolderTable(folder, null, 0);
 			}
 		}
 
@@ -933,20 +950,35 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
  * 
  * @param folder Google folder available for linking
  */
-function addFolderToLinkFolderTable(folder) {
+function addFolderToLinkFolderTable(folder, parentFolderId, indentationLevel) {	
 	// Only add the row if row for same file DNE
 	if ($('#' + getLinkingTableRowIdForFolder(folder.id)).length > 0) {
 		return;
 	}
-	
+
+	var indentCss = '';
+	if (indentationLevel > 0) {
+		indentCss = 'padding-left: ' + (indentationLevel * FILE_DEPTH_PADDING_PX)
+				+ 'px;';
+	}
+
 	var newEntry = LINK_FOLDER_TABLE_ROW_TEMPLATE
-	.replace(/\[TrFolderId\]/g, getLinkingTableRowIdForFolder(folder.id))
-	.replace(/\[FolderIdOnclickParam\]/g, escapeAllQuotes(folder.id))
-	.replace(/\[FolderTitle\]/g, escapeDoubleQuotes(escapeHtml(folder.title)))
-	.replace(/\[FolderTitleOnclickParam\]/g, escapeAllQuotes(folder.title))
-	.replace(/\[GoogleIconLink\]/g, folder.iconLink)
-	.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder));
+		.replace(/\[TrFolderId\]/g,
+			getLinkingTableRowIdForFolder(folder.id))
+		.replace(
+			/\[FolderIdOnclickParam\]/g, escapeAllQuotes(folder.id))
+		.replace(
+			/\[FolderTitle\]/g, escapeDoubleQuotes(escapeHtml(folder.title)))
+		.replace(/\[FolderTitleOnclickParam\]/g,
+			escapeAllQuotes(folder.title))
+		.replace(
+			/\[GoogleIconLink\]/g, folder.iconLink)
+		.replace(
+			/\[OpenFileCall\]/g, getFunctionCallToOpenFile(folder))
+		.replace(/\[indentCss\]/g, indentCss);
+
 	$(newEntry).appendTo('#LinkFolderTableTbody');
+	
 }
 
 /**
@@ -1076,6 +1108,25 @@ var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParent
 
 var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
 
+var FOLDER_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \
+	<td style="[FileIndentCss]">[ExpandShrink]<a class="itemLink" onclick="[OpenFileCall]" title="[FileTitle]"> \
+	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;<span class="title">[FileTitle]</span> \
+	</a></td> \
+	[ShareColumn] \
+	</tr>';
+
+var FOLDER_TREE_SHARE_COLUMN_BUTTON_TEMPLATE = '\
+	<td> \
+	<a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">' + linkFolderButton + '</a> \
+	</td> \
+	';
+
+var FOLDER_TREE_SHARE_COLUMN_EMPTY_TEMPLATE = '\
+	<td style="border-left: 0px;"> \
+	&nbsp; \
+	</td> \
+	';
+
 /**
  * Displays the given Google file on the screen, allowing the user to click on
  * the file to open it.  It also gives instructor options to unlink a linked
@@ -1087,8 +1138,10 @@ var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-small" onclick="[ActionOnClick]"
  * this file is the linked folder
  * @param treeDepth	Number of parents of this file including the linked folder
  */
-function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
+function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth, foldersOnly)
 {
+	foldersOnly = (foldersOnly === true);
+	
 	var fileIndentCss = '';
 	if (treeDepth > 0) {
 		fileIndentCss = 'padding-left: ' + (treeDepth * FILE_DEPTH_PADDING_PX) + 'px;';
@@ -1103,7 +1156,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	if ($.trim(parentFolderId) !== '') {
 		$('#' + getTableRowIdForFile(parentFolderId)).find('a.expandShrink:not(.shrinkable)').addClass('shrinkable').html(SHRINK_TEXT);
 	}
-	if (getIsInstructor() && isFolder) {
+	if (!foldersOnly && getIsInstructor() && isFolder) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
 		dropdownTemplate = dropdownTemplate
 		.replace(/\[FolderIdParam\]/g, escapeAllQuotes(file.id))
@@ -1130,18 +1183,37 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth)
 	// Using trim so null/undefined id is empty string ('')
 	var childOfParentId = getClassForFoldersChildren(parentFolderId);
 
-	var newEntry = FILE_TREE_TABLE_ROW_TEMPLATE
-	.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
-	.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
-	.replace(/\[LinkedFolderId\]/g, getClassForLinkedFolder(linkedFolderId))
-	.replace(/\[FileTitle\]/g,  escapeDoubleQuotes(escapeHtml(file.title)))
-	.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
-	.replace(/\[ActionTemplate\]/g, actionTemplate)
-	.replace(/\[GoogleIconLink\]/g, file.iconLink)
-	.replace(/\[ExpandShrink\]/g, expandShrinkOption)
-	.replace(/\[FileIndentCss\]/g, fileIndentCss)
-	.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file))
-	.replace(/\[LastModified\]/g, getFileLastModified(file));
+	if (!foldersOnly) {
+		newEntry = FILE_TREE_TABLE_ROW_TEMPLATE
+		.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
+		.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
+		.replace(/\[LinkedFolderId\]/g, getClassForLinkedFolder(linkedFolderId))
+		.replace(/\[FileTitle\]/g,  escapeDoubleQuotes(escapeHtml(file.title)))
+		.replace(/\[DropdownTemplate\]/g, dropdownTemplate)
+		.replace(/\[ActionTemplate\]/g, actionTemplate)
+		.replace(/\[GoogleIconLink\]/g, file.iconLink)
+		.replace(/\[ExpandShrink\]/g, expandShrinkOption)
+		.replace(/\[FileIndentCss\]/g, fileIndentCss)
+		.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file))
+		.replace(/\[LastModified\]/g, getFileLastModified(file));
+	} else {
+		var shareColumn = ((!jQuery.isEmptyObject(file.parents)) ? FOLDER_TREE_SHARE_COLUMN_BUTTON_TEMPLATE: FOLDER_TREE_SHARE_COLUMN_EMPTY_TEMPLATE)
+			.replace(/\[FolderIdOnclickParam\]/g, escapeAllQuotes(file.id))
+			.replace(/\[FolderTitleOnclickParam\]/g, escapeAllQuotes(file.title));
+		
+		newEntry = FOLDER_TREE_TABLE_ROW_TEMPLATE
+		.replace(/\[FileId\]/g, getTableRowIdForFile(file.id))
+		.replace(/\[ClassSpecifyParentAndDepth\]/g, childOfParentId)
+		.replace(/\[LinkedFolderId\]/g, getClassForLinkedFolder(linkedFolderId))
+		.replace(/\[FileTitle\]/g,  escapeDoubleQuotes(escapeHtml(file.title)))
+		.replace(/\[ActionTemplate\]/g, actionTemplate)
+		.replace(/\[GoogleIconLink\]/g, file.iconLink)
+		.replace(/\[ExpandShrink\]/g, expandShrinkOption)
+		.replace(/\[FileIndentCss\]/g, fileIndentCss)
+		.replace(/\[OpenFileCall\]/g, getFunctionCallToOpenFile(file))
+		.replace(/\[ShareColumn\]/g, shareColumn);
+	}
+
 	if (parentFolderId) {
 		var $parentRow = $('#' + getTableRowIdForFile(parentFolderId));
 		if ($parentRow.length > 0) {

@@ -20,19 +20,6 @@
 				<button type="button" class="btn" id="searchButton" onclick="searchUnlinkedFoldersOwnedByMe();">${requestScope.search}</button>
 			</div>
 		</form> 
-		<!-- TODO: Remove this div : page layout will need to be fixed
-                  <div class="span5 offset1" style="display:none;">
-                    <div class="pagination">
-                      <ul>
-                        <li><a href="#">Prev</a></li>
-                        <li><a href="#">1</a></li>
-                        <li><a href="#">2</a></li>
-                        <li><a href="#">3</a></li>
-                        <li><a href="#">Next</a></li>
-                      </ul>
-                    </div>
-                  </div>
-                  -->
 	</div>
 </div>
 
@@ -40,20 +27,19 @@
 
 <table class="table table-striped table-bordered table-hover"
 	width="100%">
-	<tbody id="LinkFolderTableTbody">
+	<tbody id="FileTreeTableTbody">
 	</tbody>
 </table>
 
 <script type="text/javascript">
-
 	$(document).ready(function() {
 		if (getGoogleAccessToken() === 'ERROR') {
 			$('#par3').show();
 		}
 
-		getAncestorsForLinkedFolders();
-		searchUnlinkedFoldersOwnedByMe();
+		var rootFolderId = 'root';  // GD's special ID for root of user's drive
+		var foldersOnly = true;
+		showLinkedGoogleFolder(rootFolderId, foldersOnly);
 		checkBackButtonHit();
 	});
-
 </script>
