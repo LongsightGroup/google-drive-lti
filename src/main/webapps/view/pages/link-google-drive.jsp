@@ -40,6 +40,8 @@
 		var rootFolderId = 'root';  // GD's special ID for root of user's drive
 		var foldersOnly = true;
 		showLinkedGoogleFolder(rootFolderId, foldersOnly);
+		
+		searchUnlinkedFoldersOwnedByMe();
 		checkBackButtonHit();
 	});
 </script>

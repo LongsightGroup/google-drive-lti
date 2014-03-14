@@ -254,24 +254,25 @@ function AutoClick(e){
 }
 
 /**
- * Performs Google search for folders, retrieving all of them if the search
- * value is blank.  When it succeeds, it replaces contents in the table with the
- * results.
- * 
- * Not using local filtering to find all matching Google folders (using "paging"
- * means the page does not have all the matching folders).
- */
+* Apply a highlight color to table rows that match the search field.
+* 
+* TODO: Rename this method?
+* */
 function searchUnlinkedFoldersOwnedByMe() {
-	var searchValue = $('#UnlinkedFolderSearchInput').val();
-	var query = '\'me\' in owners AND ' + FILTER_FOR_FOLDERS;
-	if ($.trim(searchValue) !== '') {
-		query = query + " AND title contains '" + escapeAllQuotes(searchValue) + "'";
+	var searchValue = $('#UnlinkedFolderSearchInput').val().trim();
+
+	// The Bootstrap error class gives a good highlight color for table rows
+	var searchResultClass = 'error';
+
+	// Remove highlight from any previous matches
+	$('tbody#FileTreeTableTbody tr.' + searchResultClass).removeClass(
+			searchResultClass);
+
+	if (searchValue !== '') {
+		$('tbody#FileTreeTableTbody tr').has(
+				'td a span.title:contains("' + searchValue + '")').addClass(
+				searchResultClass);
 	}
-	queryDriveFilesNotTrashed(getGoogleAccessToken(), query,
-			function(data) {
-		emptyUnlinkedFoldersTable();
-		searchUnlinkedFoldersOwnedByMeCallback(data, getConfigCourseId());
-	});
 }
 
 
