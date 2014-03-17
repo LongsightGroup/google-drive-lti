@@ -290,11 +290,10 @@ public class GoogleLtiServlet extends HttpServlet {
 						googleConfigJson);
 				TcSiteToGoogleLink link = TcSiteToGoogleStorage
 						.getLinkingFromSettingService(tcSessionData);
-				if (link != null) {
+				if ((link != null)) {
 					loadJspPage(request, response, tcSessionData, JspPage.Home);
 				} else if(tcSessionData.getIsInstructor()) {
-					loadJspPage(request, response, tcSessionData,
-							JspPage.LinkFolder);
+					loadJspPage(request, response, tcSessionData,JspPage.LinkFolder);
 					}
 				else {
 					loadJspPage(request, response, tcSessionData, JspPage.Home);
@@ -311,7 +310,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * the localization. Only supports language/country and not region in Locale
 	 * object
 	 * 
-	 * @param tcSessionData
+	 * @param request
 	 */
 	private void bundleManipulation(HttpServletRequest request) {
 		String language = null;
@@ -618,7 +617,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		if (getIsEmpty(emailAddress)) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("gd.error.permission.single.user"));
-			M_log.error("Error: unable to handle permissions - the ToolConsumer(TC) did not sent the current user's email address.");
+			M_log.error("Error: unable to handle single user permissions - the ToolConsumer(TC) did not sent the current user's email address");
 			return;
 		}
 		List<String> emailAddresses = new ArrayList<String>();
@@ -631,6 +630,15 @@ public class GoogleLtiServlet extends HttpServlet {
 		else {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("gd.error.permission.single.user"));
+			StringBuilder s=new StringBuilder();
+			s.append(" Insertion of permission Failed to google for single User to shared folder of with User Id: \"" );
+			s.append(tcSessionData.getUserId());
+			s.append("\" and Email Address: \"");
+			s.append(tcSessionData.getUserEmailAddress());
+			s.append("\" for the Site Id: \"");
+			s.append(tcSessionData.getContextId());
+			s.append("\"");
+			M_log.error(s.toString());
 			
 		}
 	}
@@ -649,7 +657,15 @@ public class GoogleLtiServlet extends HttpServlet {
 			// google file object
 			File file = handler.getFile();
 			if (file == null) {
-				M_log.error("Error: unable to modify Google Folder permissions, as the folder was not retrieved from Google Drive.");
+				StringBuilder s =new StringBuilder();
+			     s.append("Error: unable to insert Google Folder permissions for single user, as the folder was not retrieved from Google Drive for user email address: \"");
+			     s.append(tcSessionData.getUserEmailAddress());
+			     s.append(" \" and User id : \"");
+			     s.append(tcSessionData.getUserId());
+			     s.append("\" for the Site Id: \"");
+				 s.append(tcSessionData.getContextId());
+				 s.append("\"");
+				M_log.error(s.toString());
 				return 0; // Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
@@ -672,7 +688,15 @@ public class GoogleLtiServlet extends HttpServlet {
 			
 		} catch (Exception err) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			M_log.error("Error occurred while inserting permission for single user", err);
+			StringBuilder s=new StringBuilder();
+			s.append(" Insertion of permission Failed to google for single User to shared folder of with User Id: \"" );
+			s.append(tcSessionData.getUserId());
+			s.append("\" and Email Address: \"");
+			s.append(tcSessionData.getUserEmailAddress());
+			s.append("\" for the Site Id: \"");
+			s.append(tcSessionData.getContextId());
+			s.append("\"");
+			M_log.error(s.toString(),err);
 		}
 		return result;
 	}
@@ -704,7 +728,15 @@ public class GoogleLtiServlet extends HttpServlet {
 			// google file object
 			File file = handler.getFile();
 			if (file == null) {
-				M_log.error("Error: unable to modify Google Folder permissions, as the folder was not retrieved from Google Drive.");
+				StringBuilder s =new StringBuilder();
+			     s.append("Error: unable to insert Google Folder permissions, as the folder was not retrieved from Google Drive for Instructor email address: \"");
+			     s.append(tcSessionData.getUserEmailAddress());
+			     s.append(" \" and User id : \"");
+			     s.append(tcSessionData.getUserId());
+			     s.append("\" for the Site Id: \"");
+				 s.append(tcSessionData.getContextId());
+				 s.append("\"");
+				M_log.error(s.toString());
 				return 0; // Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
@@ -727,7 +759,15 @@ public class GoogleLtiServlet extends HttpServlet {
 			}
 			
 		} catch (Exception err) {
-			M_log.warn("Error insertPermissions():", err);
+			StringBuilder s=new StringBuilder();
+			s.append(" Insertion of permissions Failed to google for the class roster to shared folder of Instructor with User Id: \"" );
+			s.append(tcSessionData.getUserId());
+			s.append("\" and Email Address: \"");
+			s.append(tcSessionData.getUserEmailAddress());
+			s.append("\" for the Site Id: \"");
+			s.append(tcSessionData.getContextId());
+			s.append("\"");
+			M_log.error(s.toString(),err);
 		}
 		return result;
 	}
@@ -839,7 +879,15 @@ public class GoogleLtiServlet extends HttpServlet {
 			File file = handler.getFile();
 			if (file == null) {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				M_log.error("Error: unable to modify Google Folder permissions, as the folder was not retrieved from Google Drive.");
+				StringBuilder s =new StringBuilder();
+			     s.append("Error: unable to remove Google Folder permissions, as the folder was not retrieved from Google Drive for Instructor email address: \"");
+			     s.append(tcSessionData.getUserEmailAddress());
+			     s.append(" \" and User id : \"");
+			     s.append(tcSessionData.getUserId());
+			     s.append("\" for the Site Id: \"");
+				 s.append(tcSessionData.getContextId());
+				 s.append("\"");
+				M_log.error(s.toString());
 				response.getWriter().print(resource.getString("permission.error.six"));
 				return; // Quick return to simplify code
 			}
@@ -848,11 +896,19 @@ public class GoogleLtiServlet extends HttpServlet {
 					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each person in the roster
 			HashMap<String,HashMap<String, String>> roster = getRoster(request,tcSessionData);
-			removePermissionCheck(handler, sendNotificationEmails, roster, response);
+			removePermissionCheck(handler, sendNotificationEmails, roster, response, tcSessionData);
 		} catch (Exception err) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("permission.error.six"));
-			M_log.error("Removal of permission for the folders is unsuccesful",err);
+			StringBuilder s=new StringBuilder();
+			s.append(" Removal of google permissions Failed for the class roster to shared folder of Instructor with User Id: \"" );
+			s.append(tcSessionData.getUserId());
+			s.append("\" and Email Address: \"");
+			s.append(tcSessionData.getUserEmailAddress());
+			s.append("\" for the Site Id: \"");
+			s.append(tcSessionData.getContextId());
+			s.append("\"");
+			M_log.error(s.toString(),err);
 		}
 
 	}
@@ -863,7 +919,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private void removePermissionCheck(FolderPermissionsHandler handler,
 			boolean sendNotificationEmails,
-			HashMap<String, HashMap<String, String>> roster, HttpServletResponse response) throws Exception {
+			HashMap<String, HashMap<String, String>> roster, HttpServletResponse response, TcSessionData tcSessionData) throws Exception {
 		int rostersize = roster.size();
 		int updateCount = 0;
 		for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
@@ -890,12 +946,21 @@ public class GoogleLtiServlet extends HttpServlet {
 		else {
 			if(flag<1) {
 			flag++;
-			removePermissionCheck(handler, sendNotificationEmails, roster, response);
+			removePermissionCheck(handler, sendNotificationEmails, roster, response, tcSessionData);
 			}
 			else {
 				flag=0;
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				response.getWriter().print(resource.getString("permission.error.six"));
+				StringBuilder s=new StringBuilder();
+				s.append(" Removal of google permissions Failed for the class roster to shared folder of Instructor with User Id: \"" );
+				s.append(tcSessionData.getUserId());
+				s.append("\" and Email Address: \"");
+				s.append(tcSessionData.getUserEmailAddress());
+				s.append("\" for the Site Id: \"");
+				s.append(tcSessionData.getContextId());
+				s.append("\"");
+				M_log.error(s.toString());
 			}
 			
 		}
@@ -992,15 +1057,29 @@ public class GoogleLtiServlet extends HttpServlet {
 			TcSessionData tcSessionData) throws Exception {
 		boolean result = true;
 		if (getIsEmpty(tcSessionData.getUserEmailAddress())) {
-			M_log.error("Error: unable to handle permissions - the request did not specify the instructor.");
+			M_log.error("Error: unable to handle permissions - the request did not specify the email address.");
 			result = false;
 		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
-			M_log.error("Error: unable to handle permissions - the request did not include valid access token.");
+			StringBuilder s =new StringBuilder();
+		     s.append("Error: unable to handle permissions, as no file ID was included in the request for User email address: \"");
+		     s.append(tcSessionData.getUserEmailAddress());
+		     s.append(" \" and User id : \"");
+		     s.append(tcSessionData.getUserId());
+		     s.append("\" for the Site Id: \"");
+			 s.append(tcSessionData.getContextId());
+			M_log.error(s.toString());
 			result = false;
 		}
 		if (getIsEmpty(PARAM_FILE_ID)) {
-			M_log.error("Error: unable to insert permissions, as no file ID was included in the request.");
+			StringBuilder s =new StringBuilder();
+		     s.append("Error: unable to handle permissions, as no file ID was included in the request for User email address: \"");
+		     s.append(tcSessionData.getUserEmailAddress());
+		     s.append(" \" and User id : \"");
+		     s.append(tcSessionData.getUserId());
+		     s.append("\" for the Site Id: \"");
+			 s.append(tcSessionData.getContextId());
+			M_log.error(s.toString());
 			result = false;
 		}
 		return result;
@@ -1135,6 +1214,8 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.button.yes"));
 			request.setAttribute("buttonNo",
 					resource.getString("gd.button.no"));
+			request.setAttribute("buttonOk",
+					resource.getString("gd.button.ok"));
 			request.setAttribute("buttonCreate",
 					resource.getString("gd.button.create"));
 			request.setAttribute("buttonDelete",

@@ -355,7 +355,14 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 						deleteMsg = sprintf(deleteFileErrorAlert,
 								escapeHtml(fileTitle));
 					}
-					bootbox.alert(deleteMsg);
+					bootbox.alert({
+						  message: deleteMsg,
+						  buttons: {
+						    ok: {
+						      label: buttonOk,
+						    }
+						  }
+						});
 				} else {
 					var deleteConfirmationMessage = null;
 					if (isFolder) {
@@ -710,7 +717,14 @@ function linkFolderToSite(folderId, callback) {
 						callback(data);
 					} 
 	}).fail(function(data){
-			bootbox.alert(data.responseText);
+		bootbox.alert({
+			  message: data.responseText,
+			  buttons: {
+			    ok: {
+			      label: buttonOk,
+			    }
+			  }
+			});
 	})
 				
 }
@@ -735,7 +749,14 @@ function unlinkFolderToSite(folderId, callback) {
 						callback(data);
 					} 
 	}).fail(function(data){
-				bootbox.alert(data.responseText);
+		bootbox.alert({
+			  message: data.responseText,
+			  buttons: {
+			    ok: {
+			      label: buttonOk,
+			    }
+			  }
+			});
 	})			
 }
 
@@ -751,13 +772,13 @@ function giveRosterPermissions(folderId, sendNotificationEmails) {
 		data: getUpdateLtiParams(
 				folderId,
 				"giveRosterAccess",
-				sendNotificationEmails),
-				success: function(data) {
-						openPage('Home');
-
+				sendNotificationEmails)
+	}).done(function(data) {
+			openPage('Home');
 						
-				}
-	});
+	})
+				
+	
 }
 
 /**
@@ -774,8 +795,8 @@ function giveCurrentUserPermissions(folderId) {
 		data: getUpdateLtiParams(
 				folderId,
 				"giveCurrentUserAccess",
-				false),
-		success: function(data) {
+				false)
+	}).done(function(data) {
 					if ($.trim(data) === 'SUCCESS') {
 						$('#permissionUpdate').show();
 						getDriveFile(
@@ -786,11 +807,10 @@ function giveCurrentUserPermissions(folderId) {
 									showLinkedGoogleFolderCallback(data, 0);
 								});
 					}
-				},
-		 error: function(data){
-			bootbox.alert(data.responseText);
-		}		
-	});
+	}).fail(function(data){
+		$('#par5').addClass('alert alert-error').html(data.responseText);
+	})
+	
 }
 
 /**
@@ -804,20 +824,27 @@ function removeRosterPermissions(folderId) {
 		data: getUpdateLtiParams(
 				folderId,
 				"removeRosterAccess",
-				false),
-				success: function(data) {
+				false)
+	}).done(function(data) {
 					if ($.trim(data) === 'SUCCESS') {
 						openPage('LinkFolder');
 					}
 					
-				},
-				error:function(data){
-					bootbox.alert(data.responseText, function() {
-						openPage('LinkFolder');
-						});
+	}).fail(function(data){
+		bootbox.alert({
+			  message: data.responseText,
+			  buttons: {
+			    ok: {
+			      label: buttonOk,
+			    }
+			  },
+			  callback:function(){
+				  openPage('LinkFolder');
+			  }
+			});
 					
-				}
-	});
+	})
+	
 }
 
 /**

@@ -23,6 +23,7 @@ String sendEmailPrompt =(String)request.getAttribute("sendEmailPrompt");
 String sendEmailPromptHeader =(String)request.getAttribute("sendEmailPromptHeader");
 String buttonYes =(String)request.getAttribute("buttonYes");
 String buttonNo =(String)request.getAttribute("buttonNo");
+String buttonOk =(String)request.getAttribute("buttonOk");
 String buttonCreate =(String)request.getAttribute("buttonCreate");
 String buttonDelete =(String)request.getAttribute("buttonDelete");
 String contextUrl =(String)request.getAttribute("contextUrl");
@@ -66,6 +67,7 @@ String errorMessageIe8 =(String)request.getAttribute("errorMessageIe8");
     var sendEmailPrompt='<%=sendEmailPrompt %>';
     var buttonYes='<%=buttonYes %>';
     var buttonNo='<%=buttonNo %>';
+    var buttonOk='<%=buttonOk %>';
     var buttonCreate='<%=buttonCreate %>';
     var buttonDelete='<%=buttonDelete %>';
     var contextUrl='<%=contextUrl%>';
@@ -141,6 +143,7 @@ String errorMessageIe8 =(String)request.getAttribute("errorMessageIe8");
 			<div id="par3" class="hide alert alert-error">${invalidAccountMsg}</div>
 			<div id="par4" class="hide alert alert-error">${errorMsg404}</div>
 			<div id="permissionUpdate" class="hide alert alert-error">${permissionUpdate}</div>
+			<div id="par5"></div>
 		</footer>
 	</div>
 <script src="bootstrap/js/bootstrap.js"></script>
