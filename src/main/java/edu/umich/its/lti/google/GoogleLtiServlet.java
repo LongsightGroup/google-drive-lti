@@ -1146,6 +1146,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.linking.view.info"));
 			request.setAttribute("createAndLinkButton",
 					resource.getString("gd.create.link.button"));
+			request.setAttribute("contextLabel",tcSessionData.getContextLabel());
 
 			request.setAttribute("info",
 					resource.getString("gd.linked.view.info"));

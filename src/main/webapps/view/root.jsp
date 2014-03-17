@@ -31,6 +31,7 @@ String deleteFileErrorAlert =(String)request.getAttribute("deleteFileErrorAlert"
 String deleteFolderErrorAlert =(String)request.getAttribute("deleteFolderErrorAlert");
 String errorMsg404 =(String)request.getAttribute("errorMsg404");
 String errorMessageIe8 =(String)request.getAttribute("errorMessageIe8");
+String contextLabel =(String)request.getAttribute("contextLabel");
 %>
 <html lang="en">
 <head>
@@ -91,7 +92,7 @@ String errorMessageIe8 =(String)request.getAttribute("errorMessageIe8");
 					<span class="icon-bar"></span> <span class="icon-bar"></span> <span
 						class="icon-bar"></span>
 				</button>
-				<a class="brand">${requestScope.jspPage.pageTitle}</a>
+				<a class="brand"><%=contextLabel%></a>
 				<div class="nav-collapse collapse">
 					<p class="navbar-text pull-right">
 						<%
