@@ -256,9 +256,9 @@ function AutoClick(e) {
 }
 
 /**
- * Apply a highlight color to table rows that match the search field.
- * 
- * TODO: Rename this method?
+ * Apply a highlight color to table rows that match the search field. Also
+ * expand all collapsed ancestors and mark them to be displayed as part of the
+ * search results.
  */
 function searchItems() {
 	var searchValue = $('#UnlinkedFolderSearchInput').val().trim();
@@ -274,7 +274,7 @@ function searchItems() {
 	if (searchValue !== '') {
 		var matchedItems = $('tbody#FileTreeTableTbody tr').has(
 				'td a span.title:contains("' + searchValue + '")');
-		
+
 		if (matchedItems) {
 			matchedItems.addClass(searchResultClass).addClass('searchResult');
 
@@ -284,9 +284,6 @@ function searchItems() {
 
 			$('tbody#FileTreeTableTbody tr').not('.searchResult').addClass('searchNonResult');
 		}
-		
-		
-		
 	}
 }
 
@@ -297,7 +294,7 @@ function expandAndIncludeParent(item) {
 		$.each(itemClasses.split(/\s+/), function(index, itemClass) {
 			if (itemClass.search('child-of-') == 0) {
 				var parentId = itemClass.substring(9);
-				
+
 				expand(parentId);
 
 				var parentNode = $('tbody#FileTreeTableTbody tr#'
@@ -340,8 +337,6 @@ function searchItemsCallback(data, courseId) {
 function emptyUnlinkedFoldersTable() {
 	$('#LinkFolderTableTbody').empty();
 }
-
-
 
 /**
  * Returns true if the folder is linked to the site.
