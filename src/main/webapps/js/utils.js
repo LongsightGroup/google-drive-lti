@@ -10,6 +10,16 @@ if (typeof(jQuery) === 'undefined') {
 	console.log('ERROR: utils.js requires jQuery');
 }
 
+/*
+ * Replace the jQuery :contains() selector with a case-insensitive version
+ */
+$.expr[":"].contains = $.expr.createPseudo(function(searchText) {
+	return function(element) {
+		return $(element).text().toUpperCase()
+				.indexOf(searchText.toUpperCase()) >= 0;
+	};
+});
+
 function escapeHtml(value) {
 	return $('<escapeHtmlHack/>').text(value).html();
 }
