@@ -247,40 +247,77 @@ function listAncestorsForFileRecursive(currentFileId, parentFileId, rootParent) 
 	}
 }
 
-function AutoClick(e){
-		if(e.keyCode==13){
-		searchUnlinkedFoldersOwnedByMe();
+function AutoClick(e) {
+	var carriageReturnKeyCode = 13;
+
+	if (e.keyCode == carriageReturnKeyCode) {
+		searchItems();
 	}
 }
 
 /**
-* Apply a highlight color to table rows that match the search field.
-* 
-* TODO: Rename this method?
-* */
-function searchUnlinkedFoldersOwnedByMe() {
+ * Apply a highlight color to table rows that match the search field.
+ * 
+ * TODO: Rename this method?
+ */
+function searchItems() {
 	var searchValue = $('#UnlinkedFolderSearchInput').val().trim();
 
 	// The Bootstrap error class gives a good highlight color for table rows
 	var searchResultClass = 'error';
 
 	// Remove highlight from any previous matches
-	$('tbody#FileTreeTableTbody tr.' + searchResultClass).removeClass(
-			searchResultClass);
+	$('tbody#FileTreeTableTbody tr').removeClass(
+			searchResultClass).removeClass('searchResult').removeClass(
+			'searchNonResult');
 
 	if (searchValue !== '') {
-		$('tbody#FileTreeTableTbody tr').has(
-				'td a span.title:contains("' + searchValue + '")').addClass(
-				searchResultClass);
+		var matchedItems = $('tbody#FileTreeTableTbody tr').has(
+				'td a span.title:contains("' + searchValue + '")');
+		
+		if (matchedItems) {
+			matchedItems.addClass(searchResultClass).addClass('searchResult');
+
+			matchedItems.each(function() {
+				expandAndIncludeParent($(this));
+			});
+
+			$('tbody#FileTreeTableTbody tr').not('.searchResult').addClass('searchNonResult');
+		}
+		
+		
+		
 	}
 }
 
+function expandAndIncludeParent(item) {
+	var itemClasses = item.attr('class');
+
+	if (itemClasses) {
+		$.each(itemClasses.split(/\s+/), function(index, itemClass) {
+			if (itemClass.search('child-of-') == 0) {
+				var parentId = itemClass.substring(9);
+				
+				expand(parentId);
+
+				var parentNode = $('tbody#FileTreeTableTbody tr#'
+						+ getTableRowIdForFile(parentId));
+				if (parentNode) {
+					parentNode.addClass('searchResult');
+					expandAndIncludeParent(parentNode);
+				} else {
+					return;
+				}
+			}
+		});
+	}
+}
 
 /**
  * When called as result of AJAX call, this displays the folders on the screen:
- * see searchUnlinkedFoldersOwnedByMe() for details.
+ * see searchItems() for details.
  */
-function searchUnlinkedFoldersOwnedByMeCallback(data, courseId) {
+function searchItemsCallback(data, courseId) {
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
 	{
 		var folders = sortFilesByTitle(data.items);
@@ -549,13 +586,13 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 				giveRosterPermissions(folderId,
 						sendNotificationEmails);
 				removeLinkedFolderFromLinkingTable(folderId);
-				showInfo($('#alertContainer'), sprintf(linkFolderAlert, folderTitle));
+				showInfo($('#alertContainer'), sprintf(linkFolderAlert, escapeHtml(folderTitle)));
 			}
 		});
 	} else {
 		removeRosterPermissions(folderId);
 		removeUnlinkedFileTreeFromTable(folderId);
-		showInfo($('#alertContainer'), sprintf(unlinkFolderAlert, folderTitle));
+		showInfo($('#alertContainer'), sprintf(unlinkFolderAlert, escapeHtml(folderTitle)));
 	}
 }
 
@@ -1052,7 +1089,7 @@ function linkFolder(folderId, folderTitle) {
  * @param reason
  */
 function notifyUserFolderCannotBeLinked(folderTitle, reason) {
-	bootbox.alert(sprintf(linkFolderErrorAlert, folderTitle, reason));
+	bootbox.alert(sprintf(linkFolderErrorAlert, escapeHtml(folderTitle), reason));
 }
 
 /**
@@ -1262,6 +1299,11 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 	}
 }
 
+function expand(folderId) {
+	if ($('#' + getTableRowIdForFile(folderId)).find('a.expandShrink.shrinkable').hasClass('shrunk'))
+		toggleExpandShrink(folderId);
+}
+
 /**
  * This is called when user clicks on icon to expand or shrink the folder.  It
  * marks the folder's span with class 'shrunk' and showing text to indicate the
@@ -1270,12 +1312,10 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
  * 
  * @param folderId
  */
-function toggleExpandShrink(folderId) {
+function toggleExpandShrink(folderId) {	
 	var $expandShrinkSpan = $('#' + getTableRowIdForFile(folderId)).find('a.expandShrink.shrinkable');
-	var expand = false;
 	if ($expandShrinkSpan.hasClass('shrunk')) {
 		$expandShrinkSpan.removeClass('shrunk');
-		expand = true;
 		$expandShrinkSpan.html(SHRINK_TEXT);
 		expandOrShrinkChildren(folderId, false);
 	} else {
@@ -1289,6 +1329,11 @@ function toggleExpandShrink(folderId) {
  * Shows/Hides the children rows for the current folder, recursively closing
  * their children (call is made for non-folders: that should have no effect
  * since those will not have children).
+ * 
+ * FIXME: This shouldn't expand collapsed children...
+ * 
+ * Assume folder B is collapsed within folder A, which is also collapsed. When
+ * folder A is expanded, it should not expand folder B by default.
  * 
  * @param folderId
  * @param shrinking

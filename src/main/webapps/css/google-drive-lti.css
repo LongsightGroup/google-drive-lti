@@ -90,3 +90,7 @@ TABLE {
 h4.modal-title {
 	text-transform: capitalize;
 }
+
+tr.searchNonResult {
+	display: none !important;
+}
