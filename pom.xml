@@ -8,6 +8,9 @@
 	<version>0.0.2-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>Google Drive LTI Web Project</name>
+<properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
 
 	<build>
 		<finalName>google-drive-lti</finalName>
