@@ -996,11 +996,11 @@ function getPageUrl() {
 }
 
 var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
-	<td><a class="itemLink" onclick="[OpenFileCall]" title="[FolderTitle]"> \
+	<td><a href="#" class="itemLink" onclick="[OpenFileCall]" title="[FolderTitle]"> \
 	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;[FolderTitle] \
 	</a></td> \
 	<td> \
-	<a class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
+	<a href="#" class="btn btn-small" onclick="linkFolder(\'[FolderIdOnclickParam]\', \'[FolderTitleOnclickParam]\');">'+linkFolderButton+'</a> \
 	</td> \
 	</tr>';
 
@@ -1158,7 +1158,7 @@ function getLatterIsAncestor(childFileId, ancestorFolderId) {
 }
 
 var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \
-	<td style="[FileIndentCss]">[ExpandShrink]<a class="itemLink" onclick="[OpenFileCall]" title="[FileTitle]"> \
+	<td style="[FileIndentCss]">[ExpandShrink]<a href="#" class="itemLink" onclick="[OpenFileCall]" title="[FileTitle]"> \
 	<img src="[GoogleIconLink]" width="16" height="16" alt="Folder">&nbsp;<span class="title">[FileTitle]</span> \
 	</a></td> \
 	<td>&nbsp;[DropdownTemplate]</td> \
@@ -1166,7 +1166,7 @@ var FILE_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParent
 	<td>[LastModified]</td> \
 	</tr>';
 
-var ACTION_BUTTON_TEMPLATE = '<a class="btn btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
+var ACTION_BUTTON_TEMPLATE = '<a href="#" class="btn btn-small" onclick="[ActionOnClick]">[ActionTitle]</a>';
 
 var FOLDER_TREE_TABLE_ROW_TEMPLATE = '<tr id="[FileId]" class="[ClassSpecifyParentAndDepth] [LinkedFolderId]"> \
 	<td style="[FileIndentCss]">[ExpandShrink]<a class="itemLink" onclick="[OpenFileCall]" title="[FileTitle]"> \

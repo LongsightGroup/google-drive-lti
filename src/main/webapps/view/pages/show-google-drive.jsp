@@ -42,7 +42,7 @@
 				    parent to the linked folder
 			*/
 %>
-				<li><a tabindex="-1"
+				<li><a href="#" tabindex="-1"
 					onclick="openDialogToCreateFile('<%=fileType%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton}
 						<%=fileType%></a></li>
 				<%
