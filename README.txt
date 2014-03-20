@@ -1,28 +1,25 @@
 
 [ PURPOSE ]
 ===========
-This project will run as LTI interacting with Google Drive and Sakai LTI client, and may also operate well with other LTI compliant systems.
+This is an LTI 2.0 compliant tool that integrates Google Drive with an LMS such as Sakai. Because this tool relies on some LTI 2.0 features, it can only be run on Sakai 10 or greater.
 
-This gives a course's instructor the ability to associate a Google Drive folder with the Sakai site, and to give other people in the roster read-only access to the folder.
-
-These permissions work for the folder's contents, so documents, sub folders, and their descendants will be accessible in the same manner.
-
-The Google Drive LTI run on its own instance than the Sakai instance
+This tool allows an instructor to associate a Google Drive folder with a Sakai site, which grants everyone in that site's roster read-only access to the folder and it's contents. Once granted, this access is valid both from within the Google Drive LTI tool as well as from the Googie Drive UI itself.
 
 
          
 [ SETUP ]
 =========
-1. svn co https://source.sakaiproject.org/contrib/umich/lti-utils 
+1. svn co https://source.sakaiproject.org/contrib/umich/lti-utils/tags/<find-latest-version> lti-utils
 
-2. svn co https://source.sakaiproject.org/contrib/umich/google/google-drive-lti
+2. svn co https://source.sakaiproject.org/contrib/umich/google/google-drive-lti/tags/<find-latest-version> google-drive-lti
 
-3. Google service account creation at https://code.google.com/apis/console/. This is account is created and every body will be using the same account properties and .p12file
-   - Create a public/private key and download private key file (p12 file)
+3. Create a google service account specific to your institution as described at https://code.google.com/apis/console/. Create a public/private key and download the private key file (p12 file).
+
+4. Configure your googleServiceProps.properties file as follows:
    
-4a.Replace the googleServiceProps.properties.template file with googleServiceProps.properties
+4a. Copy the googleServiceProps.properties.template file with googleServiceProps.properties
 
-4b. Define the following properties to googleServiceProps.properties
+4b. Define the following properties in googleServiceProps.properties
    ## client.id and email.address are created as part of Google service account initial creation. just populate with those values
    googleDriveLti.service.account.client.id=
    googleDriveLti.service.account.email.address=
@@ -39,25 +36,21 @@ The Google Drive LTI run on its own instance than the Sakai instance
     googleDriveLti.service.account.private.key.file=/secure/<filename>
 
 
-4f. OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
+    OR// Deploy google private key external to web application (cp p12-file to directory accessible by webapp)
 
     ## Update googleServiceProps.properties
     googleDriveLti.service.account.private.key.file.classpath=false
     googleDriveLti.service.account.private.key.file=<absolute file location>
     
-4g. If the googleServiceProps.properties file is in the $TOMCAT directory then follow the procedures to do this
-     1.cd $TOMCAT
-     2.create a directory named "google" and add the properties file into it $TOMCAT/google/googleServiceProps.properties
-     3.Add properties to JAVA_OPTS for Tomcat:
-        -DgoogleServicePropsPath=$TOMCAT/google/googleServiceProps.properties
+4d. The googleServiceProps.properties file may optionally be deployed external to the war file:
+    ## Update JAVA_OPTS for Tomcat to include:
+    -DgoogleServicePropsPath=<fully-qualified-directory-name>/googleServiceProps.properties
         
-5. Set the context portion of the LTI service URL
-
-5a. This is the default configuration (deploy google-drive-lti.war web application):
+4e. This is the default context configuration (deploy google-drive-lti.war web application):
 
     googleDriveLti.context=google-drive-lti/googledrivelti
 
-5b. This is an alternate configuration (deployed web application is ROOT application, such as is done by Amazon AWS Elastic Beanstalk):
+    OR// This is an alternate configuration (deployed web application is ROOT application, such as is done by Amazon AWS Elastic Beanstalk):
 
     googleDriveLti.context=googledrivelti
 
@@ -65,11 +58,11 @@ The Google Drive LTI run on its own instance than the Sakai instance
    
    #set the variable to Server URL of sakai instance (not Google-Drive instance) including Protocol eg. http://localhost:8080
    
-   sakai.lti.serverUrl=
+   sakai.lti.serverUrl=<server-url>
 
    basiclti.provider.enabled=true
    basiclti.provider.allowedtools=sakai.announcements:sakai.singleuser:sakai.assignment.grades:blogger:sakai.dropbox:sakai.mailbox:sakai.forums:sakai.gradebook.tool:sakai.podcasts:sakai.poll:sakai.resources:sakai.schedule:sakai.samigo:sakai.rwiki
-   basiclti.provider.lmsng.school.edu.secret=secret
+   basiclti.provider.lmsng.school.edu.secret=<configurable-secret>
    basiclti.roster.enabled=true
    basiclti.outcomes.enabled=true
 
@@ -78,8 +71,7 @@ The Google Drive LTI run on its own instance than the Sakai instance
 ==================
 1. cd lti-utils; mvn install
 2. cd google-drive-lti; mvn install
-3. cp target/google-drive-lti.war $TOMCAT2/webapps
-4. do a regular sakai build and deploy to $TOMCAT1 Instance
+3. cp target/google-drive-lti.war $TOMCAT/webapps
 
 PLEASE REMEMBER TO REVERT THE BELOW CHANGE BEFORE CHECKING IN TO SVN
 HINT: For local development in pom.xml add the <plugin> tag under the <plugins> tag, this will automatically deploy to tomcat. while deploy the project use this build command "mvn clean install sakai:deploy -Dmaven.tomcat.home=$TOMCAT_HOME".
@@ -95,14 +87,6 @@ HINT: For local development in pom.xml add the <plugin> tag under the <plugins> 
             </configuration>
 </plugin>
 
-HOW TO RUN SECOND TOMCAT INSTANCE FOR LOCAL DEVELOPMENT
-1. untar the TC2 to your favorite location
-2. open TC2/bin/startup.sh in a VI editor.... and  add below 2 lines at the beginning.
-        export TOMCAT_HOME=TC2 DIRECTORY PATH eg./user/tomcat
-        export CATALINA_HOME=$TOMCAT_HOME
-3. open server.xml and change the  below tags something different from the TC1
-        <Connector port for protocol="HTTP/1.1"> && <Server port > && <Connector port="8009" protocol="AJP/1.3" >
- 
 
 
 [Configuring Google-Drive-LTI in Sakai ]
