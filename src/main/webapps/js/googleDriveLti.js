@@ -1226,11 +1226,11 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 	var actionTitle = null;
 	var actionOnClick = '';
 	if (getIsInstructor() && isFolder && (treeDepth === 0)) {
-		actionTitle = unlinkFolderButton;
+		actionTitle = unlinkFolderButton+' <span class ="sr-only">'+file.title+'</span>';
 		actionOnClick = 'unlinkFolderFromSite(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\');';
 	} else {
 		if (getIsInstructor()) {
-			actionTitle = deleteFolderButton;
+			actionTitle = deleteFolderButton+' <span class ="sr-only">'+file.title+'</span>';
 			actionOnClick = 'deleteGoogleFile(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\', \'' + escapeAllQuotes(file.mimeType) + '\', \'' + escapeAllQuotes(file.userPermission.role) + '\');';
 		}
 	}
