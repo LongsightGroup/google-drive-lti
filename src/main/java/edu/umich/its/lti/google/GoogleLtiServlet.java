@@ -1224,6 +1224,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			request.setAttribute("contextUrl",
 					getGoogleServiceAccount().getContextURL());
 			
+			request.setAttribute("userEmailAddress",
+					tcSessionData.getUserEmailAddress());
 
 			getServletContext().getRequestDispatcher("/view/root.jsp").forward(
 					request, response);

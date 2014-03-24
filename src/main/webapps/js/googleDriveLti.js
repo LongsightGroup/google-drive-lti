@@ -168,7 +168,7 @@ function getFoldersChildren(folder, linkedFolderId, depth, foldersOnly) {
 	var query = "'" + folder.id + "' in parents";
 
 	if (foldersOnly) {
-		query += " and mimeType = 'application/vnd.google-apps.folder'";
+		query += " and mimeType = 'application/vnd.google-apps.folder' and '" + userEmailAddress + "' in owners";
 	}
 
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {

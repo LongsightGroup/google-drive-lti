@@ -27,6 +27,7 @@ String buttonOk =(String)request.getAttribute("buttonOk");
 String buttonCreate =(String)request.getAttribute("buttonCreate");
 String buttonDelete =(String)request.getAttribute("buttonDelete");
 String contextUrl =(String)request.getAttribute("contextUrl");
+String userEmailAddress =(String)request.getAttribute("userEmailAddress");
 String deleteFileErrorAlert =(String)request.getAttribute("deleteFileErrorAlert");
 String deleteFolderErrorAlert =(String)request.getAttribute("deleteFolderErrorAlert");
 String errorMsg404 =(String)request.getAttribute("errorMsg404");
@@ -72,6 +73,7 @@ String contextLabel =(String)request.getAttribute("contextLabel");
     var buttonCreate='<%=buttonCreate %>';
     var buttonDelete='<%=buttonDelete %>';
     var contextUrl='<%=contextUrl%>';
+    var userEmailAddress='<%=userEmailAddress%>';
     var deleteFileErrorAlert='<%=deleteFileErrorAlert %>';
     var deleteFolderErrorAlert='<%=deleteFolderErrorAlert %>';
     
