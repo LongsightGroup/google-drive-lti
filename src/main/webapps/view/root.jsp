@@ -117,8 +117,10 @@ String contextLabel =(String)request.getAttribute("contextLabel");
 						<%
 	}
 %>
-						<li><a href="#aboutModal"  role="button" data-toggle="modal">${about}</a></li>
-						<li><a href="#helpModal"  role="button" data-toggle="modal">${help}</a></li>
+						<li><a href="https://docs.google.com/a/umich.edu/document/d/1C5xFVTzxcGNeU1hd7jwzuqoJv5mVSBNY2yuQmOnhS5E/pub" target="GDSHelp">${about}</a></li>
+						<li><a href="https://docs.google.com/a/umich.edu/document/d/1aQCggrs2-ADrtVtNDtkGcFUKs2IlG9-dej_bFu6MpAU/pub" target="GDSHelp">${help}</a></li>
+						<!-- li><a href="#aboutModal"  role="button" data-toggle="modal">${about}</a></li -->
+						<!-- li><a href="#helpModal"  role="button" data-toggle="modal">${help}</a></li -->
 					</ul>
 				</div>
 			</div>
