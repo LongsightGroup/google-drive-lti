@@ -1210,12 +1210,12 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 	var isFolder = (getIsFolder(file.mimeType));
 	var expandShrinkOption = '';
 	if (isFolder) {
-		expandShrinkOption = '<a href="#" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');"><em></em><span class="expandShringFolderTitle  sr-only">' + file.title + '</span></a>';
+		expandShrinkOption = '<a href="#" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');"><em></em><span class="expandShringFolderTitle  sr-only">' + escapeAllQuotes(escapeHtml(file.title)) + '</span>&nbsp;</a>';
 	}
 	// Add text to parent folder for expanding/shrinking functionality
 	if ($.trim(parentFolderId) !== '') {
 	    var folderTitle =  $('#' + getTableRowIdForFile(parentFolderId)).find('span.title').text();
-		$('#' + getTableRowIdForFile(parentFolderId)).find('a.expandShrink:not(.shrinkable)').addClass('shrinkable').html("<em>" + SHRINK_TEXT + '</em><span class="expandShringFolderTitle sr-only">' + folderTitle + '</span>');
+		$('#' + getTableRowIdForFile(parentFolderId)).find('a.expandShrink:not(.shrinkable)').addClass('shrinkable').html("<em>" + SHRINK_TEXT + '</em><span class="expandShringFolderTitle sr-only">' + escapeAllQuotes(escapeHtml(folderTitle)) + '</span>');
 	}
 	if (!foldersOnly && getIsInstructor() && isFolder) {
 		dropdownTemplate = $('#FolderDropdownTemplate').html();
@@ -1227,11 +1227,11 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 	var actionTitle = null;
 	var actionOnClick = '';
 	if (getIsInstructor() && isFolder && (treeDepth === 0)) {
-		actionTitle = unlinkFolderButton+' <span class ="sr-only">'+file.title+'</span>';
+		actionTitle = unlinkFolderButton+' <span class ="sr-only">'+escapeAllQuotes(escapeHtml(file.title))+'</span>';
 		actionOnClick = 'unlinkFolderFromSite(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\');return false;';
 	} else {
 		if (getIsInstructor()) {
-			actionTitle = deleteFolderButton+' <span class ="sr-only">'+file.title+'</span>';
+			actionTitle = deleteFolderButton+' <span class ="sr-only">'+escapeAllQuotes(escapeHtml(file.title))+'</span>';
 			actionOnClick = 'deleteGoogleFile(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\', \'' + escapeAllQuotes(file.mimeType) + '\', \'' + escapeAllQuotes(file.userPermission.role) + '\');';
 		}
 	}
