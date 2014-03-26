@@ -1228,7 +1228,7 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 	var actionOnClick = '';
 	if (getIsInstructor() && isFolder && (treeDepth === 0)) {
 		actionTitle = unlinkFolderButton+' <span class ="sr-only">'+file.title+'</span>';
-		actionOnClick = 'unlinkFolderFromSite(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\');';
+		actionOnClick = 'unlinkFolderFromSite(\'' + escapeAllQuotes(file.id) + '\', \'' + escapeAllQuotes(file.title) + '\');return false;';
 	} else {
 		if (getIsInstructor()) {
 			actionTitle = deleteFolderButton+' <span class ="sr-only">'+file.title+'</span>';
