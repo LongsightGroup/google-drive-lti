@@ -25,12 +25,17 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -853,15 +858,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 
 	/**
-	 * Removes read-only access to the given folder to people in the roster.
-	 * Permissions for owners of the folder, and for the instructor, are not
+	 * Removes permissions to the given folder to people in the roster.
+	 * Permissions for owners of the folder are not
 	 * touched.
-	 * 
-	 * This uses a workaround to modify permissions, as there is no way to
-	 * request permissions per file and user. Inserting a permission returns the
-	 * existing permission if the user already has permissions, so inserting and
-	 * deleting permission is the simplest method available for removing a
-	 * person's permissions to the file.
 	 */
 	
 	private void removePermissions(HttpServletRequest request,
@@ -894,9 +893,33 @@ public class GoogleLtiServlet extends HttpServlet {
 			// Get credential for the instructor owning the folder
 			boolean sendNotificationEmails = Boolean.parseBoolean(request
 					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
-			// Insert permission for each person in the roster
+			
+			String fileId = request.getParameter(PARAM_FILE_ID);
+			ConcurrentHashMap<String, String> googleAccessControlList = new ConcurrentHashMap<String, String>();
+			/* Returns the list of person who has access to the Folder of the instructor that has been shared. 
+			This may also returns the list of person who are not part of the roster and instructor has shared his folder out side of site. 
+			Comparing the roster and the Google Access control List (ACL) on that particular shared folder
+			 and filter out the person not in the roster from the Google ACL.*/
+			   
+			PermissionList list = handler.getDrive().permissions().list(fileId).execute();
+			List<Permission> items = list.getItems();
+			for (Permission permission : items) {
+				googleAccessControlList.put(permission.getEmailAddress(), permission.getId());
+			}
 			HashMap<String,HashMap<String, String>> roster = getRoster(request,tcSessionData);
-			removePermissionCheck(handler, sendNotificationEmails, roster, response, tcSessionData);
+			Set<String> rosterEmailAddressKey = roster.keySet();
+			Iterator<Entry<String, String>> iterator = googleAccessControlList.entrySet().iterator();
+			while(iterator.hasNext()) {
+				Entry<String, String> currentACLItem = iterator.next();
+				String currentACLListEmailAddress = currentACLItem.getKey();
+				if(rosterEmailAddressKey.contains(currentACLListEmailAddress)) {
+					continue;
+				}
+				else {
+					iterator.remove();
+				}
+			}
+			removePermissionCheck(handler, sendNotificationEmails, googleAccessControlList, response, tcSessionData);
 		} catch (Exception err) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("permission.error.six"));
@@ -912,30 +935,24 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 
 	}
-
+	
 	/*
 	 * Extracted to separate method to make the recursive call to handle the if removal  permissions is a failure 
 	 * and try again for the second time and then permission is failure again then display the user with the useful message.
 	 */
 	private void removePermissionCheck(FolderPermissionsHandler handler,
 			boolean sendNotificationEmails,
-			HashMap<String, HashMap<String, String>> roster, HttpServletResponse response, TcSessionData tcSessionData) throws Exception {
-		int rostersize = roster.size();
+			ConcurrentHashMap<String, String> rosterAndGoogleCompareList, HttpServletResponse response, TcSessionData tcSessionData) throws Exception {
+		int rostersize = rosterAndGoogleCompareList.size();
 		int updateCount = 0;
-		for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
+		for ( Entry<String, String> entry : rosterAndGoogleCompareList.entrySet()) {
 		    String emailAddress = entry.getKey();
-		    HashMap<String, String> value = entry.getValue();
-		    String roles = value.get("role");
+		    String permissionIDOfEachPersonWithGoogleAccount = entry.getValue();
 		    if (!getIsEmpty(emailAddress)
 					&& !handler.getIsInstructor(emailAddress)) {
-				// If result not null, the user has permission >= inserted
-				Permission permission = handler.insertPermission(emailAddress,roles,
-						sendNotificationEmails);
-				if (permission != null) {
-					if (handler.removePermission(permission.getId())) {
+					if (handler.removePermission(permissionIDOfEachPersonWithGoogleAccount)) {
 						updateCount++;
 					}
-				}
 				
 			}
 		}
@@ -946,7 +963,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		else {
 			if(flag<1) {
 			flag++;
-			removePermissionCheck(handler, sendNotificationEmails, roster, response, tcSessionData);
+			removePermissionCheck(handler, sendNotificationEmails, rosterAndGoogleCompareList, response, tcSessionData);
 			}
 			else {
 				flag=0;
