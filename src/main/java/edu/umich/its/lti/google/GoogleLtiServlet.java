@@ -86,8 +86,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static String GOOGLE_DRIVE = "";
 	private static String LINK_GOOGLE_DRIVE = "";
 	static ResourceBundle resource;
-	//to keep track of the removal of permissions failure.
-	static int flag=0;
+	
 	
 
 	// Enum ---------------------------------------------------------
@@ -890,24 +889,14 @@ public class GoogleLtiServlet extends HttpServlet {
 				response.getWriter().print(resource.getString("permission.error.six"));
 				return; // Quick return to simplify code
 			}
-			// Get credential for the instructor owning the folder
-			boolean sendNotificationEmails = Boolean.parseBoolean(request
-					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			
 			String fileId = request.getParameter(PARAM_FILE_ID);
-			ConcurrentHashMap<String, String> googleAccessControlList = new ConcurrentHashMap<String, String>();
-			/* Returns the list of person who has access to the Folder of the instructor that has been shared. 
-			This may also returns the list of person who are not part of the roster and instructor has shared his folder out side of site. 
-			Comparing the roster and the Google Access control List (ACL) on that particular shared folder
-			 and filter out the person not in the roster from the Google ACL.*/
-			   
-			PermissionList list = handler.getDrive().permissions().list(fileId).execute();
-			List<Permission> items = list.getItems();
-			for (Permission permission : items) {
-				googleAccessControlList.put(permission.getEmailAddress(), permission.getId());
-			}
+			ConcurrentHashMap<String, String> googleAccessControlList = getPermissionListfromGoogle(
+					handler, fileId);
 			HashMap<String,HashMap<String, String>> roster = getRoster(request,tcSessionData);
 			Set<String> rosterEmailAddressKey = roster.keySet();
+			/*Comparing the roster and the Google Access control List (ACL) on a particular shared folder
+	         * and filter out the person not in the roster from the Google ACL.*/
 			Iterator<Entry<String, String>> iterator = googleAccessControlList.entrySet().iterator();
 			while(iterator.hasNext()) {
 				Entry<String, String> currentACLItem = iterator.next();
@@ -919,7 +908,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					iterator.remove();
 				}
 			}
-			removePermissionCheck(handler, sendNotificationEmails, googleAccessControlList, response, tcSessionData);
+			removePermissionCheck(handler,  googleAccessControlList, response, tcSessionData);
 		} catch (Exception err) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("permission.error.six"));
@@ -935,38 +924,47 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 
 	}
-	
-	/*
-	 * Extracted to separate method to make the recursive call to handle the if removal  permissions is a failure 
-	 * and try again for the second time and then permission is failure again then display the user with the useful message.
+	/**
+	 * Returns the list of person who has access to the Folder of the instructor that has been shared. 
+	 * This may also returns the list of person who are not part of the roster and instructor has shared his folder out side of site. 
+	 * 
+	 * @param handler
+	 * @param fileId
+	 * @return
+	 * @throws IOException
 	 */
+
+	private ConcurrentHashMap<String, String> getPermissionListfromGoogle(
+			FolderPermissionsHandler handler, String fileId) throws IOException {
+		ConcurrentHashMap<String, String> googleAccessControlList = new ConcurrentHashMap<String, String>();
+		PermissionList list = handler.getDrive().permissions().list(fileId).execute();
+		List<Permission> items = list.getItems();
+		for (Permission permission : items) {
+			googleAccessControlList.put(permission.getEmailAddress(), permission.getId());
+		}
+		return googleAccessControlList;
+	}
+	
 	private void removePermissionCheck(FolderPermissionsHandler handler,
-			boolean sendNotificationEmails,
 			ConcurrentHashMap<String, String> rosterAndGoogleCompareList, HttpServletResponse response, TcSessionData tcSessionData) throws Exception {
 		int rostersize = rosterAndGoogleCompareList.size();
-		int updateCount = 0;
+		int numeberOfPermissionsRemoved = 0;
 		for ( Entry<String, String> entry : rosterAndGoogleCompareList.entrySet()) {
 		    String emailAddress = entry.getKey();
 		    String permissionIDOfEachPersonWithGoogleAccount = entry.getValue();
 		    if (!getIsEmpty(emailAddress)
 					&& !handler.getIsInstructor(emailAddress)) {
 					if (handler.removePermission(permissionIDOfEachPersonWithGoogleAccount)) {
-						updateCount++;
+						numeberOfPermissionsRemoved++;
 					}
 				
 			}
 		}
-		if(updateCount==(rostersize-1)) {
+		if(numeberOfPermissionsRemoved==(rostersize-1)) {
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.getWriter().print(SUCCESS);
 		}
 		else {
-			if(flag<1) {
-			flag++;
-			removePermissionCheck(handler, sendNotificationEmails, rosterAndGoogleCompareList, response, tcSessionData);
-			}
-			else {
-				flag=0;
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				response.getWriter().print(resource.getString("permission.error.six"));
 				StringBuilder s=new StringBuilder();
@@ -978,7 +976,6 @@ public class GoogleLtiServlet extends HttpServlet {
 				s.append(tcSessionData.getContextId());
 				s.append("\"");
 				M_log.error(s.toString());
-			}
 			
 		}
 	}
