@@ -90,7 +90,7 @@ bootbox.setDefaults({
 function showLinkedGoogleFolders() {
 	var folders = getConfigLinkedFolders();
 	if (typeof(folders) !== 'undefined') {
-		showLinkedGoogleFolder(folders);
+		showLinkedGoogleFolder(folders[0]);
 	}
 }
 
@@ -126,7 +126,7 @@ function showLinkedGoogleFolder(folderId, foldersOnly) {
 	);
 }
 
-
+var fileTree = null;
 
 /**
  * Displays the given folder on the page, so the user can open it in another
@@ -141,66 +141,65 @@ function showLinkedGoogleFolderCallback(file, depth, foldersOnly) {
 		if (!findFileInFileTreeTable(file.id)) {
 			addFileToFileTreeTable(file, null, file.id, depth, foldersOnly);
 		}
-		
-		getFoldersChildren(file, file.id, depth, foldersOnly);
+
+		getFoldersChildren(file.id, file.id, depth, foldersOnly);
 	}
 }
 
 /**
- * This finds any direct children of the given folder, and that I have the right
- * to view, and displays them on the page. This is recursive, and will find the
- * tree of files I have access to in the folder tree. It will not find a
- * folder's grand-children if I do not have read access to its sub-folders, even
- * if I have rights to see the grand-children.
+ * This finds any direct children of the given parent folder ID and displays
+ * them on the page. If "foldersOnly" is set to `true`, the list of children is
+ * restricted to folders owned by the current user. This is recursive, and will
+ * find the tree of files to which the user has access in the folder tree. It
+ * will not find a folder's grandchildren if the user doesn't have read access
+ * to its subfolders, even if the user has rights to see the grandchildren.
  * 
- * @param folder
- *            The parent folder to search
+ * @param parentFolderId
+ *            String ID of the parent folder to search
  * @param linkedFolderId
- *            ID of the linked folder this file belongs to
+ *            String ID of the linked folder this file belongs to
  * @param depth
- *            Number of indentation levels
- * @param fodlersOnly
+ *            Integer number of indentation levels
+ * @param foldersOnly
  *            Boolean indicating whether only folders should be queried
  */
-function getFoldersChildren(folder, linkedFolderId, depth, foldersOnly) {
+function getFoldersChildren(parentFolderId, linkedFolderId, depth, foldersOnly) {
 	foldersOnly = (foldersOnly === true);
 
-	var query = "'" + folder.id + "' in parents";
+	var queryFolderId = parentFolderId;
+
+	if (queryFolderId == null) {
+		queryFolderId = 'root';
+	}
+
+	var query = "'" + queryFolderId + "' in parents";
 
 	if (foldersOnly) {
-		query += " and mimeType = 'application/vnd.google-apps.folder' and '" + userEmailAddress + "' in owners";
+		query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
 	}
 
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {
-		getFoldersChildrenCallback(data, folder, linkedFolderId, depth,
-				foldersOnly);
-	});
-}
+		var childDepth = depth;
 
-/**
- * This handles results for query run by getFoldersChildren(); see that function
- * for explanation.
- * 
- * @param data	Child files for the parent folder
- * @param parentFolder Google object for the parent folder
- * @param linkedFolderId ID of the linked folder this file belongs to
- * @param parentDepth # of parents from this file's parent folder to linked folder
- */
-function getFoldersChildrenCallback(data, parentFolder, linkedFolderId, parentDepth, foldersOnly) {
-	var childDepth = parentDepth + 1;
-	if ((data != null) && (typeof(data.items) !== 'undefined')) {
-		var files = data.items;
-		for (var fileIdx in files) {
-			var file = files[fileIdx];
-			if (!findFileInFileTreeTable(file.id)) {
-				addFileToFileTreeTable(file, parentFolder.id, linkedFolderId, childDepth, foldersOnly);
-			}
-			// If folder, search for its children (recursively)
-			if (file.mimeType === 'application/vnd.google-apps.folder') {
-				getFoldersChildren(file, linkedFolderId, childDepth, foldersOnly);
-			}
+		if (parentFolderId != null) {
+			childDepth++;
 		}
-	}
+
+		if ((data != null) && (typeof (data.items) !== 'undefined')) {
+			$.each(data.items, function(key, file) {
+				if (!findFileInFileTreeTable(file.id)) {
+					addFileToFileTreeTable(file, parentFolderId,
+							linkedFolderId, childDepth, foldersOnly);
+				}
+
+				// If folder, search for its children (recursively)
+				if (file.mimeType === 'application/vnd.google-apps.folder') {
+					getFoldersChildren(file.id, linkedFolderId, childDepth,
+							foldersOnly);
+				}
+			});
+		}
+	});
 }
 
 /**
@@ -836,6 +835,7 @@ function giveCurrentUserPermissions(folderId) {
 								folderId,
 								function(data) {
 									// Linked folders are all depth 0 (no parents)
+									// TODO: can we call getFoldersChildren() instead, using folderId?
 									showLinkedGoogleFolderCallback(data, 0);
 								});
 					}
@@ -1187,6 +1187,25 @@ var FOLDER_TREE_SHARE_COLUMN_EMPTY_TEMPLATE = '\
 	</td> \
 	';
 
+function initializeFileTree(fileTreeDivSelector) {
+	var newFileTree = $(fileTreeDivSelector).first();
+	
+	if (newFileTree.length == 1) {
+		// check_callback: allow all tree changes
+		fileTree = $(fileTreeDivSelector).first().jstree({
+			core : {
+				check_callback : true
+			},
+			plugins : [ 'sort' ],
+		}).jstree(true);
+	} else {
+		fileTree = null;
+	}
+	
+	// return to allow chain-ability
+	return fileTree;
+}
+
 /**
  * Displays the given Google file on the screen, allowing the user to click on
  * the file to open it.  It also gives instructor options to unlink a linked
@@ -1202,6 +1221,20 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 {
 	foldersOnly = (foldersOnly === true);
 	
+//	console.log('addFileToFileTreeTable');
+//	console.log(file);
+//	console.log(parentFolderId);
+//	console.log(linkedFolderId);
+//	console.log(treeDepth);
+//	console.log(foldersOnly);
+
+	if (fileTree) {
+		fileTree.create_node((parentFolderId == null) ? '#' : parentFolderId, {
+			text : escapeDoubleQuotes(escapeHtml(file.title)),
+			id : file.id,
+		});
+	}
+
 	var fileIndentCss = '';
 	if (treeDepth > 0) {
 		fileIndentCss = 'padding-left: ' + (treeDepth * FILE_DEPTH_PADDING_PX) + 'px;';

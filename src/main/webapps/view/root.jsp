@@ -81,6 +81,10 @@ String contextLabel =(String)request.getAttribute("contextLabel");
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
 <script src="js/bootbox.4.1.0.min.js"></script>
+
+<link rel="stylesheet" href="//www-personal.umich.edu/~lsloan/js/jstree/themes/default/style.min.css" />
+<script type="text/javascript" src="//www-personal.umich.edu/~lsloan/js/jstree/jstree.min.js"></script>
+
 <script src="js/utils.js" type="text/javascript"></script>
 <script src="js/google-drive-utils.js" type="text/javascript"></script>
 <script src="js/googleDriveLti.js" type="text/javascript"></script>

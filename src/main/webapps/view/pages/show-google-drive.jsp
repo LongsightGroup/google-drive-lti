@@ -72,6 +72,8 @@
 
 <div id="alertContainer" class="clearfix"></div>
 
+<!-- div id="jstree"></div -->
+
 <table class="table table-striped table-bordered table-hover"
 	width="100%">
 	<tbody id="FileTreeTableTbody">
@@ -91,6 +93,8 @@
 			} else {
 				$('#par2').show();
 			}
+
+			initializeFileTree('#jstree');
 
 			showLinkedGoogleFolders();
 		}

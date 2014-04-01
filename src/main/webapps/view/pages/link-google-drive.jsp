@@ -25,6 +25,8 @@
 
 <div id="alertContainer" class="clearfix"></div>
 
+<!-- div id="jstree"></div -->
+
 <table class="table table-striped table-bordered table-hover"
 	width="100%">
 	<tbody id="FileTreeTableTbody">
@@ -37,11 +39,19 @@
 			$('#par3').show();
 		}
 
-		var rootFolderId = 'root';  // GD's special ID for root of user's drive
+		initializeFileTree('#jstree');
+
+		// A null folder ID refers to the user's GD root folder
+		var parentFolderId = null;
+		var linkedFolderId = null;
+		var depth = 0;
 		var foldersOnly = true;
-		showLinkedGoogleFolder(rootFolderId, foldersOnly);
+
+		getFoldersChildren(parentFolderId, linkedFolderId, depth, foldersOnly);
 		
+		// TODO: remove call to searchItems() after file tree is obsolete
 		searchItems();
 		checkBackButtonHit();
+
 	});
 </script>
