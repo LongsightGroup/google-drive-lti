@@ -163,7 +163,7 @@ function showLinkedGoogleFolderCallback(file, depth, foldersOnly) {
  * @param foldersOnly
  *            Boolean indicating whether only folders should be queried
  */
-function getFoldersChildren(parentFolderId, linkedFolderId, depth, foldersOnly) {
+function getFoldersChildren(parentFolderId, linkedFolderId, indentationDepth, foldersOnly) {
 	foldersOnly = (foldersOnly === true);
 
 	var queryFolderId = parentFolderId;
@@ -179,22 +179,22 @@ function getFoldersChildren(parentFolderId, linkedFolderId, depth, foldersOnly) 
 	}
 
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {
-		var childDepth = depth;
+		var childIndentationDepth = indentationDepth;
 
 		if (parentFolderId != null) {
-			childDepth++;
+			childIndentationDepth++;
 		}
 
 		if ((data != null) && (typeof (data.items) !== 'undefined')) {
 			$.each(data.items, function(key, file) {
 				if (!findFileInFileTreeTable(file.id)) {
 					addFileToFileTreeTable(file, parentFolderId,
-							linkedFolderId, childDepth, foldersOnly);
+							linkedFolderId, childIndentationDepth, foldersOnly);
 				}
 
 				// If folder, search for its children (recursively)
 				if (file.mimeType === 'application/vnd.google-apps.folder') {
-					getFoldersChildren(file.id, linkedFolderId, childDepth,
+					getFoldersChildren(file.id, linkedFolderId, childIndentationDepth,
 							foldersOnly);
 				}
 			});
@@ -1187,21 +1187,44 @@ var FOLDER_TREE_SHARE_COLUMN_EMPTY_TEMPLATE = '\
 	</td> \
 	';
 
+// Node types supported for sorting purposes
+var NODE_TYPE_FOLDER = 'NODE_TYPE_FOLDER';
+var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
+
 function initializeFileTree(fileTreeDivSelector) {
 	var newFileTree = $(fileTreeDivSelector).first();
-	
+
 	if (newFileTree.length == 1) {
 		// check_callback: allow all tree changes
-		fileTree = $(fileTreeDivSelector).first().jstree({
-			core : {
-				check_callback : true
-			},
-			plugins : [ 'sort' ],
-		}).jstree(true);
+		fileTree = $(fileTreeDivSelector).first().jstree(
+				{
+					core : {
+						check_callback : true
+					},
+					plugins : [ 'sort', 'types' ],
+					sort : function(nodeIdA, nodeIdB) {
+						var returnValue;
+
+						// sort by type, then by text
+						if (this.get_type(nodeIdA) === this.get_type(nodeIdB)) {
+							returnValue = this.get_text(nodeIdA).localeCompare(
+									this.get_text(nodeIdB));
+						} else {
+							returnValue = this.get_type(nodeIdA) >= this
+									.get_type(nodeIdB);
+						}
+
+						return returnValue;
+					},
+					types : {
+						NODE_TYPE_FOLDER : {},
+						NODE_TYPE_NONFOLDER : {},
+					}
+				}).jstree(true);
 	} else {
 		fileTree = null;
 	}
-	
+
 	// return to allow chain-ability
 	return fileTree;
 }
@@ -1228,10 +1251,15 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 //	console.log(treeDepth);
 //	console.log(foldersOnly);
 
+	var isFolder = getIsFolder(file.mimeType);
+
 	if (fileTree) {
+		var escapedTitle = escapeDoubleQuotes(escapeHtml(file.title));
 		fileTree.create_node((parentFolderId == null) ? '#' : parentFolderId, {
-			text : escapeDoubleQuotes(escapeHtml(file.title)),
+			text : escapedTitle,
+			type : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
 			id : file.id,
+			icon: file.iconLink
 		});
 	}
 
@@ -1240,7 +1268,6 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 		fileIndentCss = 'padding-left: ' + (treeDepth * FILE_DEPTH_PADDING_PX) + 'px;';
 	}
 	var dropdownTemplate = '';
-	var isFolder = (getIsFolder(file.mimeType));
 	var expandShrinkOption = '';
 	if (isFolder) {
 		expandShrinkOption = '<a href="#" class="expandShrink" onclick="toggleExpandShrink(\'' + file.id + '\');"><em></em><span class="expandShringFolderTitle  sr-only">' + escapeAllQuotes(escapeHtml(file.title)) + '</span>&nbsp;</a>';
