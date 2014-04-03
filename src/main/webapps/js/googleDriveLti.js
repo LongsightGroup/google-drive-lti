@@ -146,6 +146,26 @@ function showLinkedGoogleFolderCallback(file, depth, foldersOnly) {
 	}
 }
 
+function getChildren(folderId, foldersOnly, callback) {
+	foldersOnly = (foldersOnly === true);
+
+	var queryFolderId = folderId;
+
+	if ((queryFolderId == null) || (queryFolderId == '#')) {
+		queryFolderId = 'root';
+	}
+
+	var query = "'" + queryFolderId + "' in parents";
+
+	if (foldersOnly) {
+		query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
+	}
+
+	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {
+		callback(data.items);
+	});
+}
+
 /**
  * This finds any direct children of the given parent folder ID and displays
  * them on the page. If "foldersOnly" is set to `true`, the list of children is
@@ -1192,35 +1212,100 @@ var NODE_TYPE_FOLDER = 'NODE_TYPE_FOLDER';
 var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
 
 function initializeFileTree(fileTreeDivSelector) {
-	var newFileTree = $(fileTreeDivSelector).first();
+	var fileTreeDiv = $(fileTreeDivSelector).first();
 
-	if (newFileTree.length == 1) {
+	if (fileTreeDiv.length == 1) {
 		// check_callback: allow all tree changes
-		fileTree = $(fileTreeDivSelector).first().jstree(
-				{
-					core : {
-						check_callback : true
-					},
-					plugins : [ 'sort', 'types' ],
-					sort : function(nodeIdA, nodeIdB) {
-						var returnValue;
+		fileTree = fileTreeDiv.jstree({
+			'plugins' : [ 'sort', 'types' ],
+			'sort' : function(nodeIdA, nodeIdB) {
+				var returnValue;
 
-						// sort by type, then by text
-						if (this.get_type(nodeIdA) === this.get_type(nodeIdB)) {
-							returnValue = this.get_text(nodeIdA).localeCompare(
-									this.get_text(nodeIdB));
-						} else {
-							returnValue = this.get_type(nodeIdA) >= this
-									.get_type(nodeIdB);
+				// sort by type, then by text
+				if (this.get_type(nodeIdA) === this.get_type(nodeIdB)) {
+					returnValue = this.get_text(nodeIdA).localeCompare(
+							this.get_text(nodeIdB));
+				} else {
+					returnValue = this.get_type(nodeIdA) >= this
+							.get_type(nodeIdB);
+				}
+
+				return returnValue;
+			},
+			'types' : {
+				NODE_TYPE_FOLDER : {},
+				NODE_TYPE_NONFOLDER : {},
+			},
+			'core' : {
+				// 'check_callback' : true,
+				'data' : {
+					// when url and data are specified, core.data
+					// contains params for jQuery.ajax()
+					'url' : function(node) {
+						return _getGoogleDriveUrl();
+					},
+					'data' : function(node) {
+						var queryFolderId = (node.id == '#') ? 'root' : node.id;
+						var query = "'" + queryFolderId + "' in parents";
+
+						var foldersOnly = false;
+						if (foldersOnly) {
+							query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
 						}
 
-						return returnValue;
+						query += ' and trashed = false';
+
+						return {
+							'access_token' : getGoogleAccessToken(),
+							'q':  query,
+							// Setting max page results to highest value Google "may" support
+							//'maxResults' : MAX_RESULTS_PER_PAGE
+						};
 					},
-					types : {
-						NODE_TYPE_FOLDER : {},
-						NODE_TYPE_NONFOLDER : {},
+					'dataFilter' : function(rawResponseText, type) {
+						var data = JSON.parse(rawResponseText);
+						var nodeData = [];
+
+						if (data) {
+							$.each(data.items, function(key, item) {
+								var isFolder = getIsFolder(item.mimeType);
+								
+								nodeData.push({
+									id : item.id,
+									text : escapeHtml(item.title),
+									icon : item.iconLink,
+									type : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
+											// FIXME: if folder, query for children to set "children" property
+									children : isFolder,
+									a_attr : {
+										'data-alternateLink' : item.alternateLink,
+									},
+								});
+							});
+						}
+
+						return JSON.stringify(nodeData);
+					},
+					'success' : function(result) {
 					}
-				}).jstree(true);
+				}
+			},
+		}).jstree(true);
+
+		fileTreeDiv.on('select_node.jstree', function(node, action) {
+			console.log(action.node);
+			
+			var suppressChangedEvent = true;
+			fileTree.deselect_all(suppressChangedEvent);
+			
+			window.open(action.node.a_attr['data-alternateLink'], '_blank');
+		});
+		
+		fileTreeDiv.on('model.jstree', function(nodes, parentId) {
+			console.log('model.jstree...');
+			console.log(nodes);
+			console.log(parentId);
+		});
 	} else {
 		fileTree = null;
 	}
@@ -1231,14 +1316,18 @@ function initializeFileTree(fileTreeDivSelector) {
 
 /**
  * Displays the given Google file on the screen, allowing the user to click on
- * the file to open it.  It also gives instructor options to unlink a linked
+ * the file to open it. It also gives instructor options to unlink a linked
  * folder or to create subfolder or documents in the folder.
  * 
- * @param file Google file being added to the table
- * @param parentFolderId ID of the folder this file is child of
- * @param linkedFolderId ID of the linked folder this file belongs to; null when
- * this file is the linked folder
- * @param treeDepth	Number of parents of this file including the linked folder
+ * @param file
+ *            Google file being added to the table
+ * @param parentFolderId
+ *            ID of the folder this file is child of
+ * @param linkedFolderId
+ *            ID of the linked folder this file belongs to; null when this file
+ *            is the linked folder
+ * @param treeDepth
+ *            Number of parents of this file including the linked folder
  */
 function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth, foldersOnly)
 {
