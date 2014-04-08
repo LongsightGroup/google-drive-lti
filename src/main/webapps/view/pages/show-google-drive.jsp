@@ -94,7 +94,8 @@
 				$('#par2').show();
 			}
 
-			initializeFileTree('#jstree');
+			var onlyOwnedFolders = false;
+			initializeFileTree('#jstree', onlyOwnedFolders);
 
 			showLinkedGoogleFolders();
 		}
