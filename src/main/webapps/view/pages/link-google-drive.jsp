@@ -25,13 +25,15 @@
 
 <div id="alertContainer" class="clearfix"></div>
 
-<!-- div id="jstree"></div -->
+<!--  button id="removeChildren">Remove Children</button  -->
 
-<table class="table table-striped table-bordered table-hover"
+<div id="jstree"></div>
+
+<!-- <table class="table table-striped table-bordered table-hover"
 	width="100%">
 	<tbody id="FileTreeTableTbody">
 	</tbody>
-</table>
+</table> -->
 
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -39,7 +41,6 @@
 			$('#par3').show();
 		}
 
-		initializeFileTree('#jstree');
 
 		// A null folder ID refers to the user's GD root folder
 		var parentFolderId = null;
@@ -47,7 +48,9 @@
 		var depth = 0;
 		var foldersOnly = true;
 
-		getFoldersChildren(parentFolderId, linkedFolderId, depth, foldersOnly);
+		var onlyOwnedFolders = true;
+		initializeFileTree('#jstree', {'onlyOwnedFolders': true});
+		//getFoldersChildren(parentFolderId, linkedFolderId, depth, foldersOnly);
 		
 		// TODO: remove call to searchItems() after file tree is obsolete
 		searchItems();

@@ -1211,13 +1211,71 @@ var FOLDER_TREE_SHARE_COLUMN_EMPTY_TEMPLATE = '\
 var NODE_TYPE_FOLDER = 'NODE_TYPE_FOLDER';
 var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
 
-function initializeFileTree(fileTreeDivSelector) {
+/**
+ * @param fileTreeDivSelector
+ * @param options
+ *            Object containing optional parameters: <blockquote>
+ *            <dl>
+ *            <dt>appendContentConfig
+ *            <dt>
+ *            <dd>An object containing configuration for the appendContent
+ *            plugin of jsTree</dd>
+ *            <dt>onlyOwnedFolders</dt>
+ *            <dd>Boolean value indicating whether only GD folders owned by
+ *            current user will be shown.</dd>
+ *            </dl>
+ *            </blockquote>
+ * @returns Initialized jsTree object
+ */
+function initializeFileTree(fileTreeDivSelector, options) {
+	var onlyOwnedFolders = (options.onlyOwnedFolders === true);
 	var fileTreeDiv = $(fileTreeDivSelector).first();
 
 	if (fileTreeDiv.length == 1) {
-		// check_callback: allow all tree changes
+		$.jstree.defaults.appendContent = {
+			'content' : null,
+			'callback' : $.noop,
+			'className' : 'jstree-appendContent',
+		};
+
+		$.jstree.plugins.appendContent = function(options, parent) {
+			this.bind = function() {
+				parent.bind.call(this);
+
+				if (this.settings.appendContent.callback != null) {
+					this.element.on('click.jstree', '.'
+							+ this.settings.appendContent.className, $.proxy(
+							function(e) {
+								e.stopImmediatePropagation();
+								this.settings.appendContent.callback.call(this,
+										this.get_node(e.target));
+							}, this));
+				}
+			};
+
+			this.teardown = function() {
+				if (this.settings.appendContent) {
+					this.element.find(
+							'.' + this.settings.appendContent.className)
+							.remove();
+				}
+				parent.teardown.call(this);
+			};
+
+			this.redraw_node = function(obj, deep, callback) {
+				obj = parent.redraw_node.call(this, obj, deep, callback);
+				if (obj) {
+					$('a', obj).first().after(
+						$(this.settings.appendContent.content).clone()
+							.addClass(this.settings.appendContent.className)
+					);
+				}
+				return obj;
+			};
+		};
+
 		fileTree = fileTreeDiv.jstree({
-			'plugins' : [ 'sort', 'types' ],
+			'plugins' : [ 'sort', 'types', 'appendContent' ],
 			'sort' : function(nodeIdA, nodeIdB) {
 				var returnValue;
 
@@ -1236,24 +1294,30 @@ function initializeFileTree(fileTreeDivSelector) {
 				NODE_TYPE_FOLDER : {},
 				NODE_TYPE_NONFOLDER : {},
 			},
+			'appendContent' : {
+				'content' : $('<a>', {
+							'href' : '#',
+							// this bootstrap version uses "btn-mini", new version uses "btn-xs"
+							'class' : 'btn btn-xs btn-mini btn-default',
+							'html' : 'Share Folder',
+				}),
+				'callback' : function(node) {
+					console.log(node);
+					linkFolder(node.id, node.text);
+				},
+			},
 			'core' : {
-				// 'check_callback' : true,
 				'data' : {
-					// when url and data are specified, core.data
-					// contains params for jQuery.ajax()
 					'url' : function(node) {
 						return _getGoogleDriveUrl();
 					},
 					'data' : function(node) {
 						var queryFolderId = (node.id == '#') ? 'root' : node.id;
-						var query = "'" + queryFolderId + "' in parents";
+						var query = "'" + queryFolderId + "' in parents and trashed = false";
 
-						var foldersOnly = false;
-						if (foldersOnly) {
+						if (onlyOwnedFolders === true) {
 							query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
 						}
-
-						query += ' and trashed = false';
 
 						return {
 							'access_token' : getGoogleAccessToken(),
@@ -1269,15 +1333,15 @@ function initializeFileTree(fileTreeDivSelector) {
 						if (data) {
 							$.each(data.items, function(key, item) {
 								var isFolder = getIsFolder(item.mimeType);
-								
+
 								nodeData.push({
-									id : item.id,
-									text : escapeHtml(item.title),
-									icon : item.iconLink,
-									type : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
+									'id' : item.id,
+									'text' : escapeHtml(item.title),
+									'icon' : item.iconLink,
+									'type' : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
 											// FIXME: if folder, query for children to set "children" property
-									children : isFolder,
-									a_attr : {
+									'children' : isFolder,
+									'a_attr' : {
 										'data-alternateLink' : item.alternateLink,
 									},
 								});
@@ -1292,19 +1356,33 @@ function initializeFileTree(fileTreeDivSelector) {
 			},
 		}).jstree(true);
 
-		fileTreeDiv.on('select_node.jstree', function(node, action) {
-			console.log(action.node);
-			
-			var suppressChangedEvent = true;
-			fileTree.deselect_all(suppressChangedEvent);
-			
-			window.open(action.node.a_attr['data-alternateLink'], '_blank');
+		/**
+		 * When a node is clicked, rather than selecting it, open the URL
+		 * stored in its anchor element's "data-alternateLink" attribute.
+		 */
+		fileTreeDiv.on('select_node.jstree', function(event, data) {
+			fileTree.deselect_all(suppressChangedEvent = true);
+
+			window.open(data.node.a_attr['data-alternateLink'], '_blank');
 		});
-		
-		fileTreeDiv.on('model.jstree', function(nodes, parentId) {
-			console.log('model.jstree...');
-			console.log(nodes);
-			console.log(parentId);
+
+		/** 
+		 * Remove children example
+		 * TODO: Move this to a function
+		 */
+		$('button#removeChildren').on('click', function() {
+			var id = '0B4lerVE9_isbLWNnNUx5aXVZVTA';
+			console.log(id);
+			var node = fileTree.get_node(id);
+			console.log(node);
+
+			node.state.loaded = true;
+			node.children = [];
+
+			node = fileTree.get_node(id, true);
+			if (node) {
+				node.removeClass("jstree-closed").addClass("jstree-leaf");
+			}
 		});
 	} else {
 		fileTree = null;
@@ -1333,24 +1411,17 @@ function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth,
 {
 	foldersOnly = (foldersOnly === true);
 	
-//	console.log('addFileToFileTreeTable');
-//	console.log(file);
-//	console.log(parentFolderId);
-//	console.log(linkedFolderId);
-//	console.log(treeDepth);
-//	console.log(foldersOnly);
-
 	var isFolder = getIsFolder(file.mimeType);
 
-	if (fileTree) {
-		var escapedTitle = escapeDoubleQuotes(escapeHtml(file.title));
-		fileTree.create_node((parentFolderId == null) ? '#' : parentFolderId, {
-			text : escapedTitle,
-			type : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
-			id : file.id,
-			icon: file.iconLink
-		});
-	}
+//	if (fileTree) {
+//		var escapedTitle = escapeDoubleQuotes(escapeHtml(file.title));
+//		fileTree.create_node((parentFolderId == null) ? '#' : parentFolderId, {
+//			text : escapedTitle,
+//			type : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
+//			id : file.id,
+//			icon: file.iconLink
+//		});
+//	}
 
 	var fileIndentCss = '';
 	if (treeDepth > 0) {
