@@ -72,7 +72,7 @@
 
 <div id="alertContainer" class="clearfix"></div>
 
-<!-- div id="jstree"></div -->
+<div id="jstree"></div>
 
 <table class="table table-striped table-bordered table-hover"
 	width="100%">
@@ -90,12 +90,12 @@
 
 			if (list && list.length > 0) {
 				$('#par1').show();
+				initializeFileTree('#jstree', {
+					'folderId' : list[0]
+				});
 			} else {
 				$('#par2').show();
 			}
-
-			var onlyOwnedFolders = false;
-			initializeFileTree('#jstree', onlyOwnedFolders);
 
 			showLinkedGoogleFolders();
 		}

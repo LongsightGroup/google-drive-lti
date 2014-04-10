@@ -1216,8 +1216,7 @@ var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
  * @param options
  *            Object containing optional parameters: <blockquote>
  *            <dl>
- *            <dt>appendContentConfig
- *            <dt>
+ *            <dt>appendContentConfig </dt>
  *            <dd>An object containing configuration for the appendContent
  *            plugin of jsTree</dd>
  *            <dt>onlyOwnedFolders</dt>
@@ -1228,7 +1227,15 @@ var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
  * @returns Initialized jsTree object
  */
 function initializeFileTree(fileTreeDivSelector, options) {
-	var onlyOwnedFolders = (options.onlyOwnedFolders === true);
+	var onlyOwnedFolders = false;
+	var folderId = 'root';
+	
+	if (typeof(options) != 'undefined') {
+		onlyOwnedFolders = (options.hasOwnProperty('onlyOwnedFolders')) ? (options.onlyOwnedFolders === true) : onlyOwnedFolders;
+		
+		folderId = (options.hasOwnProperty('folderId')) ? options.folderId : folderId;
+	}
+	
 	var fileTreeDiv = $(fileTreeDivSelector).first();
 
 	if (fileTreeDiv.length == 1) {
@@ -1262,15 +1269,73 @@ function initializeFileTree(fileTreeDivSelector, options) {
 				parent.teardown.call(this);
 			};
 
-			this.redraw_node = function(obj, deep, callback) {
-				obj = parent.redraw_node.call(this, obj, deep, callback);
-				if (obj) {
-					$('a', obj).first().after(
-						$(this.settings.appendContent.content).clone()
-							.addClass(this.settings.appendContent.className)
-					);
+			this.redraw_node = function(node, deep, isCallback) {
+				console.log('redraw_node...');
+				console.log(node);
+				
+				node = parent.redraw_node.call(this, node, deep, isCallback);
+
+				if (node) {
+					var nodeAnchor = $('a', node).first();
+					var isRootNode = (typeof(nodeAnchor.attr('data-rootNode')) != 'undefined');
+					
+					if (isRootNode) {
+						// FIXME: this should check for site maintainer
+						if (!onlyOwnedFolders) {
+							nodeAnchor.after(
+									$('<a>', {
+										'href' : '#',
+										// this bootstrap version uses "btn-mini", new version uses "btn-xs"
+										'class' : 'btn btn-xs btn-mini btn-default',
+										'html' : 'Unshare',
+									})
+									.addClass(this.settings.appendContent.className)
+							);
+						}
+					} else {
+						if (!onlyOwnedFolders && nodeAnchor.attr('data-isFolder')) {
+							var addButton = $('<a>', {
+								'href' : '#',
+								// this bootstrap version uses "btn-mini", new version uses "btn-xs"
+								'class' : 'dropdown-toggle btn btn-xs btn-mini btn-default',
+								'html' : 'Add',
+							})
+							.addClass(this.settings.appendContent.className);
+							
+							// TODO: try to re-use the existing dropdown menu code
+							//var addButton = $('#FolderDropdownTemplate').clone()
+							//	.addClass(this.settings.appendContent.className);
+							
+							nodeAnchor.after(addButton);
+							nodeAnchor = addButton;
+						}
+
+						if (onlyOwnedFolders) {
+							nodeAnchor.after(
+									$('<a>', {
+										'href' : '#',
+										// this bootstrap version uses "btn-mini", new version uses "btn-xs"
+										'class' : 'btn btn-xs btn-mini btn-default',
+										'html' : 'Share Folder',
+										//'onclick' : 'linkFolder(' + node.attr('id') + ', ' + node.html() + ')',
+									})
+									.addClass(this.settings.appendContent.className)
+							);
+						} else {
+							nodeAnchor.after(
+									$('<a>', {
+										'href' : '#',
+										// this bootstrap version uses "btn-mini", new version uses "btn-xs"
+										'class' : 'btn btn-xs btn-mini btn-default',
+										'html' : 'Delete',
+									})
+									.addClass(this.settings.appendContent.className)
+							);
+						}
+					}
 				}
-				return obj;
+
+				return node;
 			};
 		};
 
@@ -1309,43 +1374,71 @@ function initializeFileTree(fileTreeDivSelector, options) {
 			'core' : {
 				'data' : {
 					'url' : function(node) {
-						return _getGoogleDriveUrl();
+						return _getGoogleDriveUrl((node.id == '#') ? folderId : null);
 					},
 					'data' : function(node) {
-						var queryFolderId = (node.id == '#') ? 'root' : node.id;
-						var query = "'" + queryFolderId + "' in parents and trashed = false";
+						var queryFolderId = node.id;
+						var query = '';
+						var data = {
+								'access_token' : getGoogleAccessToken(),
+								// Setting max page results to highest value Google "may" support
+								//'maxResults' : MAX_RESULTS_PER_PAGE
+						};
+						
+						if (queryFolderId != '#') {
+							query += "'" + queryFolderId + "' in parents and trashed = false";
 
-						if (onlyOwnedFolders === true) {
-							query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
+							if (onlyOwnedFolders === true) {
+								query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
+							}
+							
+							data.q = query;
 						}
 
-						return {
-							'access_token' : getGoogleAccessToken(),
-							'q':  query,
-							// Setting max page results to highest value Google "may" support
-							//'maxResults' : MAX_RESULTS_PER_PAGE
-						};
+						return data;
 					},
 					'dataFilter' : function(rawResponseText, type) {
 						var data = JSON.parse(rawResponseText);
 						var nodeData = [];
+						
+						itemToNodeData = function(item) {
+							var isFolder = getIsFolder(item.mimeType);
+							var newNodeData =  {
+								'id' : item.id,
+								'text' : escapeHtml(item.title),
+								'icon' : item.iconLink,
+								'type' : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
+										// FIXME: if folder, query for children to set "children" property
+								'children' : isFolder,
+								'a_attr' : {
+									'data-alternateLink' : item.alternateLink,
+								},
+							};
+
+							if (isFolder) {
+								newNodeData.a_attr['data-isFolder'] = true; 
+							}
+							
+							return newNodeData;
+						};
 
 						if (data) {
-							$.each(data.items, function(key, item) {
-								var isFolder = getIsFolder(item.mimeType);
-
-								nodeData.push({
-									'id' : item.id,
-									'text' : escapeHtml(item.title),
-									'icon' : item.iconLink,
-									'type' : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
-											// FIXME: if folder, query for children to set "children" property
-									'children' : isFolder,
-									'a_attr' : {
-										'data-alternateLink' : item.alternateLink,
-									},
+							if (data.hasOwnProperty('items')) {
+								$.each(data.items, function(key, item) {
+									nodeData.push(itemToNodeData(item));
 								});
-							});
+							} else {
+								// TODO: Something here to expand this top-level item by default
+								var newNodeData = itemToNodeData(data);
+								
+								newNodeData.a_attr['data-rootNode'] = true;
+								newNodeData.state = {
+										'opened' : true
+								};
+								
+								nodeData.push(newNodeData);
+							}
+							
 						}
 
 						return JSON.stringify(nodeData);

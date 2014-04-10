@@ -41,17 +41,17 @@
 			$('#par3').show();
 		}
 
-
 		// A null folder ID refers to the user's GD root folder
 		var parentFolderId = null;
 		var linkedFolderId = null;
 		var depth = 0;
 		var foldersOnly = true;
 
-		var onlyOwnedFolders = true;
-		initializeFileTree('#jstree', {'onlyOwnedFolders': true});
+		initializeFileTree('#jstree', {
+			'onlyOwnedFolders' : true
+		});
 		//getFoldersChildren(parentFolderId, linkedFolderId, depth, foldersOnly);
-		
+
 		// TODO: remove call to searchItems() after file tree is obsolete
 		searchItems();
 		checkBackButtonHit();
