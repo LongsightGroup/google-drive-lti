@@ -1207,6 +1207,9 @@ var FOLDER_TREE_SHARE_COLUMN_EMPTY_TEMPLATE = '\
 	</td> \
 	';
 
+var itemCache = {};
+var rootNodeId = null;
+
 // Node types supported for sorting purposes
 var NODE_TYPE_FOLDER = 'NODE_TYPE_FOLDER';
 var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
@@ -1229,13 +1232,15 @@ var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
 function initializeFileTree(fileTreeDivSelector, options) {
 	var onlyOwnedFolders = false;
 	var folderId = 'root';
-	
-	if (typeof(options) != 'undefined') {
-		onlyOwnedFolders = (options.hasOwnProperty('onlyOwnedFolders')) ? (options.onlyOwnedFolders === true) : onlyOwnedFolders;
-		
-		folderId = (options.hasOwnProperty('folderId')) ? options.folderId : folderId;
+
+	if (typeof (options) != 'undefined') {
+		onlyOwnedFolders = (options.hasOwnProperty('onlyOwnedFolders')) ? (options.onlyOwnedFolders === true)
+				: onlyOwnedFolders;
+
+		folderId = (options.hasOwnProperty('folderId')) ? options.folderId
+				: folderId;
 	}
-	
+
 	var fileTreeDiv = $(fileTreeDivSelector).first();
 
 	if (fileTreeDiv.length == 1) {
@@ -1246,222 +1251,229 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		};
 
 		$.jstree.plugins.appendContent = function(options, parent) {
-			this.bind = function() {
-				parent.bind.call(this);
-
-				if (this.settings.appendContent.callback != null) {
-					this.element.on('click.jstree', '.'
-							+ this.settings.appendContent.className, $.proxy(
-							function(e) {
-								e.stopImmediatePropagation();
-								this.settings.appendContent.callback.call(this,
-										this.get_node(e.target));
-							}, this));
-				}
-			};
-
-			this.teardown = function() {
-				if (this.settings.appendContent) {
-					this.element.find(
-							'.' + this.settings.appendContent.className)
-							.remove();
-				}
-				parent.teardown.call(this);
-			};
-
 			this.redraw_node = function(node, deep, isCallback) {
-				console.log('redraw_node...');
-				console.log(node);
-				
 				node = parent.redraw_node.call(this, node, deep, isCallback);
 
 				if (node) {
-					var nodeAnchor = $('a', node).first();
-					var isRootNode = (typeof(nodeAnchor.attr('data-rootNode')) != 'undefined');
-					
-					if (isRootNode) {
-						// FIXME: this should check for site maintainer
-						if (!onlyOwnedFolders) {
-							nodeAnchor.after(
-									$('<a>', {
-										'href' : '#',
-										// this bootstrap version uses "btn-mini", new version uses "btn-xs"
-										'class' : 'btn btn-xs btn-mini btn-default',
-										'html' : 'Unshare',
-									})
-									.addClass(this.settings.appendContent.className)
-							);
+					var nodeData = fileTree.get_node(node);
+					var item = itemCache[nodeData.id];
+					var newContent = $();
+					var isRootNode = (item.id === rootNodeId);
+
+					if (onlyOwnedFolders) {
+						if (!isRootNode) {
+							newContent = newContent.add($('<a>', {
+								'href' : '#',
+								// this bootstrap version uses "btn-mini", new
+								// version uses "btn-xs"
+								'class' : 'btn btn-xs btn-mini btn-default',
+								'html' : 'Share Folder',
+								'onclick' : "linkFolder('" + nodeData.id + "', '" + nodeData.text + "'); return false;",
+//							}).addClass(this.settings.appendContent.className));
+							}));
 						}
 					} else {
-						if (!onlyOwnedFolders && nodeAnchor.attr('data-isFolder')) {
-							var addButton = $('<a>', {
-								'href' : '#',
-								// this bootstrap version uses "btn-mini", new version uses "btn-xs"
-								'class' : 'dropdown-toggle btn btn-xs btn-mini btn-default',
-								'html' : 'Add',
-							})
-							.addClass(this.settings.appendContent.className);
-							
-							// TODO: try to re-use the existing dropdown menu code
-							//var addButton = $('#FolderDropdownTemplate').clone()
-							//	.addClass(this.settings.appendContent.className);
-							
-							nodeAnchor.after(addButton);
-							nodeAnchor = addButton;
+						if (getIsFolder(item.mimeType)) {
+							var addButton = $(
+									'<a>',
+									{
+										'href' : '#',
+										// this bootstrap version uses
+										// "btn-mini", new version uses "btn-xs"
+										'class' : 'dropdown-toggle btn btn-xs btn-mini btn-default',
+										'html' : 'Add',
+//									}).addClass(
+//											this.settings.appendContent.className);
+									});
+
+							// TODO: try to re-use the existing dropdown menu
+							// code
+							// var addButton =
+							// $('#FolderDropdownTemplate').clone()
+							// .addClass(this.settings.appendContent.className);
+
+							newContent = newContent.add(addButton);
 						}
 
-						if (onlyOwnedFolders) {
-							nodeAnchor.after(
-									$('<a>', {
-										'href' : '#',
-										// this bootstrap version uses "btn-mini", new version uses "btn-xs"
-										'class' : 'btn btn-xs btn-mini btn-default',
-										'html' : 'Share Folder',
-										//'onclick' : 'linkFolder(' + node.attr('id') + ', ' + node.html() + ')',
-									})
-									.addClass(this.settings.appendContent.className)
-							);
+						if (isRootNode) {
+							newContent = newContent.add($('<a>', {
+								'href' : '#',
+								// this bootstrap version uses "btn-mini", new
+								// version uses "btn-xs"
+								'class' : 'btn btn-xs btn-mini btn-default',
+								'html' : 'Unshare',
+								'onclick' : "unlinkFolderFromSite('" + nodeData.id + "', '" + nodeData.text + "'); return false;",
+//							}).addClass(this.settings.appendContent.className));
+							}));
 						} else {
-							nodeAnchor.after(
-									$('<a>', {
-										'href' : '#',
-										// this bootstrap version uses "btn-mini", new version uses "btn-xs"
-										'class' : 'btn btn-xs btn-mini btn-default',
-										'html' : 'Delete',
-									})
-									.addClass(this.settings.appendContent.className)
-							);
+							newContent = newContent.add($('<a>', {
+								'href' : '#',
+								// this bootstrap version uses "btn-mini", new
+								// version uses "btn-xs"
+								'class' : 'btn btn-xs btn-mini btn-default',
+								'html' : 'Delete',
+								'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
+										+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
+//							}).addClass(this.settings.appendContent.className));
+							}));
 						}
+
 					}
+
+					newContent = newContent.add('<span>'
+							+ getGoogleDateOrTime(item.modifiedDate)
+							+ ' <span class="modified_by">'
+							+ item.lastModifyingUserName
+							+ '</span></span>');
+
+					appendBeforeSublist($(node), newContent);
 				}
 
 				return node;
 			};
 		};
 
-		fileTree = fileTreeDiv.jstree({
-			'plugins' : [ 'sort', 'types', 'appendContent' ],
-			'sort' : function(nodeIdA, nodeIdB) {
-				var returnValue;
+		fileTree = fileTreeDiv
+				.jstree(
+						{
+							'plugins' : [ 'sort', 'types', 'appendContent' ],
+							'sort' : function(nodeIdA, nodeIdB) {
+								var returnValue;
 
-				// sort by type, then by text
-				if (this.get_type(nodeIdA) === this.get_type(nodeIdB)) {
-					returnValue = this.get_text(nodeIdA).localeCompare(
-							this.get_text(nodeIdB));
-				} else {
-					returnValue = this.get_type(nodeIdA) >= this
-							.get_type(nodeIdB);
-				}
+								// sort by type, then by text
+								if (this.get_type(nodeIdA) === this
+										.get_type(nodeIdB)) {
+									returnValue = this.get_text(nodeIdA)
+											.localeCompare(
+													this.get_text(nodeIdB));
+								} else {
+									returnValue = this.get_type(nodeIdA) >= this
+											.get_type(nodeIdB);
+								}
 
-				return returnValue;
-			},
-			'types' : {
-				NODE_TYPE_FOLDER : {},
-				NODE_TYPE_NONFOLDER : {},
-			},
-			'appendContent' : {
-				'content' : $('<a>', {
-							'href' : '#',
-							// this bootstrap version uses "btn-mini", new version uses "btn-xs"
-							'class' : 'btn btn-xs btn-mini btn-default',
-							'html' : 'Share Folder',
-				}),
-				'callback' : function(node) {
-					console.log(node);
-					linkFolder(node.id, node.text);
-				},
-			},
-			'core' : {
-				'data' : {
-					'url' : function(node) {
-						return _getGoogleDriveUrl((node.id == '#') ? folderId : null);
-					},
-					'data' : function(node) {
-						var queryFolderId = node.id;
-						var query = '';
-						var data = {
-								'access_token' : getGoogleAccessToken(),
-								// Setting max page results to highest value Google "may" support
-								//'maxResults' : MAX_RESULTS_PER_PAGE
-						};
-						
-						if (queryFolderId != '#') {
-							query += "'" + queryFolderId + "' in parents and trashed = false";
-
-							if (onlyOwnedFolders === true) {
-								query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
-							}
-							
-							data.q = query;
-						}
-
-						return data;
-					},
-					'dataFilter' : function(rawResponseText, type) {
-						var data = JSON.parse(rawResponseText);
-						var nodeData = [];
-						
-						itemToNodeData = function(item) {
-							var isFolder = getIsFolder(item.mimeType);
-							var newNodeData =  {
-								'id' : item.id,
-								'text' : escapeHtml(item.title),
-								'icon' : item.iconLink,
-								'type' : (isFolder) ? NODE_TYPE_FOLDER : NODE_TYPE_NONFOLDER,
-										// FIXME: if folder, query for children to set "children" property
-								'children' : isFolder,
-								'a_attr' : {
-									'data-alternateLink' : item.alternateLink,
+								return returnValue;
+							},
+							'types' : {
+								NODE_TYPE_FOLDER : {},
+								NODE_TYPE_NONFOLDER : {},
+							},
+							'appendContent' : {
+								'content' : $(
+										'<a>',
+										{
+											'href' : '#',
+											// this bootstrap version uses
+											// "btn-mini", new version uses
+											// "btn-xs"
+											'class' : 'btn btn-xs btn-mini btn-default',
+											'html' : 'Share Folder',
+										}),
+								'callback' : function(node) {
+									console.log(node);
+									linkFolder(node.id, node.text);
 								},
-							};
+							},
+							'core' : {
+								'check_callback' : true,
+								'data' : {
+									'url' : function(node) {
+										return _getGoogleDriveUrl((node.id == '#') ? folderId
+												: null);
+									},
+									'data' : function(node) {
+										var queryFolderId = node.id;
+										var query = '';
+										var data = {
+											'access_token' : getGoogleAccessToken(),
+										// Setting max page results to highest
+										// value Google "may" support
+										// 'maxResults' : MAX_RESULTS_PER_PAGE
+										};
 
-							if (isFolder) {
-								newNodeData.a_attr['data-isFolder'] = true; 
-							}
-							
-							return newNodeData;
-						};
+										if (queryFolderId != '#') {
+											query += "'"
+													+ queryFolderId
+													+ "' in parents and trashed = false";
 
-						if (data) {
-							if (data.hasOwnProperty('items')) {
-								$.each(data.items, function(key, item) {
-									nodeData.push(itemToNodeData(item));
-								});
-							} else {
-								// TODO: Something here to expand this top-level item by default
-								var newNodeData = itemToNodeData(data);
-								
-								newNodeData.a_attr['data-rootNode'] = true;
-								newNodeData.state = {
-										'opened' : true
-								};
-								
-								nodeData.push(newNodeData);
-							}
-							
-						}
+											if (onlyOwnedFolders === true) {
+												query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
+											}
 
-						return JSON.stringify(nodeData);
-					},
-					'success' : function(result) {
-					}
-				}
-			},
-		}).jstree(true);
+											data.q = query;
+										}
+
+										return data;
+									},
+									'dataFilter' : function(rawResponseText,
+											type) {
+										var data = JSON.parse(rawResponseText);
+										var nodeData = [];
+
+										itemToNodeData = function(item) {
+											var isFolder = getIsFolder(item.mimeType);
+											var newNodeData = {
+												'id' : item.id,
+												'text' : escapeHtml(item.title),
+												'icon' : item.iconLink,
+												'type' : (isFolder) ? NODE_TYPE_FOLDER
+														: NODE_TYPE_NONFOLDER,
+												// FIXME: if folder, query for
+												// children to set "children"
+												// property
+												'children' : isFolder,
+											};
+
+											return newNodeData;
+										};
+
+										if (data) {
+											if (data.hasOwnProperty('items')) {
+												$
+														.each(
+																data.items,
+																function(key,
+																		item) {
+																	nodeData
+																			.push(itemToNodeData(item));
+																	itemCache[item.id] = item;
+																});
+											} else {
+												// TODO: Something here to
+												// expand this top-level item by
+												// default
+												var newNodeData = itemToNodeData(data);
+
+												rootNodeId = data.id;
+												newNodeData.state = {
+													'opened' : true
+												};
+
+												nodeData.push(newNodeData);
+												itemCache[data.id] = data;
+											}
+
+										}
+
+										return JSON.stringify(nodeData);
+									},
+									'success' : function(result) {
+									}
+								}
+							},
+						}).jstree(true);
 
 		/**
-		 * When a node is clicked, rather than selecting it, open the URL
-		 * stored in its anchor element's "data-alternateLink" attribute.
+		 * When a node is clicked, rather than selecting it, open the URL stored
+		 * in its item object's "alternateLink" property.
 		 */
 		fileTreeDiv.on('select_node.jstree', function(event, data) {
 			fileTree.deselect_all(suppressChangedEvent = true);
 
-			window.open(data.node.a_attr['data-alternateLink'], '_blank');
+			window.open(itemCache[data.node.id].alternateLink, '_blank');
 		});
 
-		/** 
-		 * Remove children example
-		 * TODO: Move this to a function
+		/**
+		 * Remove children example TODO: Move this to a function
 		 */
 		$('button#removeChildren').on('click', function() {
 			var id = '0B4lerVE9_isbLWNnNUx5aXVZVTA';
@@ -1792,6 +1804,9 @@ function removeLinkedFolderFromLinkingTable(linkedFolderId) {
  * @param fileId
  */
 function removeFileTreeFromTable(fileId) {
+	fileTree.delete_node(fileId);
+
+	// TODO: Delete this block after jsTree fully implemented
 	$('#FileTreeTableTbody').find('tr.' + getClassForFoldersChildren(fileId)).each(
 			function() {
 				removeFileTreeFromTable(getFileIdFromTableRowId(this.id));
