@@ -1256,29 +1256,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		};
 
 		$.jstree.plugins.appendContent = function(options, parent) {
-/*			this.bind = function() {
-				parent.bind.call(this);
-
-				if (this.settings.appendContent.callback != null) {
-					this.element.on('click.jstree', '.'
-							+ this.settings.appendContent.className, $.proxy(
-							function(e) {
-								e.stopImmediatePropagation();
-								this.settings.appendContent.callback.call(this,
-										this.get_node(e.target));
-							}, this));
-				}
-			};
-
-			this.teardown = function() {
-				if (this.settings.appendContent) {
-					this.element.find(
-							'.' + this.settings.appendContent.className)
-							.remove();
-				}
-				parent.teardown.call(this);
-			};
-*/
 			this.redraw_node = function(node, deep, isCallback) {
 				node = parent.redraw_node.call(this, node, deep, isCallback);
 
