@@ -27,7 +27,7 @@
 
 <!--  button id="removeChildren">Remove Children</button  -->
 
-<div id="jstree"></div>
+<div id="jstree" class="unsharedView"></div>
 
 <!-- <table class="table table-striped table-bordered table-hover"
 	width="100%">

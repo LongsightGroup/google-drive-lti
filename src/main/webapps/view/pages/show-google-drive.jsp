@@ -3,7 +3,7 @@
 <div style="display: none;">
 	<div id="FolderDropdownTemplate">
 		<div class="dropdown">
-			<a class="dropdown-toggle btn btn-small" id="dLabel" role="button"
+			<a class="dropdown-toggle btn btn-xs btn-mini" id="dLabel" role="button"
 				data-toggle="dropdown" data-target="#" href="/page.html">${addButton}
 				<b class="caret"></b>
 			</a>
@@ -72,7 +72,7 @@
 
 <div id="alertContainer" class="clearfix"></div>
 
-<div id="jstree"></div>
+<div id="jstree" class="sharedView"></div>
 
 <table class="table table-striped table-bordered table-hover"
 	width="100%">

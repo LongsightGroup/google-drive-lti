@@ -937,6 +937,11 @@ function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 				function(file) {
 					addFileToFileTreeTable(file, parentFolderId, linkedFolderId,
 							depth + 1);
+					
+					// TODO: complete this call.  extract the node formatting code to a function and call it here, too.
+					// TODO: needs "type" for proper sorting.
+					itemCache[file.id] = file;
+					fileTree.create_node(parentFolderId, {'text' : file.title, 'id' : file.id});
 				});
 		
 		showInfo($('#alertContainer'), sprintf(createItemAlert, fileTypeLowerCase, escapeHtml(title)));
@@ -1251,10 +1256,35 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		};
 
 		$.jstree.plugins.appendContent = function(options, parent) {
+			this.bind = function() {
+				parent.bind.call(this);
+
+				if (this.settings.appendContent.callback != null) {
+					this.element.on('click.jstree', '.'
+							+ this.settings.appendContent.className, $.proxy(
+							function(e) {
+								e.stopImmediatePropagation();
+								this.settings.appendContent.callback.call(this,
+										this.get_node(e.target));
+							}, this));
+				}
+			};
+
+			this.teardown = function() {
+				if (this.settings.appendContent) {
+					this.element.find(
+							'.' + this.settings.appendContent.className)
+							.remove();
+				}
+				parent.teardown.call(this);
+			};
+
 			this.redraw_node = function(node, deep, isCallback) {
 				node = parent.redraw_node.call(this, node, deep, isCallback);
 
 				if (node) {
+					console.log('redraw_node, node...')
+					console.log(node);
 					var nodeData = fileTree.get_node(node);
 					var item = itemCache[nodeData.id];
 					var newContent = $();
@@ -1274,24 +1304,35 @@ function initializeFileTree(fileTreeDivSelector, options) {
 						}
 					} else {
 						if (getIsFolder(item.mimeType)) {
-							var addButton = $(
-									'<a>',
-									{
-										'href' : '#',
-										// this bootstrap version uses
-										// "btn-mini", new version uses "btn-xs"
-										'class' : 'dropdown-toggle btn btn-xs btn-mini btn-default',
-										'html' : 'Add',
+							var addButton;
+							
+							function addButton1() {
+								var addButton = $(
+										'<a>',
+										{
+											'href' : '#',
+											'class' : 'dropdown-toggle btn btn-xs btn-mini btn-default',
+											'html' : 'Add',
 //									}).addClass(
 //											this.settings.appendContent.className);
-									});
+										});
+								
+								return addButton
+							}
 
-							// TODO: try to re-use the existing dropdown menu
-							// code
-							// var addButton =
-							// $('#FolderDropdownTemplate').clone()
-							// .addClass(this.settings.appendContent.className);
+							function addButton2() {
+								var addButton = $('#FolderDropdownTemplate').html();
+								addButton = addButton
+								.replace(/\[FolderIdParam\]/g, escapeAllQuotes(item.id))
+								.replace(/\[LinkedFolderIdParam\]/g, escapeAllQuotes(rootNodeId))
+								.replace(/\[FolderDepthParam\]/g, 0);
+								
+								return $(addButton);
+							}
 
+							addButton = addButton2();
+							console.log(addButton);
+							
 							newContent = newContent.add(addButton);
 						}
 
@@ -1327,6 +1368,8 @@ function initializeFileTree(fileTreeDivSelector, options) {
 							+ '</span></span>');
 
 					appendBeforeSublist($(node), newContent);
+				} else {
+					console.log('no node?!');
 				}
 
 				return node;
@@ -1374,7 +1417,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 								},
 							},
 							'core' : {
-								'check_callback' : true,
+								'check_callback' : true, // allow all tree node changes (create, delete, etc.)
 								'data' : {
 									'url' : function(node) {
 										return _getGoogleDriveUrl((node.id == '#') ? folderId
