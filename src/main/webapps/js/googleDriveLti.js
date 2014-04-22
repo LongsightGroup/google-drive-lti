@@ -1256,7 +1256,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		};
 
 		$.jstree.plugins.appendContent = function(options, parent) {
-			this.bind = function() {
+/*			this.bind = function() {
 				parent.bind.call(this);
 
 				if (this.settings.appendContent.callback != null) {
@@ -1278,7 +1278,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 				}
 				parent.teardown.call(this);
 			};
-
+*/
 			this.redraw_node = function(node, deep, isCallback) {
 				node = parent.redraw_node.call(this, node, deep, isCallback);
 
@@ -1299,7 +1299,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 								'class' : 'btn btn-xs btn-mini btn-default',
 								'html' : 'Share Folder',
 								'onclick' : "linkFolder('" + nodeData.id + "', '" + nodeData.text + "'); return false;",
-//							}).addClass(this.settings.appendContent.className));
 							}));
 						}
 					} else {
@@ -1313,8 +1312,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 											'href' : '#',
 											'class' : 'dropdown-toggle btn btn-xs btn-mini btn-default',
 											'html' : 'Add',
-//									}).addClass(
-//											this.settings.appendContent.className);
 										});
 								
 								return addButton
@@ -1344,7 +1341,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 								'class' : 'btn btn-xs btn-mini btn-default',
 								'html' : 'Unshare',
 								'onclick' : "unlinkFolderFromSite('" + nodeData.id + "', '" + nodeData.text + "'); return false;",
-//							}).addClass(this.settings.appendContent.className));
 							}));
 						} else {
 							newContent = newContent.add($('<a>', {
@@ -1355,7 +1351,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 								'html' : 'Delete',
 								'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
 										+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
-//							}).addClass(this.settings.appendContent.className));
 							}));
 						}
 
@@ -1460,9 +1455,8 @@ function initializeFileTree(fileTreeDivSelector, options) {
 												'icon' : item.iconLink,
 												'type' : (isFolder) ? NODE_TYPE_FOLDER
 														: NODE_TYPE_NONFOLDER,
-												// FIXME: if folder, query for
-												// children to set "children"
-												// property
+												// FIXME: if folder, can we query for
+												// children to set "children" property?
 												'children' : isFolder,
 											};
 
@@ -1481,9 +1475,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 																	itemCache[item.id] = item;
 																});
 											} else {
-												// TODO: Something here to
-												// expand this top-level item by
-												// default
 												var newNodeData = itemToNodeData(data);
 
 												rootNodeId = data.id;
@@ -1516,7 +1507,9 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		});
 
 		/**
-		 * Remove children example TODO: Move this to a function
+		 * Remove children example
+		 * 
+		 * TODO: Move this to a function
 		 */
 		$('button#removeChildren').on('click', function() {
 			var id = '0B4lerVE9_isbLWNnNUx5aXVZVTA';
