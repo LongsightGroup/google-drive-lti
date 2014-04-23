@@ -1220,6 +1220,36 @@ var NODE_TYPE_FOLDER = 'NODE_TYPE_FOLDER';
 var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
 
 /**
+ * Compare two file tree nodes for sorting purposes. Sort with folders
+ * alphabetically first, followed by files alphabetically.
+ * 
+ * This is used by the jsTree "sort" plugin and requires the "types" plugin,
+ * too.
+ * 
+ * @param {String}
+ *            nodeIdA ID of a tree node to compare.
+ * @param {String}
+ *            nodeIdB ID of another tree node to compare.
+ * @returns {Number} 1 or -1, according to jsTree specifications. It is common
+ *          for comparators to return 0 if the items being compared are equal,
+ *          but jsTree doesn't support that.
+ */
+function fileTreeNodeSortComparator(nodeIdA, nodeIdB) {
+	var returnValue;
+
+	// sort by type, then by text
+	if (this.get_type(nodeIdA) !== this.get_type(nodeIdB)) {
+		returnValue = (this.get_type(nodeIdA) > this.get_type(nodeIdB)) ? 1
+				: -1;
+	} else {
+		returnValue = (this.get_text(nodeIdA).localeCompare(
+				this.get_text(nodeIdB)) > 0) ? 1 : -1;
+	}
+
+	return returnValue;
+}
+
+/**
  * @param fileTreeDivSelector
  * @param options
  *            Object containing optional parameters: <blockquote>
@@ -1260,8 +1290,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 				node = parent.redraw_node.call(this, node, deep, isCallback);
 
 				if (node) {
-					console.log('redraw_node, node...')
-					console.log(node);
 					var nodeData = fileTree.get_node(node);
 					var item = itemCache[nodeData.id];
 					var newContent = $();
@@ -1282,6 +1310,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 						if (getIsFolder(item.mimeType)) {
 							var addButton;
 							
+							// TODO: Remove addButton1, rename addButton2
 							function addButton1() {
 								var addButton = $(
 										'<a>',
@@ -1305,7 +1334,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 							}
 
 							addButton = addButton2();
-							console.log(addButton);
 							
 							newContent = newContent.add(addButton);
 						}
@@ -1347,27 +1375,13 @@ function initializeFileTree(fileTreeDivSelector, options) {
 				return node;
 			};
 		};
+		
 
 		fileTree = fileTreeDiv
 				.jstree(
 						{
 							'plugins' : [ 'sort', 'types', 'appendContent' ],
-							'sort' : function(nodeIdA, nodeIdB) {
-								var returnValue;
-
-								// sort by type, then by text
-								if (this.get_type(nodeIdA) === this
-										.get_type(nodeIdB)) {
-									returnValue = this.get_text(nodeIdA)
-											.localeCompare(
-													this.get_text(nodeIdB));
-								} else {
-									returnValue = this.get_type(nodeIdA) >= this
-											.get_type(nodeIdB);
-								}
-
-								return returnValue;
-							},
+							'sort' : fileTreeNodeSortComparator,
 							'types' : {
 								NODE_TYPE_FOLDER : {},
 								NODE_TYPE_NONFOLDER : {},
@@ -1432,8 +1446,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 												'icon' : item.iconLink,
 												'type' : (isFolder) ? NODE_TYPE_FOLDER
 														: NODE_TYPE_NONFOLDER,
-												// FIXME: if folder, can we query for
-												// children to set "children" property?
+												// FIXME: can we query for children to set this property?
 												'children' : isFolder,
 											};
 
