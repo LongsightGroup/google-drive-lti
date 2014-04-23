@@ -1275,12 +1275,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 	var fileTreeDiv = $(fileTreeDivSelector).first();
 
 	if (fileTreeDiv.length == 1) {
-		$.jstree.defaults.appendContent = {
-			'content' : null,
-			'callback' : $.noop,
-			'className' : 'jstree-appendContent',
-		};
-
 		$.jstree.plugins.appendContent = function(options, parent) {
 			this.redraw_node = function(node, deep, isCallback) {
 				node = parent.redraw_node.call(this, node, deep, isCallback);
@@ -1304,34 +1298,12 @@ function initializeFileTree(fileTreeDivSelector, options) {
 						}
 					} else {
 						if (getIsFolder(item.mimeType)) {
-							var addButton;
-							
-							// TODO: Remove addButton1, rename addButton2
-							function addButton1() {
-								var addButton = $(
-										'<a>',
-										{
-											'href' : '#',
-											'class' : 'dropdown-toggle btn btn-xs btn-mini btn-default',
-											'html' : 'Add',
-										});
-								
-								return addButton
-							}
-
-							function addButton2() {
-								var addButton = $('#FolderDropdownTemplate').html();
-								addButton = addButton
-								.replace(/\[FolderIdParam\]/g, escapeAllQuotes(item.id))
-								.replace(/\[LinkedFolderIdParam\]/g, escapeAllQuotes(rootNodeId))
-								.replace(/\[FolderDepthParam\]/g, 0);
-								
-								return $(addButton);
-							}
-
-							addButton = addButton2();
-							
-							newContent = newContent.add(addButton);
+							newContent = newContent.add(
+								$('#FolderDropdownTemplate').html()
+									.replace(/\[FolderIdParam\]/g, escapeAllQuotes(item.id))
+									.replace(/\[LinkedFolderIdParam\]/g,escapeAllQuotes(rootNodeId))
+									.replace(/\[FolderDepthParam\]/g, 0)
+							);
 						}
 
 						if (isRootNode) {
@@ -1363,9 +1335,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 							+ item.lastModifyingUserName
 							+ '</span></span>');
 
-					appendBeforeSublist($(node), newContent);
-				} else {
-					console.log('no node?!');
+					$(node).find('a:first').after(newContent);
 				}
 
 				return node;
