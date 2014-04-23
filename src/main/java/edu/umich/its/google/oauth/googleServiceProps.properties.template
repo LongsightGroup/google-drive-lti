@@ -8,6 +8,8 @@ googleDriveLti.service.account.private.key.file=
 googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
 googleDriveLti.service.account.lti.secret=
 googleDriveLti.service.account.lti.key=
+#lauch_url of the lti tools. 
+googleDriveLti.service.account.lti.url=
 #GoogleDriveLTI setting if deployed to AWS vs local/deluxe servers
 googleDriveLti.context=google-drive-lti/googledrivelti
 #googleDriveLti.context=googledrivelti

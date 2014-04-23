@@ -57,6 +57,7 @@ public class GoogleServiceAccount {
 	private static final String PROPERTY_SUFFIX_SCOPES = ".service.account.scopes";
 	private static final String PROPERTY_SUFFIX_LTI_SECRET = ".service.account.lti.secret";
 	private static final String PROPERTY_SUFFIX_LTI_KEY = ".service.account.lti.key";
+	private static final String PROPERTY_SUFFIX_LTI_URL = ".service.account.lti.url";
 	// These constants are used for loading properties from system files
 	private static final String SYSTEM_PROPERTY_FILE_PATH = "googleServicePropsPath";
 	private static final String SYSTEM_PROPERTY_FILE_DEFAULT_NAME = "googleServiceProps.properties";
@@ -129,7 +130,9 @@ public class GoogleServiceAccount {
 	private String scopes;
 	private String ltiSecret;
 	private String ltiKey;
+
 	private String contextURL;
+	private String ltiUrl;
 	
 	private String propertiesPrefix;
 
@@ -199,6 +202,10 @@ public class GoogleServiceAccount {
 		return ltiKey;
 	}
 	
+	public String getLtiUrl() {
+		return ltiUrl;
+	}
+
 	public String getContextURL() {
 		return contextURL;
 	}
@@ -224,6 +231,10 @@ public class GoogleServiceAccount {
 		sb.append(getEmailAddress());
 		sb.append("\", p12FilePath=\"");
 		sb.append(getPrivateKeyFilePath());
+		sb.append("\", ltiUrl=\"");
+		sb.append(getLtiUrl());
+		sb.append("\", ltiKey=\"");
+		sb.append(getLtiKey());
 		sb.append("\", scopes=\"");
 		sb.append(getScopes());
 		sb.append("\"]");
@@ -259,6 +270,10 @@ public class GoogleServiceAccount {
 	protected void setLtiKey(String ltiKey) {
 		this.ltiKey = ltiKey;
 	}
+	
+	public void setLtiUrl(String ltiUrl) {
+		this.ltiUrl = ltiUrl;
+	}
 	public void setContextURL(String context) {
 		this.contextURL = context;
 	}
@@ -289,6 +304,7 @@ public class GoogleServiceAccount {
 		setScopes(getStringProperty(PROPERTY_SUFFIX_SCOPES));
 		setLtiSecret(getStringProperty(PROPERTY_SUFFIX_LTI_SECRET));
 		setLtiKey(getStringProperty(PROPERTY_SUFFIX_LTI_KEY));
+		setLtiUrl(getStringProperty(PROPERTY_SUFFIX_LTI_URL));
 		setContextURL(getStringProperty(PROPERTY_SUFFIX_GOOGLE_CONTEXT));
 	}
 

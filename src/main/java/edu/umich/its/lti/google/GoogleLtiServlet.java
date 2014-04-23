@@ -568,7 +568,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		// 2 - verify signature
 		result = RequestSignatureUtils.verifySignature(request,
 				request.getParameter("oauth_consumer_key"),
-				getGoogleServiceAccount().getLtiSecret());
+				getGoogleServiceAccount().getLtiSecret(),getGoogleServiceAccount().getLtiUrl());
 		if (!result) {
 			doError(request, response, "Request signature is invalid.");
 		}

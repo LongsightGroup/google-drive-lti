@@ -25,9 +25,10 @@ This tool allows an instructor to associate a Google Drive folder with a Sakai s
    googleDriveLti.service.account.email.address=
    googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
    
-   ## LTI key/password property
+   ## LTI key/password/launch URL property
    googleDriveLti.service.account.lti.secret=
    googleDriveLti.service.account.lti.key=
+   googleDriveLti.service.account.lti.url=
 
 4c. Deploy google private key within web application (cp p12-file to src/main/java/secure/)
 
