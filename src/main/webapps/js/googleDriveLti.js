@@ -247,7 +247,6 @@ function getAncestorsForLinkedFolders() {
 function listAncestorsForFileRecursive(currentFileId, parentFileId, rootParent) {
 	// Handle results of last AJAX call (equal ID is request to start looking for parents, so this will make 1st AJAX call)
 	if (currentFileId !== parentFileId) {
-		var ancestors = null;
 		if (!(currentFileId in googleFileParents)) {
 			googleFileParents[currentFileId] = [];
 		}
@@ -442,7 +441,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 					});
 				}
 			}
-		})
+		});
 	} else if (role === "owner") {
 		var deleteConfirmationMessage = null;
 		if (isFolder) {
@@ -557,7 +556,7 @@ function assignNewFolder() {
 					var folderTitle = '';
 					if ((typeof (data) !== 'undefined') && ($.trim(data.id) !== '')) {
 						folderId = data.id;
-						folderTitle = data.title
+						folderTitle = data.title;
 					}
 
 					linkFolderToSite(folderId, function() {
@@ -776,8 +775,7 @@ function linkFolderToSite(folderId, callback) {
 			    }
 			  }
 			});
-	})
-				
+	});
 }
 
 /**
@@ -808,7 +806,7 @@ function unlinkFolderToSite(folderId, callback) {
 			    }
 			  }
 			});
-	})			
+	});
 }
 
 /**
@@ -827,9 +825,7 @@ function giveRosterPermissions(folderId, sendNotificationEmails) {
 	}).done(function(data) {
 			openPage('Home');
 						
-	})
-				
-	
+	});
 }
 
 /**
@@ -861,7 +857,7 @@ function giveCurrentUserPermissions(folderId) {
 					}
 	}).fail(function(data){
 		$('#par5').addClass('alert alert-error').html(data.responseText);
-	})
+	});
 	
 }
 
@@ -895,7 +891,7 @@ function removeRosterPermissions(folderId) {
 			  }
 			});
 					
-	})
+	});
 	
 }
 
@@ -1094,7 +1090,7 @@ function linkFolder(folderId, folderTitle) {
 		function() {
 			// Error getting linked folder...
 			notifyUserFolderCannotBeLinked(folderTitle, 'this is ' + folderRelationship.type + ' of a linked folder.');
-		})
+		});
 	} else 
 	{
 		linkFolderToSite(folderId, function() {
@@ -1901,5 +1897,5 @@ $(document).ready(function(){
 	$(document).ajaxStop(function(){
 		$('#spinner').hide();
 	});
-})
+});
 
