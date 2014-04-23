@@ -40,16 +40,6 @@ function escapeUrl(value) {
 	return encodeURIComponent(value);
 }
 
-function appendBeforeSublist(listItem, content) {
-	var sublist = listItem.find('ul:first');
-
-	if (sublist.length > 0) {
-		sublist.before(content);
-	} else {
-		listItem.append(content);
-	}
-}
-
 function logError(message, textStatus, jqXHR, debugMode) {
 	if ((typeof(console) !== 'undefined') && (typeof(console.log) === 'function')) {
 		console.log(message + ': ' + textStatus);
