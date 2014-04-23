@@ -50,6 +50,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.Permission;
+import com.google.api.services.drive.model.PermissionId;
 import com.google.api.services.drive.model.PermissionList;
 
 import edu.umich.its.google.oauth.GoogleSecurity;
@@ -890,25 +891,38 @@ public class GoogleLtiServlet extends HttpServlet {
 				return; // Quick return to simplify code
 			}
 			
-			String fileId = request.getParameter(PARAM_FILE_ID);
-			ConcurrentHashMap<String, String> googleAccessControlList = getPermissionListfromGoogle(
-					handler, fileId);
 			HashMap<String,HashMap<String, String>> roster = getRoster(request,tcSessionData);
-			Set<String> rosterEmailAddressKey = roster.keySet();
-			/*Comparing the roster and the Google Access control List (ACL) on a particular shared folder
-	         * and filter out the person not in the roster from the Google ACL.*/
-			Iterator<Entry<String, String>> iterator = googleAccessControlList.entrySet().iterator();
-			while(iterator.hasNext()) {
-				Entry<String, String> currentACLItem = iterator.next();
-				String currentACLListEmailAddress = currentACLItem.getKey();
-				if(rosterEmailAddressKey.contains(currentACLListEmailAddress)) {
-					continue;
-				}
-				else {
-					iterator.remove();
-				}
-			}
-			removePermissionCheck(handler,  googleAccessControlList, response, tcSessionData);
+            Set<String> rosterEmailAddressKey = roster.keySet();
+            int rosterSize = rosterEmailAddressKey.size();
+            int numberOfPermissionsRemoved = 0;
+            for (String emailAddress : rosterEmailAddressKey) {
+                if (!getIsEmpty(emailAddress)
+                        && !handler.getIsInstructor(emailAddress)) {
+                       PermissionId permissionIDOfEachPersonWithGoogleAccount = handler.getDrive().permissions().getIdForEmail(emailAddress).execute();
+                        if (handler.removePermission(permissionIDOfEachPersonWithGoogleAccount.getId())) {
+                            numberOfPermissionsRemoved++;
+                        }
+                }
+            }
+            
+            if(numberOfPermissionsRemoved==(rosterSize-1)) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().print(SUCCESS);
+                }
+            else {
+                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        response.getWriter().print(resource.getString("permission.error.six"));
+                        StringBuilder s=new StringBuilder();
+                        s.append(" Some of google permissions removal failed for the class roster to shared folder of Instructor with User Id: \"" );
+                        s.append(tcSessionData.getUserId());
+                        s.append("\" and Email Address: \"");
+                        s.append(tcSessionData.getUserEmailAddress());
+                        s.append("\" for the Site Id: \"");
+                        s.append(tcSessionData.getContextId());
+                        s.append("\"");
+                        M_log.error(s.toString());
+                    
+                }
 		} catch (Exception err) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("permission.error.six"));
@@ -923,61 +937,6 @@ public class GoogleLtiServlet extends HttpServlet {
 			M_log.error(s.toString(),err);
 		}
 
-	}
-	/**
-	 * Returns the list of person who has access to the Folder of the instructor that has been shared. 
-	 * This may also returns the list of person who are not part of the roster and instructor has shared his folder out side of site. 
-	 * 
-	 * @param handler
-	 * @param fileId
-	 * @return
-	 * @throws IOException
-	 */
-
-	private ConcurrentHashMap<String, String> getPermissionListfromGoogle(
-			FolderPermissionsHandler handler, String fileId) throws IOException {
-		ConcurrentHashMap<String, String> googleAccessControlList = new ConcurrentHashMap<String, String>();
-		PermissionList list = handler.getDrive().permissions().list(fileId).execute();
-		List<Permission> items = list.getItems();
-		for (Permission permission : items) {
-			googleAccessControlList.put(permission.getEmailAddress(), permission.getId());
-		}
-		return googleAccessControlList;
-	}
-	
-	private void removePermissionCheck(FolderPermissionsHandler handler,
-			ConcurrentHashMap<String, String> rosterAndGoogleCompareList, HttpServletResponse response, TcSessionData tcSessionData) throws Exception {
-		int rostersize = rosterAndGoogleCompareList.size();
-		int numeberOfPermissionsRemoved = 0;
-		for ( Entry<String, String> entry : rosterAndGoogleCompareList.entrySet()) {
-		    String emailAddress = entry.getKey();
-		    String permissionIDOfEachPersonWithGoogleAccount = entry.getValue();
-		    if (!getIsEmpty(emailAddress)
-					&& !handler.getIsInstructor(emailAddress)) {
-					if (handler.removePermission(permissionIDOfEachPersonWithGoogleAccount)) {
-						numeberOfPermissionsRemoved++;
-					}
-				
-			}
-		}
-		if(numeberOfPermissionsRemoved==(rostersize-1)) {
-		response.setStatus(HttpServletResponse.SC_OK);
-		response.getWriter().print(SUCCESS);
-		}
-		else {
-				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				response.getWriter().print(resource.getString("permission.error.six"));
-				StringBuilder s=new StringBuilder();
-				s.append(" Removal of google permissions Failed for the class roster to shared folder of Instructor with User Id: \"" );
-				s.append(tcSessionData.getUserId());
-				s.append("\" and Email Address: \"");
-				s.append(tcSessionData.getUserEmailAddress());
-				s.append("\" for the Site Id: \"");
-				s.append(tcSessionData.getContextId());
-				s.append("\"");
-				M_log.error(s.toString());
-			
-		}
 	}
 
 	/**
