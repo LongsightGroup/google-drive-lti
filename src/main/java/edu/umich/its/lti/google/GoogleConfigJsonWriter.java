@@ -22,6 +22,8 @@ package edu.umich.its.lti.google;
 
 import java.io.IOException;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -55,7 +57,7 @@ public class GoogleConfigJsonWriter {
 	 * This creates JSON with configuration of Google Drive, for use by the
 	 * browser to manage the site's Google Resources.
 	 */
-	static public String getGoogleDriveConfigJson(TcSessionData tcSessionData)
+	static public String getGoogleDriveConfigJson(TcSessionData tcSessionData,HttpServletRequest request )
 			throws IOException {
 		StringBuilder result = new StringBuilder("{");
 		String courseId = tcSessionData.getContextId();
@@ -68,7 +70,7 @@ public class GoogleConfigJsonWriter {
 		result.append(", \"course\" : ");
 		appendCourseJson(tcSessionData, result);
 		result.append(", \"linkedFolders\" : ");
-		appendLinkedFolders(tcSessionData, result);
+		appendLinkedFolders(tcSessionData, result,request);
 		result.append(", \"user\" : ");
 		appendUserJson(tcSessionData, result);
 		// End the JSON object
@@ -81,8 +83,8 @@ public class GoogleConfigJsonWriter {
 	 * variable "googleDriveConfig".
 	 */
 	static public String getGoogleDriveConfigJsonScript(
-			TcSessionData tcSessionData) throws IOException {
-		return "googleDriveConfig = " + getGoogleDriveConfigJson(tcSessionData);
+			TcSessionData tcSessionData, HttpServletRequest request) throws IOException {
+		return "googleDriveConfig = " + getGoogleDriveConfigJson(tcSessionData,request);
 	}
 
 	// Static private methods ---------------------------------------
@@ -102,13 +104,12 @@ public class GoogleConfigJsonWriter {
 	}
 
 	static private void appendLinkedFolders(TcSessionData tcSessionData,
-			StringBuilder result) {
-
+			StringBuilder result,HttpServletRequest request) {
 		// setting mapping
 		result.append("[");
 		try {
 			TcSiteToGoogleLink link = TcSiteToGoogleStorage
-					.getLinkingFromSettingService(tcSessionData);
+					.getLinkingFromSettingService(tcSessionData,request);
 			if (link != null) {
 				result.append("\"")
 				.append(escapeQuotesForJson(link.getFolderId()))

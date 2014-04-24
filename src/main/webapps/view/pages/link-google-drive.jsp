@@ -5,7 +5,7 @@
 	</div>
 	<div class="pull-right">
 		<br> <a href="#" class="btn btn-primary btn-small"
-			onclick="assignNewFolder();">${createAndLinkButton}</a>
+			onclick="assignNewFolder(); return false;">${createAndLinkButton}</a>
 	</div>
 </div>
 
@@ -40,7 +40,7 @@
 		if (getGoogleAccessToken() === 'ERROR') {
 			$('#par3').show();
 		}
-
+		
 		// A null folder ID refers to the user's GD root folder
 		var parentFolderId = null;
 		var linkedFolderId = null;

@@ -25,17 +25,13 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -167,18 +163,18 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String EXPECTED_LTI_MESSAGE_TYPE = "basic-lti-launch-request";
 	private static final String EXPECTED_LTI_VERSION = "LTI-1p0";
 	private static final String JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON = "GoogleDriveConfigJson";
-	private static final String PARAMETER_ACTION = "requested_action";
+	public static final String PARAMETER_ACTION = "requested_action";
 	// Special request to monitor this service is alive: this returns "Hi"
 	private static final String PARAM_ACTION_VERIFY_SERVICE_IS_ALIVE = "checkServiceIsAlive";
-	private static final String PARAM_ACTION_CHECK_BACK_BUTTON = "checkBackButton";
+	public static final String PARAM_ACTION_CHECK_BACK_BUTTON = "checkBackButton";
 	private static final String PARAM_ACTION_LINK_GOOGLE_FOLDER = "linkGoogleFolder";
-	private static final String PARAM_ACTION_UNLINK_GOOGLE_FOLDER = "unlinkGoogleFolder";
-	private static final String PARAM_ACTION_GIVE_ROSTER_ACCESS = "giveRosterAccess";
+	public static final String PARAM_ACTION_UNLINK_GOOGLE_FOLDER = "unlinkGoogleFolder";
+	public static final String PARAM_ACTION_GIVE_ROSTER_ACCESS = "giveRosterAccess";
 	private static final String PARAM_ACTION_GIVE_CURRENT_USER_ACCESS = "giveCurrentUserAccess";
-	private static final String PARAM_ACTION_REMOVE_ROSTER_ACCESS = "removeRosterAccess";
+	public static final String PARAM_ACTION_REMOVE_ROSTER_ACCESS = "removeRosterAccess";
 	private static final String PARAM_ACTION_GET_ACCESS_TOKEN = "getAccessToken";
-	private static final String PARAM_ACTION_OPEN_PAGE = "openPage";
-	private static final String PARAM_OPEN_PAGE_NAME = "pageName";
+	public static final String PARAM_ACTION_OPEN_PAGE = "openPage";
+	public static final String PARAM_OPEN_PAGE_NAME = "pageName";
 	private static final String PARAM_ACCESS_TOKEN = "access_token";
 	private static final String PARAM_OWNER_ACCESS_TOKEN ="getOwnerToken";
 	private static final String PARAM_INSTRUCTOR_ACCESS_TOKEN_SETTING_SERVICE ="getIntructorTokenSS";
@@ -290,11 +286,11 @@ public class GoogleLtiServlet extends HttpServlet {
 					return;
 				}
 				String googleConfigJson = GoogleConfigJsonWriter
-						.getGoogleDriveConfigJsonScript(tcSessionData);
+						.getGoogleDriveConfigJsonScript(tcSessionData,request);
 				request.setAttribute(JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
 						googleConfigJson);
 				TcSiteToGoogleLink link = TcSiteToGoogleStorage
-						.getLinkingFromSettingService(tcSessionData);
+						.getLinkingFromSettingService(tcSessionData,request);
 				if ((link != null)) {
 					loadJspPage(request, response, tcSessionData, JspPage.Home);
 				} else if(tcSessionData.getIsInstructor()) {
@@ -355,10 +351,10 @@ public class GoogleLtiServlet extends HttpServlet {
 		// relationship between the folder and the site is being set in the
 		// Setting service.
 		try {
-			if(TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,newLink)) {
+			if(TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,newLink,request)) {
 			response.getWriter().print(
 					GoogleConfigJsonWriter
-					.getGoogleDriveConfigJson(tcSessionData));
+					.getGoogleDriveConfigJson(tcSessionData,request));
 			}
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -405,10 +401,10 @@ public class GoogleLtiServlet extends HttpServlet {
 		try {
 			if(
 			TcSiteToGoogleStorage
-					.setUnLinkingToSettingService(tcSessionData)) {
+					.setUnLinkingToSettingService(tcSessionData,request)) {
 				response.getWriter().print(
 						GoogleConfigJsonWriter
-						.getGoogleDriveConfigJson(tcSessionData));
+						.getGoogleDriveConfigJson(tcSessionData,request));
 			}
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -459,7 +455,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws IOException, ServletException {
 		TcSiteToGoogleLink link = TcSiteToGoogleStorage
-				.getLinkingFromSettingService(tcSessionData);
+				.getLinkingFromSettingService(tcSessionData,request);
 		if (link == null) {
 			response.getWriter().print(NOSUCCESS);
 		} else {
@@ -594,7 +590,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					throws IOException {
 		request.setAttribute(JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
 				GoogleConfigJsonWriter
-				.getGoogleDriveConfigJsonScript(tcSessionData));
+				.getGoogleDriveConfigJsonScript(tcSessionData,request));
 	}
 
 	private void insertRosterPermissions(HttpServletRequest request,
@@ -785,7 +781,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		String fileId = request.getParameter(PARAM_FILE_ID);
 		// setting stuff
 		TcSiteToGoogleLink link = TcSiteToGoogleStorage
-				.getLinkingFromSettingService(tcSessionData);
+				.getLinkingFromSettingService(tcSessionData,request);
 		String instructorEmailAddress = "";
 		if (link != null) {
 			instructorEmailAddress = link.getUserEmailAddress();
@@ -801,6 +797,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				return null;
 			}
 			instructorEmailAddress = link.getUserEmailAddress();
+			GoogleCache.getInstance().clearLinkForSite(siteId);
 		}
 
 		GoogleCredential googleCredential = null;
@@ -987,7 +984,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response, TcSessionData tcSessionData) throws Exception  {
 		try {
 			TcSiteToGoogleLink link = TcSiteToGoogleStorage
-			.getLinkingFromSettingService(tcSessionData);
+			.getLinkingFromSettingService(tcSessionData,request);
 			if(link!=null) {
 			String instructorEmailAddress = link.getUserEmailAddress();
 			getGoogleOwnerAccessToken(request, response, tcSessionData, instructorEmailAddress);
