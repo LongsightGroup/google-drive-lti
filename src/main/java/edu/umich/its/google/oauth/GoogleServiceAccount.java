@@ -55,9 +55,9 @@ public class GoogleServiceAccount {
 	private static final String PROPERTY_SUFFIX_PRIVATE_KEY_FILE_PATH = ".service.account.private.key.file";
 	private static final String PROPERTY_SUFFIX_PRIVATE_KEY_FILE_CLASSPATH = ".service.account.private.key.file.classpath";
 	private static final String PROPERTY_SUFFIX_SCOPES = ".service.account.scopes";
-	private static final String PROPERTY_SUFFIX_LTI_SECRET = ".service.account.lti.secret";
-	private static final String PROPERTY_SUFFIX_LTI_KEY = ".service.account.lti.key";
-	private static final String PROPERTY_SUFFIX_LTI_URL = ".service.account.lti.url";
+	private static final String PROPERTY_SUFFIX_LTI_SECRET = ".lti.secret";
+	private static final String PROPERTY_SUFFIX_LTI_KEY = ".lti.key";
+	private static final String PROPERTY_SUFFIX_LTI_URL = ".lti.launchUrl";
 	// These constants are used for loading properties from system files
 	private static final String SYSTEM_PROPERTY_FILE_PATH = "googleServicePropsPath";
 	private static final String SYSTEM_PROPERTY_FILE_DEFAULT_NAME = "googleServiceProps.properties";
