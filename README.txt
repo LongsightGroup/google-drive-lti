@@ -28,7 +28,7 @@ This tool allows an instructor to associate a Google Drive folder with a Sakai s
    ## LTI key,secret launch URL property should match with the properites configuring the google Drive LTI tool in LMS
    googleDriveLti.lti.secret=
    googleDriveLti.lti.key=
-   LTI launch URL should be defined, especially if the HttpServletRequest.getRequestURL().toString() does not return a valid value 
+   # LTI launch URL should be defined, especially if the HttpServletRequest.getRequestURL().toString() does not return a valid value 
    googleDriveLti.lti.launchUrl=
 
 4c. Deploy google private key within web application (cp p12-file to src/main/java/secure/)

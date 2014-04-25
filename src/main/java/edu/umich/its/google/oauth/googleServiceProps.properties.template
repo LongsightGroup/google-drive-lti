@@ -8,7 +8,11 @@ googleDriveLti.service.account.private.key.file=
 googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
 googleDriveLti.lti.secret=
 googleDriveLti.lti.key=
-googleDriveLti.lti.launchUrl=
-#GoogleDriveLTI setting if deployed to AWS vs local/deluxe servers
-googleDriveLti.context=google-drive-lti/googledrivelti
+
+# optionally set launchURL if HttpServletRequest.getRequestURL() not reliable
+#googleDriveLti.lti.launchUrl=
+
+# Set context based on whether or not app deployed as ROOT webapp application
+#googleDriveLti.context=google-drive-lti/googledrivelti
 #googleDriveLti.context=googledrivelti
+googleDriveLti.context=
