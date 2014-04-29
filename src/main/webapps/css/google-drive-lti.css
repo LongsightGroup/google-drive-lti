@@ -106,3 +106,35 @@ tr.searchNonResult {
     clip: rect(0,0,0,0);
     border: 0;
 }
+
+.jstree-children:before,.jstree-node:before {
+	/* clearfix for jsTree's elements */
+	content: " ";
+	visibility: hidden;
+	display: block;
+	height: 0;
+	clear: both;
+}
+
+span.extras {
+	display: inline-block;
+	width: 250px;
+	float: right;
+	white-space: nowrap;
+}
+
+span.extras>span {
+	display: inline-block;
+}
+
+span.shareButtonColumn {
+	width: 80px;
+}
+
+span.addMenuButtonColumn {
+	width: 50px;
+}
+
+span.unshareAndDeleteButtonColumn {
+	width: 60px;
+}

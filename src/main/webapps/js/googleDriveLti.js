@@ -151,7 +151,7 @@ function getChildren(folderId, foldersOnly, callback) {
 
 	var queryFolderId = folderId;
 
-	if ((queryFolderId == null) || (queryFolderId == '#')) {
+	if ((queryFolderId == null) || (queryFolderId == JSTREE_ROOT_NODE_ID)) {
 		queryFolderId = 'root';
 	}
 
@@ -1211,6 +1211,9 @@ var FOLDER_TREE_SHARE_COLUMN_EMPTY_TEMPLATE = '\
 var itemCache = {};
 var rootNodeId = null;
 
+// Special ID used by jsTree for its root node.
+var JSTREE_ROOT_NODE_ID = '#';
+
 // Node types supported for sorting purposes
 var NODE_TYPE_FOLDER = 'NODE_TYPE_FOLDER';
 var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
@@ -1278,6 +1281,9 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		$.jstree.plugins.appendContent = function(options, parent) {
 			this.redraw_node = function(node, deep, isCallback) {
 				node = parent.redraw_node.call(this, node, deep, isCallback);
+				
+				// this bootstrap version uses "btn-mini", new version uses "btn-xs"
+				var BUTTON_CLASSES = 'btn btn-xs btn-mini btn-default';
 
 				if (node) {
 					var nodeData = fileTree.get_node(node);
@@ -1287,44 +1293,56 @@ function initializeFileTree(fileTreeDivSelector, options) {
 
 					if (onlyOwnedFolders) {
 						if (!isRootNode) {
-							newContent = newContent.add($('<a>', {
+							newContent = newContent.add($('<span>', {
+								'class' : 'shareButtonColumn',
+							}).append($('<a>', {
 								'href' : '#',
-								// this bootstrap version uses "btn-mini", new
-								// version uses "btn-xs"
-								'class' : 'btn btn-xs btn-mini btn-default',
+								
+								'class' : BUTTON_CLASSES,
 								'html' : 'Share Folder',
 								'onclick' : "linkFolder('" + nodeData.id + "', '" + nodeData.text + "'); return false;",
+							})));
+						} else {
+							newContent = newContent.add($('<span>', {
+								'class' : 'shareButtonColumn',
+								'html' : '&nbsp;',
 							}));
 						}
 					} else {
 						if (getIsFolder(item.mimeType)) {
-							newContent = newContent.add(
-								$('#FolderDropdownTemplate').html()
+							newContent = newContent.add($('<span>', {
+								'class' : 'addMenuButtonColumn',
+								'html' : $('#FolderDropdownTemplate').html()
 									.replace(/\[FolderIdParam\]/g, escapeAllQuotes(item.id))
 									.replace(/\[LinkedFolderIdParam\]/g,escapeAllQuotes(rootNodeId))
 									.replace(/\[FolderDepthParam\]/g, 0)
-							);
+							}));
+						} else {
+							newContent = newContent.add($('<span>', {
+								'class' : 'addMenuButtonColumn',
+								'html' : '&nbsp;',
+							}));
 						}
 
 						if (isRootNode) {
-							newContent = newContent.add($('<a>', {
+							newContent = newContent.add($('<span>', {
+								'class' : 'unshareAndDeleteButtonColumn',
+								'html' : $('<a>', {
 								'href' : '#',
-								// this bootstrap version uses "btn-mini", new
-								// version uses "btn-xs"
-								'class' : 'btn btn-xs btn-mini btn-default',
+								'class' : BUTTON_CLASSES,
 								'html' : 'Unshare',
 								'onclick' : "unlinkFolderFromSite('" + nodeData.id + "', '" + nodeData.text + "'); return false;",
-							}));
+							})}));
 						} else {
-							newContent = newContent.add($('<a>', {
+							newContent = newContent.add($('<span>', {
+								'class' : 'unshareAndDeleteButtonColumn',
+								'html' : $('<a>', {
 								'href' : '#',
-								// this bootstrap version uses "btn-mini", new
-								// version uses "btn-xs"
-								'class' : 'btn btn-xs btn-mini btn-default',
+								'class' : BUTTON_CLASSES,
 								'html' : 'Delete',
 								'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
 										+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
-							}));
+							})}));
 						}
 
 					}
@@ -1335,7 +1353,10 @@ function initializeFileTree(fileTreeDivSelector, options) {
 							+ item.lastModifyingUserName
 							+ '</span></span>');
 
-					$(node).find('a:first').after(newContent);
+					$(node).find('a:first').after($('<span>', {
+						'class' : 'extras',
+						'html' : newContent,
+					}));
 				}
 
 				return node;
@@ -1372,7 +1393,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 								'check_callback' : true, // allow all tree node changes (create, delete, etc.)
 								'data' : {
 									'url' : function(node) {
-										return _getGoogleDriveUrl((node.id == '#') ? folderId
+										return _getGoogleDriveUrl((node.id == JSTREE_ROOT_NODE_ID) ? folderId
 												: null);
 									},
 									'data' : function(node) {
@@ -1385,7 +1406,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 										// 'maxResults' : MAX_RESULTS_PER_PAGE
 										};
 
-										if (queryFolderId != '#') {
+										if (queryFolderId != JSTREE_ROOT_NODE_ID) {
 											query += "'"
 													+ queryFolderId
 													+ "' in parents and trashed = false";
