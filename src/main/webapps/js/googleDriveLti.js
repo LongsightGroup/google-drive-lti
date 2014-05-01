@@ -754,16 +754,12 @@ function linkFolderToSite(folderId, callback) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
-		dataType: 'json',
 		data: getUpdateLtiParams(
 				folderId,
 				"linkGoogleFolder",
 				false)
 	}).done(function(data){
-					if ((typeof(data) === 'object') && (data !== null)) {
-						if ($.trim(data.tp_id) !== '') {
-							googleDriveConfig = data;
-						}
+		if ($.trim(data) === 'SUCCESS') {
 						callback(data);
 					} 
 	}).fail(function(data){
@@ -785,16 +781,12 @@ function unlinkFolderToSite(folderId, callback) {
 	$.ajax({
 		url: getPageUrl(),
 		type: 'GET',
-		dataType: 'json',
 		data: getUpdateLtiParams(
 				folderId,
 				"unlinkGoogleFolder",
 				false)
 	}).done(function(data) {
-					if (typeof(data) === 'object' && (data !== null)) {
-						if ($.trim(data.tp_id) !== '') {
-							googleDriveConfig = data;
-						}
+		if ($.trim(data) === 'SUCCESS') {
 						callback(data);
 					} 
 	}).fail(function(data){

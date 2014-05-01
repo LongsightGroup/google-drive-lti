@@ -184,7 +184,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String FOLDER_TITLE = "folderTitle";
 	private static final String SUCCESS = "SUCCESS";
 	private static final String NOSUCCESS = "NOSUCCESS";
-
+	//creating a constant to hold the value stored in the Setting service(SS) in session. some time the value returned from the SS is incorrect.  
+	public static final String SETTING_SERVICE_VALUE_IN_SESSION = "SettingValue";
 	// Constructors --------------------------------------------------
 
 	public GoogleLtiServlet() {
@@ -285,12 +286,9 @@ public class GoogleLtiServlet extends HttpServlet {
 							resource.getString("gd.launch.post.failure"));
 					return;
 				}
-				String googleConfigJson = GoogleConfigJsonWriter
-						.getGoogleDriveConfigJsonScript(tcSessionData,request);
-				request.setAttribute(JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON,
-						googleConfigJson);
 				TcSiteToGoogleLink link = TcSiteToGoogleStorage
 						.getLinkingFromSettingService(tcSessionData,request);
+				
 				if ((link != null)) {
 					loadJspPage(request, response, tcSessionData, JspPage.Home);
 				} else if(tcSessionData.getIsInstructor()) {
@@ -333,8 +331,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 
 	/**
-	 * Saves relationship of folder and site in LTI setting service, and returns
-	 * the updated Google Drive Configuration json to the browser.
+	 * Saves relationship of folder and site in LTI setting service, 
 	 * 
 	 * @param request
 	 * @param response
@@ -353,8 +350,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		try {
 			if(TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,newLink,request)) {
 			response.getWriter().print(
-					GoogleConfigJsonWriter
-					.getGoogleDriveConfigJson(tcSessionData,request));
+					SUCCESS);
 			}
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -388,8 +384,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 
 	/**
-	 * Removes relationship of folder and site from the database, and returns
-	 * the updated Google Drive Configuration json to the browser.
+	 * Removes relationship of folder and site from the  LTI setting service, 
 	 * 
 	 * @param request
 	 * @param response
@@ -403,8 +398,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			TcSiteToGoogleStorage
 					.setUnLinkingToSettingService(tcSessionData,request)) {
 				response.getWriter().print(
-						GoogleConfigJsonWriter
-						.getGoogleDriveConfigJson(tcSessionData,request));
+						SUCCESS);
 			}
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -440,7 +434,7 @@ public class GoogleLtiServlet extends HttpServlet {
 
 	/**
 	 * If the instructor hit back button in the browser from the shared view
-	 * this checks to see if the settings service has any thing in it. If it
+	 * this checks to see if the settings service value stored in session has any thing in it. If it
 	 * does then it will redirect to the Shared view. This check here eliminate
 	 * a potential bug as instructor should only go back to the create and
 	 * shared view is by unlinking the folder and not hitting back button.
@@ -454,9 +448,8 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void checkBackButtonHit(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws IOException, ServletException {
-		TcSiteToGoogleLink link = TcSiteToGoogleStorage
-				.getLinkingFromSettingService(tcSessionData,request);
-		if (link == null) {
+		String link= (String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
+		if (link==null) {
 			response.getWriter().print(NOSUCCESS);
 		} else {
 			response.getWriter().print(SUCCESS);
@@ -772,6 +765,16 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 		return result;
 	}
+	/**
+	 * Getting the instructors email address( that is needed during for manipulating permission calls) stored in the Setting service(SS) from the Session instead of SS 
+	 * as call to SS intermittently not fetching correct value.
+	 * @param request
+	 * @param response
+	 * @param tcSessionData
+	 * @return
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 
 	private FolderPermissionsHandler getHandler(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
@@ -779,15 +782,15 @@ public class GoogleLtiServlet extends HttpServlet {
 		FolderPermissionsHandler result = null;
 		String siteId = tcSessionData.getContextId();
 		String fileId = request.getParameter(PARAM_FILE_ID);
-		// setting stuff
-		TcSiteToGoogleLink link = TcSiteToGoogleStorage
-				.getLinkingFromSettingService(tcSessionData,request);
+		TcSiteToGoogleLink link=null;
 		String instructorEmailAddress = "";
-		if (link != null) {
+		String value=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
+		if(value!=null) {
+			link = TcSiteToGoogleStorage.parseLink(value);
 			instructorEmailAddress = link.getUserEmailAddress();
 		} else {
 			link = GoogleCache.getInstance().getLinkForSite(siteId);
-			if (link == null) {
+			if(link == null) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("Error: cannot modify permissions to folder #");
 				sb.append(fileId);
@@ -799,7 +802,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			instructorEmailAddress = link.getUserEmailAddress();
 			GoogleCache.getInstance().clearLinkForSite(siteId);
 		}
-
+		
 		GoogleCredential googleCredential = null;
 		if (instructorEmailAddress.equalsIgnoreCase(tcSessionData
 				.getUserEmailAddress())) {
@@ -975,7 +978,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	/**
 	 * This case help to determines if the  404 error occurs while showing a shared folder is due to user 
 	 * don't has permission or shared folder has been deleted from the google drive interface. 
-	 * This function call check to get the instructor email address from the setting service and generates a token
+	 * This function call check to get the instructor email address from the setting service(SS) value stored in session(as the SS some time seems to be buggy)  and generates a token
 	 * and with generated token check if the shared folder exist or not.
 	 * 
 	 */
@@ -983,10 +986,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void getInstructorEmailAddressFromSettingService(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData) throws Exception  {
 		try {
-			TcSiteToGoogleLink link = TcSiteToGoogleStorage
-			.getLinkingFromSettingService(tcSessionData,request);
+			String link= (String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
 			if(link!=null) {
-			String instructorEmailAddress = link.getUserEmailAddress();
+			String instructorEmailAddress = TcSiteToGoogleStorage.parseLink(link).getUserEmailAddress();
 			getGoogleOwnerAccessToken(request, response, tcSessionData, instructorEmailAddress);
 			}
 			else {
@@ -1196,7 +1198,6 @@ public class GoogleLtiServlet extends HttpServlet {
 			
 			request.setAttribute("userEmailAddress",
 					tcSessionData.getUserEmailAddress());
-
 			getServletContext().getRequestDispatcher("/view/root.jsp").forward(
 					request, response);
 		} else {

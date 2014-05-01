@@ -28,7 +28,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import edu.umich.its.lti.TcSessionData;
-import edu.umich.its.lti.TcSiteToGoogleLink;
 import edu.umich.its.lti.TcSiteToGoogleStorage;
 
 /**
@@ -102,17 +101,21 @@ public class GoogleConfigJsonWriter {
 		// 2 - End Adding the folder
 		result.append("}");
 	}
-
+/**
+ *  Getting the shared folder id from the Session instead of setting service as call to Setting service intermittently not fetching correct value.
+ * @param tcSessionData
+ * @param result
+ * @param request
+ */
 	static private void appendLinkedFolders(TcSessionData tcSessionData,
 			StringBuilder result,HttpServletRequest request) {
 		// setting mapping
 		result.append("[");
 		try {
-			TcSiteToGoogleLink link = TcSiteToGoogleStorage
-					.getLinkingFromSettingService(tcSessionData,request);
+			String link= (String)request.getSession().getAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION);
 			if (link != null) {
 				result.append("\"")
-				.append(escapeQuotesForJson(link.getFolderId()))
+				.append(escapeQuotesForJson(TcSiteToGoogleStorage.parseLink(link).getFolderId()))
 				.append("\"");
 			}
 		} catch (Exception e) {

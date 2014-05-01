@@ -46,15 +46,12 @@ public class TcSiteToGoogleStorage {
 			.getLog(TcSiteToGoogleStorage.class);
 
 	// Static public methods ----------------------------------------
-	private static final String POST = "POST";
-	private static final String SETTING_SERVICE_VALUE_IN_SESSION = "SettingValue";
-	private static final String HOME = "Home";
-	private static final String LINK_FOLDER = "LinkFolder";
 
 	/**
 	 * Setting string in the format
 	 * <site_id>,<user_id>,<user_email_address>,<google-folder-id> to setting
-	 * service with the a Folder is shared/linked with the site.
+	 * service with the a Folder is shared/linked with the site and also storing the setting value in the session
+	 * for accessing later calls(as Setting service seems to be buggy sometime)
 	 * @throws Exception 
 	 * @throws ServletException 
 	 * 
@@ -65,7 +62,7 @@ public class TcSiteToGoogleStorage {
 			state = SettingsClientUtils.setSetting(tcSessionData,
 					linking.toString());
 			if(state) {
-				request.getSession().setAttribute("SettingValue", linking.toString());
+				request.getSession().setAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION, linking.toString());
 			}else {
 				M_log.error("Setting service call is unsuccessful and putting the Settings value in session failed");
 			}
@@ -76,7 +73,7 @@ public class TcSiteToGoogleStorage {
 
 	/**
 	 * This will set empty string when a folder is unshared/Unlinked to the
-	 * setting service
+	 * setting service and storing the setting value in the session for accessing later calls(as Setting service call seems to be buggy sometime).
 	 * @throws IOException 
 	 * @throws ServletException 
 	 * 
@@ -85,14 +82,16 @@ public class TcSiteToGoogleStorage {
 	public synchronized static Boolean setUnLinkingToSettingService(
 			TcSessionData tcSessionData, HttpServletRequest request) throws ServletException, IOException  {
 		Boolean state = false;
-
-		TcSiteToGoogleLink linkBeforeDeletion = null;
-		linkBeforeDeletion = getLinkingFromSettingService(tcSessionData,request);
+		TcSiteToGoogleLink result = null;
+		String linkedGoogleFolder=(String)request.getSession().getAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION);
+		if (linkedGoogleFolder != null) {
+			result = parseLink(linkedGoogleFolder);
+		}
 		state = SettingsClientUtils.setSetting(tcSessionData, "");
 		if (state) {
 			GoogleCache.getInstance().setLinkForSite(
-					tcSessionData.getContextId(), linkBeforeDeletion);
-			request.getSession().setAttribute("SettingValue", null);
+					tcSessionData.getContextId(), result);
+			request.getSession().setAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION, null);
 		}else {
 			M_log.error("Setting service call is unsuccessful and putting the Settings value in session failed");
 		}
@@ -101,48 +100,17 @@ public class TcSiteToGoogleStorage {
 	}
 
 	/**
-	 * Getting the shared/linked folder from the setting service
-	 * 
+	 * Getting the shared/linked folder from the setting service. 
+	 * Intermittently some times the get call to setting service is not fetching the correct value. So storing this value in session for accessing it for later calls that need this value. 
 	 * @throws ServletException
-	 * 
+	 * @throws IOException
 	 * */
 	public synchronized static TcSiteToGoogleLink getLinkingFromSettingService(
 			TcSessionData tcSessionData,HttpServletRequest request) throws IOException, ServletException {
 		TcSiteToGoogleLink result = null;
-		String linkedGoogleFolder = SettingsClientUtils
-				.getSettingString(tcSessionData);
-		if(request.getMethod()!=POST) {
-			String action = request.getParameter(GoogleLtiServlet.PARAMETER_ACTION);
-		if(linkedGoogleFolder==null) {
-			if(action.equals(GoogleLtiServlet.PARAM_ACTION_GIVE_ROSTER_ACCESS)) {
-				linkedGoogleFolder=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
-			}
-			if(action.equals(GoogleLtiServlet.PARAM_ACTION_OPEN_PAGE)) {
-				String pageName = request.getParameter(GoogleLtiServlet.PARAM_OPEN_PAGE_NAME);
-				if(pageName.equals(HOME)) {
-				linkedGoogleFolder=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
-				}
-			}
-			if(action.equals(GoogleLtiServlet.PARAM_ACTION_UNLINK_GOOGLE_FOLDER)) {
-				linkedGoogleFolder=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
-			}
-		}else {
-			if(action.equals(GoogleLtiServlet.PARAM_ACTION_REMOVE_ROSTER_ACCESS)) {
-				linkedGoogleFolder=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
-			}
-			if(action.equals(GoogleLtiServlet.PARAM_ACTION_OPEN_PAGE)) {
-				String pageName = request.getParameter(GoogleLtiServlet.PARAM_OPEN_PAGE_NAME);
-				if(pageName.equals(LINK_FOLDER)) {
-				linkedGoogleFolder=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
-				}
-				
-			}
-			if(action.equals(GoogleLtiServlet.PARAM_ACTION_CHECK_BACK_BUTTON)) {
-				linkedGoogleFolder=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
-			}
-		}
-		}
-		
+		String linkedGoogleFolder = SettingsClientUtils.getSettingString(tcSessionData);
+		request.getSession().setAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION, linkedGoogleFolder);
+
 		if (linkedGoogleFolder != null) {
 			result = parseLink(linkedGoogleFolder);
 		}
@@ -155,7 +123,7 @@ public class TcSiteToGoogleStorage {
 	 * <site_id>,<user_id>,<user_email_address>,<google-folder-id>
 	 * 
 	 */
-	private static TcSiteToGoogleLink parseLink(String line) {
+	public static TcSiteToGoogleLink parseLink(String line) {
 		TcSiteToGoogleLink result = new TcSiteToGoogleLink();
 		String[] fields = line.split(",");
 		if (fields.length != 4) {
