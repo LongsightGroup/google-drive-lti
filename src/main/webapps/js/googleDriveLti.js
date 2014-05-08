@@ -905,7 +905,7 @@ function getUpdateLtiParams(folderId, requestedAction, sendNotificationEmails) {
 	+ '&tp_id=' + escapeUrl(getConfigTpId());
 }
 
-function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth) {
+function openDialogToCreateItem(fileType, parentFolderId, linkedFolderId, depth) {
 	itemTitlePromptDialog(fileType, null, function(title) {
 		// User clicked "Cancel" button
 		if (title === null) {
@@ -923,13 +923,15 @@ function openDialogToCreateFile(fileType, parentFolderId, linkedFolderId, depth)
 				courseId,
 				'application/vnd.google-apps.' + fileTypeLowerCase,
 				function(file) {
-					addFileToFileTreeTable(file, parentFolderId, linkedFolderId,
-							depth + 1);
-					
-					// TODO: complete this call.  extract the node formatting code to a function and call it here, too.
-					// TODO: needs "type" for proper sorting.
+					addFileToFileTreeTable(file, parentFolderId, linkedFolderId, depth + 1);
+
 					itemCache[file.id] = file;
-					fileTree.create_node(parentFolderId, {'text' : file.title, 'id' : file.id});
+
+					// (re)-load parent folder's contents
+					fileTree.refresh_node(parentFolderId);
+
+					// open parent folder, just in case it's closed
+					fileTree.open_node(parentFolderId);
 				});
 		
 		showInfo($('#alertContainer'), sprintf(createItemAlert, fileTypeLowerCase, escapeHtml(title)));

@@ -11,7 +11,7 @@
 				<%
 	// This is list of each file types as it appears on the page, and is also
 	// appended to Google MIME type
-	// See comments on openDialogToCreateFile() below
+	// See comments on openDialogToCreateItem() below
 	// * '-' is special entry that creates an <li> with a horizontal line
 	String[] fileTypes = new String[] {
 		"Folder",
@@ -30,7 +30,7 @@
 		} else {
 			String fileTypeLowerCase = fileType.toLowerCase();
 			/*
-				openDialogToCreateFile() Parameters:
+				openDialogToCreateItem() Parameters:
 
 				1 - Suffix of the file's Google MIME type appended to 'application/vnd.google-apps.'
 				    * folder => application/vnd.google-apps.folder
@@ -43,7 +43,7 @@
 			*/
 %>
 				<li><a href="#" tabindex="-1"
-					onclick="openDialogToCreateFile('<%=fileType%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton}
+					onclick="openDialogToCreateItem('<%=fileType%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton}
 						<%=fileType%></a></li>
 				<%
 		}
