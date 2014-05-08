@@ -81,6 +81,7 @@ String contextLabel =(String)request.getAttribute("contextLabel");
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
 <script src="js/bootbox.4.1.0.min.js"></script>
+<script src="js/underscore-min.js"></script>
 
 <link rel="stylesheet" href="jstree/themes/default/style.min.css" />
 <script type="text/javascript" src="jstree/jstree.min.js"></script>
