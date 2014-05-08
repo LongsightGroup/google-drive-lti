@@ -1301,7 +1301,8 @@ function initializeFileTree(fileTreeDivSelector, options) {
 							}));
 						}
 					} else {
-						if (getIsFolder(item.mimeType)) {
+						// Second column content: Instructors see the add menu button.
+						if (getIsInstructor() && getIsFolder(item.mimeType)) {
 							newContent = newContent.add($('<span>', {
 								'class' : 'addMenuButtonColumn',
 								'html' : $('#FolderDropdownTemplate').html()
@@ -1316,27 +1317,35 @@ function initializeFileTree(fileTreeDivSelector, options) {
 							}));
 						}
 
-						if (isRootNode) {
-							newContent = newContent.add($('<span>', {
-								'class' : 'unshareAndDeleteButtonColumn',
-								'html' : $('<a>', {
-								'href' : '#',
-								'class' : BUTTON_CLASSES,
-								'html' : 'Unshare',
-								'onclick' : "unlinkFolderFromSite('" + nodeData.id + "', '" + nodeData.text + "'); return false;",
-							})}));
+						// Third column content: Instructors see unshare or delete button.
+						columnClass = 'unshareAndDeleteButtonColumn';
+						if (getIsInstructor()){
+							if (isRootNode) {
+								newContent = newContent.add($('<span>', {
+									'class' : columnClass,
+									'html' : $('<a>', {
+										'href' : '#',
+										'class' : BUTTON_CLASSES,
+										'html' : 'Unshare',
+										'onclick' : "unlinkFolderFromSite('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
+									})}));
+							} else {
+								newContent = newContent.add($('<span>', {
+									'class' : columnClass,
+									'html' : $('<a>', {
+										'href' : '#',
+										'class' : BUTTON_CLASSES,
+										'html' : 'Delete',
+										'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
+										+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
+									})}));
+							}
 						} else {
 							newContent = newContent.add($('<span>', {
-								'class' : 'unshareAndDeleteButtonColumn',
-								'html' : $('<a>', {
-								'href' : '#',
-								'class' : BUTTON_CLASSES,
-								'html' : 'Delete',
-								'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
-										+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
-							})}));
+								'class' : columnClass,
+								'html' : '&nbsp;',
+							}));
 						}
-
 					}
 
 					newContent = newContent.add('<span>'
