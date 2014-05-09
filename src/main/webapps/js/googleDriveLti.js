@@ -63,9 +63,6 @@ var googleFileParents = [];
 var EXPAND_TEXT = '+ <span class="sr-only">Expand this folder</span>';
 var SHRINK_TEXT = '- <span class="sr-only">Collapse this folder</span>';
 
-var accessTokenHandler = {
-		"accessToken" : null
-};
 
 bootbox.setDefaults({
 	closeButton : false
@@ -642,21 +639,41 @@ function getIsInstructor() {
 }
 
 /**
- * Returns access token, retrieved from Google if we don't have it already.
+ * Returns access token, retrieved from Google.Before using the access token doing a check if token 
+ * is nearing the expiration time. Ideally the token expires in 60 minutes, but we are checking it on 59th minute.
+ * If the time elapsed is greated than 59 minutes then a get a new access token.
+ * The Json response getting accessToken and timeStamp in milliseconds when token is created.
+ * {
+ * "access_token" : "asdc", 
+ * "time_stamp" : "1399634704598"
+ * } 
  */
 function getGoogleAccessToken() {
-	if ($.trim(accessTokenHandler.accessToken) === '') {
-		accessTokenHandler.accessToken = requestGoogleAccessToken();
+	if($.trim(accessTokenHandler)==='null'||$.trim(accessTokenHandler) === ''||$.trim(accessTokenHandler)==='undefined'){
+		accessTokenHandler='ERROR';
 	}
-	
-	return accessTokenHandler.accessToken;
+	var date = new Date();
+    var currentTimeInMilliSeconds = date.getTime();
+    var fiftyNineMinutesInMilliSeconds=3540000;
+    if((currentTimeInMilliSeconds-accessTokenTime)>fiftyNineMinutesInMilliSeconds){
+    	var tokenResponse=requestGoogleAccessToken();
+    	$.each(JSON.parse(tokenResponse), function(i, result) {
+    		if(i==="access_token"){
+    			accessTokenHandler=result;
+    		}else if (i==="time_stamp"){
+    			accessTokenTime=result;
+    		}
+    	});
+
+    }
+	return accessTokenHandler;
 }
 
 function requestGoogleAccessToken() {
 	var result = null;
-
 	result = $.ajax({
 		url: getPageUrl(),
+		dataType: 'json',
 		async: false,
 		type: 'GET',
 		data: {

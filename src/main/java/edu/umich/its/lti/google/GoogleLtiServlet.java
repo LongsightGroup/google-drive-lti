@@ -49,6 +49,7 @@ import com.google.api.services.drive.model.Permission;
 import com.google.api.services.drive.model.PermissionId;
 import com.google.api.services.drive.model.PermissionList;
 
+import edu.umich.its.google.oauth.GoogleAccessToken;
 import edu.umich.its.google.oauth.GoogleSecurity;
 import edu.umich.its.google.oauth.GoogleServiceAccount;
 import edu.umich.its.lti.GoogleCache;
@@ -186,6 +187,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String NOSUCCESS = "NOSUCCESS";
 	//creating a constant to hold the value stored in the Setting service(SS) in session. some time the value returned from the SS is incorrect.  
 	public static final String SETTING_SERVICE_VALUE_IN_SESSION = "SettingValue";
+	
 	// Constructors --------------------------------------------------
 
 	public GoogleLtiServlet() {
@@ -349,8 +351,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		// Setting service.
 		try {
 			if(TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,newLink,request)) {
-			response.getWriter().print(
-					SUCCESS);
+			response.getWriter().print(SUCCESS);
 			}
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -397,8 +398,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			if(
 			TcSiteToGoogleStorage
 					.setUnLinkingToSettingService(tcSessionData,request)) {
-				response.getWriter().print(
-						SUCCESS);
+				response.getWriter().print(SUCCESS);
 			}
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -904,7 +904,6 @@ public class GoogleLtiServlet extends HttpServlet {
                         }
                 }
             }
-            
             if(numberOfPermissionsRemoved==(rosterSize-1)) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().print(SUCCESS);
@@ -948,31 +947,36 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * the user doesn't have a valid Google account.  Write a message to the log, then send the string "ERROR" as the
 	 * response.
 	 */
+	
 	private void getGoogleAccessToken(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws IOException {
 		String userEmailAddress = tcSessionData.getUserEmailAddress();
-
 		if (getIsEmpty(userEmailAddress)) {
-			logErrorWritingResponse(
-					response,
-					"Error: unable to get access token - the ToolProvider(TP) server does not know the user's email address.");
+					M_log.error("Error: unable to get access token - the ToolProvider(TP) server does not know the user's email address.");
 			return;
 		}
-
 		// Throws exception for bad email and other reasons.  Should we catch it?
-		String accessToken =  GoogleSecurity.getGoogleAccessToken(
-			getGoogleServiceAccount(), userEmailAddress);
-
-		if (accessToken != null) {
-			response.getWriter().print(accessToken);
-		} else {
-			M_log.warn("ERROR: User \""
-					+ tcSessionData.getUserSourceDid()
-					+ "\" does not have a valid Google account for Google Drive LTI.  Unable to get access token.  (Email: "
-					+ userEmailAddress + "; ID: " + tcSessionData.getUserId()
-					+ ")");
-			response.getWriter().print("ERROR");
+		GoogleAccessToken accessToken =  GoogleSecurity.getGoogleAccessTokenWithTimeStamp(getGoogleServiceAccount(), userEmailAddress);
+		if(accessToken==null) {
+			StringBuilder s=new StringBuilder();
+			s.append(" ERROR: User \"" );
+			s.append(tcSessionData.getUserSourceDid());
+			s.append("\" does not have a valid Google account for Google Drive LTI.  Unable to get access token or too many credentials got created in a short span of time So google refused to give more access Tokens for (Email: \"");
+			s.append(userEmailAddress);
+			s.append("\" ; ID: \"");
+			s.append(tcSessionData.getUserId());
+			s.append(")\"");
+			M_log.error(s.toString());
+			return;
+		}
+		request.getSession().setAttribute("accessToken", accessToken);
+		if(request.getMethod().equals("GET")) {
+		StringBuilder jsonTokenObject = new StringBuilder("{");
+		jsonTokenObject.append("\"access_token\" : \"").append(accessToken.getToken()).append("\"");
+		jsonTokenObject.append(", \"time_stamp\" : \"").append(accessToken.getTimeTokenCreated()).append("\"");
+		jsonTokenObject.append("} ");
+		response.getWriter().print(jsonTokenObject.toString());
 		}
 	}
 	/**
@@ -1003,9 +1007,18 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void getGoogleOwnerAccessToken(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData,String ownerEmailAddress)
 					throws IOException {
-		String accessToken = GoogleSecurity.getGoogleAccessToken(
-				getGoogleServiceAccount(), ownerEmailAddress);
-		
+		String accessToken=null;
+		if(ownerEmailAddress.equals(tcSessionData.getUserEmailAddress())) {
+			GoogleAccessToken token=(GoogleAccessToken)request.getSession().getAttribute("accessToken");
+			if(token!=null) {
+				accessToken=token.getToken();
+			}
+			else {
+				M_log.error("Error: When retriving the accessToken from the Session");
+			}
+		}else {
+	     accessToken = GoogleSecurity.getGoogleAccessToken(getGoogleServiceAccount(), ownerEmailAddress);
+		}
 		if (accessToken != null) {
 			response.getWriter().print(accessToken);
 		} else {
@@ -1034,7 +1047,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
 			StringBuilder s =new StringBuilder();
-		     s.append("Error: unable to handle permissions, as no file ID was included in the request for User email address: \"");
+		     s.append("Error: unable to handle permissions, as no Access Token was included in the request for User email address: \"");
 		     s.append(tcSessionData.getUserEmailAddress());
 		     s.append(" \" and User id : \"");
 		     s.append(tcSessionData.getUserId());
@@ -1076,11 +1089,6 @@ public class GoogleLtiServlet extends HttpServlet {
 		return RosterClientUtils.getRosterFull(tcSessionData);
 	}
 
-	private void logErrorWritingResponse(HttpServletResponse response, String message)
-			throws IOException {
-		M_log.warn(message);
-		response.getWriter().print(message);
-	}
 
 	/**
 	 * Overload that gets JSP page to open from parameter in the request.
@@ -1195,7 +1203,9 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.button.delete"));
 			request.setAttribute("contextUrl",
 					getGoogleServiceAccount().getContextURL());
-			
+			if(request.getMethod().equals("POST")) {
+				getGoogleAccessToken(request, response, tcSessionData);
+			}
 			request.setAttribute("userEmailAddress",
 					tcSessionData.getUserEmailAddress());
 			getServletContext().getRequestDispatcher("/view/root.jsp").forward(

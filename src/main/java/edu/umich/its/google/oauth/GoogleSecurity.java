@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -32,6 +33,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.client.util.Clock;
 import com.google.api.services.drive.Drive;
 
 public class GoogleSecurity {
@@ -42,6 +44,8 @@ public class GoogleSecurity {
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 	private static final String APPLICATION_NAME = "GoogleDriveLti";
+
+
 
 	// Static public methods ----------------------------------------
 
@@ -110,6 +114,27 @@ public class GoogleSecurity {
 			M_log.error(sb.toString(), err);
 		}
 		return result;
+	}
+	static public GoogleAccessToken getGoogleAccessTokenWithTimeStamp(
+			GoogleServiceAccount serviceAccount, String userEmailAddress) {
+		GoogleAccessToken googleAccessToken=null;
+		try {
+			GoogleCredential credential = authorize(serviceAccount,
+					userEmailAddress);
+			credential.refreshToken();
+			String accessToken = credential.getAccessToken();
+			Clock clock = credential.getClock();
+			long currentTimeMillis = clock.currentTimeMillis();
+			 googleAccessToken = new GoogleAccessToken(accessToken,currentTimeMillis);
+		} catch (Exception err) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Failed to get access token for user \"");
+			sb.append(userEmailAddress);
+			sb.append("\" and service account ");
+			sb.append(serviceAccount);
+			M_log.error(sb.toString(), err);
+		}
+		return googleAccessToken;
 	}
 
 	/**

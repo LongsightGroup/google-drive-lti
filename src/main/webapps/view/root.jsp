@@ -4,6 +4,7 @@ contents, and footers.
 --%>
 <%@page isELIgnored="false"%>
 <%@page import="edu.umich.its.lti.TcSessionData"%>
+<%@page import="edu.umich.its.google.oauth.GoogleAccessToken"%>
 <%TcSessionData data = (TcSessionData)request.getAttribute("TcSessionData");
 String linkFolderButton =(String)request.getAttribute("linkFolderButton");
 String unlinkFolderButton =(String)request.getAttribute("unlinkFolderButton");
@@ -33,6 +34,13 @@ String deleteFolderErrorAlert =(String)request.getAttribute("deleteFolderErrorAl
 String errorMsg404 =(String)request.getAttribute("errorMsg404");
 String errorMessageIe8 =(String)request.getAttribute("errorMessageIe8");
 String contextLabel =(String)request.getAttribute("contextLabel");
+String token=null;
+Long tokenTimeStamp=null;
+GoogleAccessToken accessToken=(GoogleAccessToken)request.getSession().getAttribute("accessToken");
+if(accessToken!=null){
+ token=accessToken.getToken();
+ tokenTimeStamp=accessToken.getTimeTokenCreated();
+} 
 %>
 <html lang="en">
 <head>
@@ -76,7 +84,8 @@ String contextLabel =(String)request.getAttribute("contextLabel");
     var userEmailAddress='<%=userEmailAddress%>';
     var deleteFileErrorAlert='<%=deleteFileErrorAlert %>';
     var deleteFolderErrorAlert='<%=deleteFolderErrorAlert %>';
-    
+    var accessTokenHandler='<%=token %>';
+    var accessTokenTime='<%=tokenTimeStamp %>';
     </script>
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
