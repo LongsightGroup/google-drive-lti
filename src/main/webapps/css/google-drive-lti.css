@@ -1,91 +1,95 @@
-@media (max-width: 980px) {
-    /* Enable use of floated navbar text */
-    .navbar-text.pull-right {
-        float: none;
-        padding-left: 5px;
-        padding-right: 5px;
-    }
+@media ( max-width : 980px) {
+	/* Enable use of floated navbar text */
+	.navbar-text.pull-right {
+		float: none;
+		padding-left: 5px;
+		padding-right: 5px;
+	}
 }
 
 body {
-    padding-top: 60px;
-    padding-bottom: 40px;
+	padding-top: 60px;
+	padding-bottom: 40px;
 }
 
 .sidebar-nav {
-    padding: 9px 0;
+	padding: 9px 0;
 }
 
 .indent1 {
-    padding-left: 10px;
+	padding-left: 10px;
 }
 
 .indent2 {
-    padding-left: 20px;
+	padding-left: 20px;
 }
 
 .modified_by {
-    font-size: .7em;
-    color: #AAA;
+	font-size: .7em;
+	color: #AAA;
 }
 
 TABLE {
-    background-color: #fff;
+	background-color: #fff;
 }
 
 .large-text {
-    font-size: 1.5em;
-    font-weight: bold;
-    margin-top: 20px;
+	font-size: 1.5em;
+	font-weight: bold;
+	margin-top: 20px;
 }
+
 .hide {
-    display : none;
+	display: none;
 }
 
 #spinner {
-    background: transparent url("../images/ajax_loader_blue_128.gif") top left no-repeat;
-    width: 128px;
-    height: 128px;
-    position: absolute;
-    top: 20%;
-    left: 33%;
+	background: transparent url("../images/ajax_loader_blue_128.gif") top
+		left no-repeat;
+	width: 128px;
+	height: 128px;
+	position: absolute;
+	top: 20%;
+	left: 33%;
 }
 
 .dropdown {
-/* 	float: left; */
+	/* 	float: left; */
 	display: inline-block;
 }
 
 .itemLink {
-    display: block;
-    float: left;
-    width: 90%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+	display: block;
+	float: left;
+	width: 90%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .itemLink:hover {
-    text-decoration: none;
-    cursor: pointer
+	text-decoration: none;
+	cursor: pointer
 }
 
 .expandShrink {
-    padding: 0 5px;
-    display: block;
-    width: 2%;
-    float: left;
+	padding: 0 5px;
+	display: block;
+	width: 2%;
+	float: left;
 }
 
 .expandShrink:hover {
-    font-weight: bold;
-    cursor: pointer
+	font-weight: bold;
+	cursor: pointer
 }
+
 .header-controls .controls {
-    text-align:right
+	text-align: right
 }
-.expandShrink:hover, .expandShrink:focus {
-    text-decoration:none
+
+.expandShrink:hover,.expandShrink:focus {
+	text-decoration: none
 }
 
 h4.modal-title {
@@ -97,14 +101,14 @@ tr.searchNonResult {
 }
 
 .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    border: 0;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
 }
 
 .jstree-children:before,.jstree-node:before {
