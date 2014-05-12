@@ -469,9 +469,10 @@ public class GoogleLtiServlet extends HttpServlet {
 		TcSessionData result = null;
 		String ltiSecret = getGoogleServiceAccount().getLtiSecret();
 		String ltiKey = getGoogleServiceAccount().getLtiKey();
+		String ltiUrl = getGoogleServiceAccount().getLtiUrl();
 		String ltiKeyFromLaunch = request.getParameter("oauth_consumer_key");
 		if((ltiKey.equals(ltiKeyFromLaunch))) {
-			OauthCredentials oauthCredentials = new OauthCredentials(ltiKey,ltiSecret);
+			OauthCredentials oauthCredentials = new OauthCredentials(ltiKey,ltiSecret,ltiUrl);
 			result = new TcSessionData(request,oauthCredentials);
 		}else {
 			M_log.error("The LTI key from the launch of the application is not same as LTI key from the properties file");
