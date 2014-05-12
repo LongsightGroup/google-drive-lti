@@ -52,7 +52,7 @@ var DEBUG_MODE = false;
 
 var SAVE_SITE_ID_IN_GOOGLE = false;
 var SAVE_LINKS_IN_TP = true;
-var FILTER_FOR_FOLDERS = 'mimeType = \'application/vnd.google-apps.folder\'';
+var FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder';
 var SELECTED_FOLDER_INPUT_NAME = 'folderSelectRadio';
 //number of px is multiplied by the file's depth to pad the title
 var FILE_DEPTH_PADDING_PX = 30;
@@ -83,6 +83,7 @@ bootbox.setDefaults({
  * site.
  * - The page allows the instructor to create a new folder, linked with the
  * site, and as child of "My Drive" or any other folder they own.
+ * @deprecated
  */
 function showLinkedGoogleFolders() {
 	var folders = getConfigLinkedFolders();
@@ -99,6 +100,7 @@ function showLinkedGoogleFolders() {
  * folder being requested).
  * 
  * @param folderId
+ * @deprecated
  */
 function showLinkedGoogleFolder(folderId, foldersOnly) {	
 	foldersOnly = (foldersOnly === true);
@@ -130,6 +132,8 @@ var fileTree = null;
  * window, and runs query for getting its children.
  * 
  * See showLinkedGoogleFolders() for description of this function's responsibilities.
+ * 
+ * @deprecated
  */
 function showLinkedGoogleFolderCallback(file, depth, foldersOnly) {
 	foldersOnly = (foldersOnly === true);
@@ -141,26 +145,6 @@ function showLinkedGoogleFolderCallback(file, depth, foldersOnly) {
 
 		getFoldersChildren(file.id, file.id, depth, foldersOnly);
 	}
-}
-
-function getChildren(folderId, foldersOnly, callback) {
-	foldersOnly = (foldersOnly === true);
-
-	var queryFolderId = folderId;
-
-	if ((queryFolderId == null) || (queryFolderId == JSTREE_ROOT_NODE_ID)) {
-		queryFolderId = 'root';
-	}
-
-	var query = "'" + queryFolderId + "' in parents";
-
-	if (foldersOnly) {
-		query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
-	}
-
-	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {
-		callback(data.items);
-	});
 }
 
 /**
@@ -179,6 +163,8 @@ function getChildren(folderId, foldersOnly, callback) {
  *            Integer number of indentation levels
  * @param foldersOnly
  *            Boolean indicating whether only folders should be queried
+ *            
+ * @deprecated
  */
 function getFoldersChildren(parentFolderId, linkedFolderId, indentationDepth, foldersOnly) {
 	foldersOnly = (foldersOnly === true);
@@ -192,7 +178,7 @@ function getFoldersChildren(parentFolderId, linkedFolderId, indentationDepth, fo
 	var query = "'" + queryFolderId + "' in parents";
 
 	if (foldersOnly) {
-		query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
+		query += " and mimeType = '" + FOLDER_MIME_TYPE + "' and 'me' in owners";
 	}
 
 	queryDriveFilesNotTrashed(getGoogleAccessToken(), query, function(data) {
@@ -210,7 +196,7 @@ function getFoldersChildren(parentFolderId, linkedFolderId, indentationDepth, fo
 				}
 
 				// If folder, search for its children (recursively)
-				if (file.mimeType === 'application/vnd.google-apps.folder') {
+				if (file.mimeType === FOLDER_MIME_TYPE) {
 					getFoldersChildren(file.id, linkedFolderId, childIndentationDepth,
 							foldersOnly);
 				}
@@ -262,6 +248,10 @@ function listAncestorsForFileRecursive(currentFileId, parentFileId, rootParent) 
 	}
 }
 
+/**
+ * Used in search form.  When carriage return is pressed (character code 13), start the search.
+ * @param e
+ */
 function AutoClick(e) {
 	var carriageReturnKeyCode = 13;
 
@@ -274,6 +264,7 @@ function AutoClick(e) {
  * Apply a highlight color to table rows that match the search field. Also
  * expand all collapsed ancestors and mark them to be displayed as part of the
  * search results.
+ * @deprecated
  */
 function searchItems() {
 	var searchValue = $('#UnlinkedFolderSearchInput').val().trim();
@@ -302,6 +293,10 @@ function searchItems() {
 	}
 }
 
+/**
+ * @param item
+ * @deprecated
+ */
 function expandAndIncludeParent(item) {
 	var itemClasses = item.attr('class');
 
@@ -328,6 +323,7 @@ function expandAndIncludeParent(item) {
 /**
  * When called as result of AJAX call, this displays the folders on the screen:
  * see searchItems() for details.
+ * @deprecated
  */
 function searchItemsCallback(data, courseId) {
 	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
@@ -348,6 +344,7 @@ function searchItemsCallback(data, courseId) {
 
 /**
  * Removes all folders currently in the table for unlinked folders.
+ * @deprecated
  */
 function emptyUnlinkedFoldersTable() {
 	$('#LinkFolderTableTbody').empty();
@@ -547,7 +544,7 @@ function assignNewFolder() {
 				parentFolderId,
 				folderTitle,
 				getConfigCourseId(),
-				'application/vnd.google-apps.folder',
+				FOLDER_MIME_TYPE,
 				function(data) {
 					var folderId = '';
 					var folderTitle = '';
@@ -618,6 +615,9 @@ function getConfigTpId() {
 	return googleDriveConfig.tp_id;
 }
 
+/**
+ * @returns {Array} Array of current site's linked (shared) folders.
+ */
 function getConfigLinkedFolders() {
 	return googleDriveConfig.linkedFolders;
 }
@@ -671,6 +671,7 @@ function getGoogleAccessToken() {
 
 function requestGoogleAccessToken() {
 	var result = null;
+
 	result = $.ajax({
 		url: getPageUrl(),
 		dataType: 'json',
@@ -942,7 +943,7 @@ function openDialogToCreateItem(fileType, parentFolderId, linkedFolderId, depth)
 				function(file) {
 					addFileToFileTreeTable(file, parentFolderId, linkedFolderId, depth + 1);
 
-					itemCache[file.id] = file;
+					googleDriveItemCache[file.id] = file;
 
 					// (re)-load parent folder's contents
 					fileTree.refresh_node(parentFolderId);
@@ -1041,6 +1042,7 @@ var LINK_FOLDER_TABLE_ROW_TEMPLATE = '<tr id="[TrFolderId]"> \
  * the site.
  * 
  * @param folder Google folder available for linking
+ * @deprecated
  */
 function addFolderToLinkFolderTable(folder, parentFolderId, indentationLevel) {	
 	// Only add the row if row for same file DNE
@@ -1219,8 +1221,9 @@ var FOLDER_TREE_SHARE_COLUMN_EMPTY_TEMPLATE = '\
 	</td> \
 	';
 
-var itemCache = {};
+var googleDriveItemCache = {};
 var rootNodeId = null;
+var onlyOwnedFolders = false;
 
 // Special ID used by jsTree for its root node.
 var JSTREE_ROOT_NODE_ID = '#';
@@ -1260,6 +1263,124 @@ function fileTreeNodeSortComparator(nodeIdA, nodeIdB) {
 }
 
 /**
+ * When called by jsTree, this method will take a jsTree node object and add
+ * other elements (buttons, menus, information) to it before returning the
+ * altered node to jsTree for display.
+ * 
+ * @param node
+ *            A jsTree node object
+ * @returns A jsTree node object with additional elements
+ */
+function fileTreeRedrawNode(node) {
+	// this bootstrap version uses "btn-mini", new version uses "btn-xs"
+	var BUTTON_CLASSES = 'btn btn-xs btn-mini btn-default';
+
+	if (node) {
+		var nodeData = fileTree.get_node(node);
+		var item = googleDriveItemCache[nodeData.id];
+		var newContent = $();
+		var isRootNode = (item.id === rootNodeId);
+
+		if (onlyOwnedFolders) {
+			if (!isRootNode) {
+				newContent = newContent.add($('<span>', {
+					'class' : 'shareButtonColumn',
+				}).append($('<a>', {
+					'href' : '#',
+					
+					'class' : BUTTON_CLASSES,
+					'html' : linkFolderButton,
+					'onclick' : "linkFolder('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
+				})));
+			} else {
+				newContent = newContent.add($('<span>', {
+					'class' : 'shareButtonColumn',
+					'html' : '&nbsp;',
+				}));
+			}
+		} else {
+			// Second column content: Instructors see the add menu button.
+			if (getIsInstructor() && getIsFolder(item.mimeType)) {
+				newContent = newContent.add($('<span>', {
+					'class' : 'addMenuButtonColumn',
+					'html' : $('#FolderDropdownTemplate').html()
+						.replace(/\[FolderIdParam\]/g, escapeAllQuotes(item.id))
+						.replace(/\[LinkedFolderIdParam\]/g,escapeAllQuotes(rootNodeId))
+						.replace(/\[FolderDepthParam\]/g, 0)
+				}));
+			} else {
+				newContent = newContent.add($('<span>', {
+					'class' : 'addMenuButtonColumn',
+					'html' : '&nbsp;',
+				}));
+			}
+
+			// Third column content: Instructors see unshare or delete button.
+			columnClass = 'unshareAndDeleteButtonColumn';
+			if (getIsInstructor()){
+				if (isRootNode) {
+					newContent = newContent.add($('<span>', {
+						'class' : columnClass,
+						'html' : $('<a>', {
+							'href' : '#',
+							'class' : BUTTON_CLASSES,
+							'html' : 'Unshare',
+							'onclick' : "unlinkFolderFromSite('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
+						})}));
+				} else {
+					newContent = newContent.add($('<span>', {
+						'class' : columnClass,
+						'html' : $('<a>', {
+							'href' : '#',
+							'class' : BUTTON_CLASSES,
+							'html' : 'Delete',
+							'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
+							+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
+						})}));
+				}
+			} else {
+				newContent = newContent.add($('<span>', {
+					'class' : columnClass,
+					'html' : '&nbsp;',
+				}));
+			}
+		}
+
+		newContent = newContent.add('<span>'
+				+ getGoogleDateOrTime(item.modifiedDate)
+				+ ' <span class="modified_by">'
+				+ item.lastModifyingUserName
+				+ '</span></span>');
+
+		$(node).find('a:first').after($('<span>', {
+			'class' : 'extras',
+			'html' : newContent,
+		}));
+	}
+
+	return node;
+}
+
+
+/**
+ * When a file tree item is clicked, rather than letting jsTree select it, open
+ * the URL stored in its item object's "alternateLink" property.
+ * 
+ * @param event
+ *            The click event
+ * @param data
+ *            The data (tree node) affected by the click
+ */
+function fileTreeHandleItemClick(event, data) {
+	fileTree.deselect_all(suppressChangedEvent = true);
+
+	window.open(googleDriveItemCache[data.node.id].alternateLink, '_blank');
+}
+
+
+var queryFolderId;
+
+/**
  * @param fileTreeDivSelector
  * @param options
  *            Object containing optional parameters: <blockquote>
@@ -1275,16 +1396,9 @@ function fileTreeNodeSortComparator(nodeIdA, nodeIdB) {
  * @returns Initialized jsTree object
  */
 function initializeFileTree(fileTreeDivSelector, options) {
-	var onlyOwnedFolders = false;
-	var folderId = 'root';
-
-	if (typeof (options) != 'undefined') {
-		onlyOwnedFolders = (options.hasOwnProperty('onlyOwnedFolders')) ? (options.onlyOwnedFolders === true)
-				: onlyOwnedFolders;
-
-		folderId = (options.hasOwnProperty('folderId')) ? options.folderId
-				: folderId;
-	}
+	_.defaults(options, {onlyOwnedFolders: false, folderId: 'root'});
+	
+	onlyOwnedFolders = (options.onlyOwnedFolders === true);
 
 	var fileTreeDiv = $(fileTreeDivSelector).first();
 
@@ -1293,215 +1407,112 @@ function initializeFileTree(fileTreeDivSelector, options) {
 			this.redraw_node = function(node, deep, isCallback) {
 				node = parent.redraw_node.call(this, node, deep, isCallback);
 				
-				// this bootstrap version uses "btn-mini", new version uses "btn-xs"
-				var BUTTON_CLASSES = 'btn btn-xs btn-mini btn-default';
-
-				if (node) {
-					var nodeData = fileTree.get_node(node);
-					var item = itemCache[nodeData.id];
-					var newContent = $();
-					var isRootNode = (item.id === rootNodeId);
-
-					if (onlyOwnedFolders) {
-						if (!isRootNode) {
-							newContent = newContent.add($('<span>', {
-								'class' : 'shareButtonColumn',
-							}).append($('<a>', {
-								'href' : '#',
-								
-								'class' : BUTTON_CLASSES,
-								'html' : 'Share Folder',
-								'onclick' : "linkFolder('" + nodeData.id + "', '" + nodeData.text + "'); return false;",
-							})));
-						} else {
-							newContent = newContent.add($('<span>', {
-								'class' : 'shareButtonColumn',
-								'html' : '&nbsp;',
-							}));
-						}
-					} else {
-						// Second column content: Instructors see the add menu button.
-						if (getIsInstructor() && getIsFolder(item.mimeType)) {
-							newContent = newContent.add($('<span>', {
-								'class' : 'addMenuButtonColumn',
-								'html' : $('#FolderDropdownTemplate').html()
-									.replace(/\[FolderIdParam\]/g, escapeAllQuotes(item.id))
-									.replace(/\[LinkedFolderIdParam\]/g,escapeAllQuotes(rootNodeId))
-									.replace(/\[FolderDepthParam\]/g, 0)
-							}));
-						} else {
-							newContent = newContent.add($('<span>', {
-								'class' : 'addMenuButtonColumn',
-								'html' : '&nbsp;',
-							}));
-						}
-
-						// Third column content: Instructors see unshare or delete button.
-						columnClass = 'unshareAndDeleteButtonColumn';
-						if (getIsInstructor()){
-							if (isRootNode) {
-								newContent = newContent.add($('<span>', {
-									'class' : columnClass,
-									'html' : $('<a>', {
-										'href' : '#',
-										'class' : BUTTON_CLASSES,
-										'html' : 'Unshare',
-										'onclick' : "unlinkFolderFromSite('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
-									})}));
-							} else {
-								newContent = newContent.add($('<span>', {
-									'class' : columnClass,
-									'html' : $('<a>', {
-										'href' : '#',
-										'class' : BUTTON_CLASSES,
-										'html' : 'Delete',
-										'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
-										+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
-									})}));
-							}
-						} else {
-							newContent = newContent.add($('<span>', {
-								'class' : columnClass,
-								'html' : '&nbsp;',
-							}));
-						}
-					}
-
-					newContent = newContent.add('<span>'
-							+ getGoogleDateOrTime(item.modifiedDate)
-							+ ' <span class="modified_by">'
-							+ item.lastModifyingUserName
-							+ '</span></span>');
-
-					$(node).find('a:first').after($('<span>', {
-						'class' : 'extras',
-						'html' : newContent,
-					}));
-				}
-
-				return node;
+				return fileTreeRedrawNode(node);
 			};
 		};
-		
 
-		fileTree = fileTreeDiv
-				.jstree(
-						{
-							'plugins' : [ 'sort', 'types', 'appendContent' ],
-							'sort' : fileTreeNodeSortComparator,
-							'types' : {
-								NODE_TYPE_FOLDER : {},
-								NODE_TYPE_NONFOLDER : {},
-							},
-							'appendContent' : {
-								'content' : $(
-										'<a>',
-										{
-											'href' : '#',
-											// this bootstrap version uses
-											// "btn-mini", new version uses
-											// "btn-xs"
-											'class' : 'btn btn-xs btn-mini btn-default',
-											'html' : 'Share Folder',
-										}),
-								'callback' : function(node) {
-									console.log(node);
-									linkFolder(node.id, node.text);
-								},
-							},
-							'core' : {
-								'check_callback' : true, // allow all tree node changes (create, delete, etc.)
-								'data' : {
-									'url' : function(node) {
-										return _getGoogleDriveUrl((node.id == JSTREE_ROOT_NODE_ID) ? folderId
-												: null);
-									},
-									'data' : function(node) {
-										var queryFolderId = node.id;
-										var query = '';
-										var data = {
-											'access_token' : getGoogleAccessToken(),
-										// Setting max page results to highest
-										// value Google "may" support
-										// 'maxResults' : MAX_RESULTS_PER_PAGE
-										};
+		fileTree = fileTreeDiv.jstree({
+			'plugins' : [ 'sort', 'types', 'appendContent' ],
+			'sort' : fileTreeNodeSortComparator,
+			'types' : {
+				NODE_TYPE_FOLDER : {},
+				NODE_TYPE_NONFOLDER : {},
+			},
+			'core' : {
+				'check_callback' : true, // allow all tree node changes (create, delete, etc.)
+				'data' : {
+					'url' : function(node) {
+						return _getGoogleDriveUrl((node.id == JSTREE_ROOT_NODE_ID) ? options.folderId
+								: null);
+					},
+					'data' : function(node) {
+//						var queryFolderId = node.id;
+						queryFolderId = node.id;
+						console.log('queryFolderId set to: ' + queryFolderId);
+						var query = '';
+						var data = {
+							'access_token' : getGoogleAccessToken(),
+						};
 
-										if (queryFolderId != JSTREE_ROOT_NODE_ID) {
-											query += "'"
-													+ queryFolderId
-													+ "' in parents and trashed = false";
+						if (queryFolderId != JSTREE_ROOT_NODE_ID) {
+							query += "'"
+									+ queryFolderId
+									+ "' in parents and trashed = false";
 
-											if (onlyOwnedFolders === true) {
-												query += " and mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
-											}
+							if (onlyOwnedFolders === true) {
+								query += " and mimeType = '" + FOLDER_MIME_TYPE + "' and 'me' in owners";
+							}
 
-											data.q = query;
-										}
+							data.q = query;
+						}
 
-										return data;
-									},
-									'dataFilter' : function(rawResponseText,
-											type) {
-										var data = JSON.parse(rawResponseText);
-										var nodeData = [];
+						return data;
+					},
+					'error' : function(data, textStatus, jqXHR) {
+						var errorType = 'some other error';
+						
+						if (data.status === 404) {
+							errorType = '404 error';
+							checkSharedFolderDeletionStatus(data.responseJSON.error.message.split(' ').pop());
+						}
 
-										itemToNodeData = function(item) {
-											var isFolder = getIsFolder(item.mimeType);
-											var newNodeData = {
-												'id' : item.id,
-												'text' : escapeHtml(item.title),
-												'icon' : item.iconLink,
-												'type' : (isFolder) ? NODE_TYPE_FOLDER
-														: NODE_TYPE_NONFOLDER,
-												// FIXME: can we query for children to set this property?
-												'children' : isFolder,
-											};
+						alert('jsTree data loading error: ' + errorType + ' ' + data.responseJSON.error.message.split(' ').pop());
+						console.log(data);
+						console.log(textStatus);
+						console.log(jqXHR);
+					},
+					'dataFilter' : function(rawResponseText,
+							type) {
+						var data = JSON.parse(rawResponseText);
+						var nodeData = [];
 
-											return newNodeData;
-										};
+						/**
+						 * @param item
+						 * @param isOpenedState
+						 * @returns 
+						 */
+						function itemToNodeData(item, isOpenedState) {
+							var isFolder = getIsFolder(item.mimeType);
+							var newNodeData = {
+								'id' : item.id,
+								'text' : escapeHtml(item.title),
+								'icon' : item.iconLink,
+								'type' : (isFolder) ? NODE_TYPE_FOLDER
+										: NODE_TYPE_NONFOLDER,
+								'children' : isFolder,
+							};
 
-										if (data) {
-											if (data.hasOwnProperty('items')) {
-												$
-														.each(
-																data.items,
-																function(key,
-																		item) {
-																	nodeData
-																			.push(itemToNodeData(item));
-																	itemCache[item.id] = item;
-																});
-											} else {
-												var newNodeData = itemToNodeData(data);
+							if (isOpenedState === true) {
+								newNodeData.state = {
+									'opened' : true,
+								};
+							}
+							
+							return newNodeData;
+						};
 
-												rootNodeId = data.id;
-												newNodeData.state = {
-													'opened' : true
-												};
+						if (data) {
+							if (data.hasOwnProperty('items')) {
+								$.each(data.items, 
+										function(key, item) {
+											nodeData.push(itemToNodeData(item));
+											googleDriveItemCache[item.id] = item;
+										});
+							} else {
+								nodeData.push(itemToNodeData(data, true));
+								googleDriveItemCache[data.id] = data;
+								rootNodeId = data.id;
+							}
 
-												nodeData.push(newNodeData);
-												itemCache[data.id] = data;
-											}
+						}
 
-										}
+						return JSON.stringify(nodeData);
+					},
+				},
+			},
+		}).jstree(true);
 
-										return JSON.stringify(nodeData);
-									},
-									'success' : function(result) {
-									}
-								}
-							},
-						}).jstree(true);
-
-		/**
-		 * When a node is clicked, rather than selecting it, open the URL stored
-		 * in its item object's "alternateLink" property.
-		 */
-		fileTreeDiv.on('select_node.jstree', function(event, data) {
-			fileTree.deselect_all(suppressChangedEvent = true);
-
-			window.open(itemCache[data.node.id].alternateLink, '_blank');
-		});
+		fileTreeDiv.on('select_node.jstree', fileTreeHandleItemClick);
 
 		/**
 		 * Remove children example
@@ -1510,9 +1521,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		 */
 		$('button#removeChildren').on('click', function() {
 			var id = '0B4lerVE9_isbLWNnNUx5aXVZVTA';
-			console.log(id);
 			var node = fileTree.get_node(id);
-			console.log(node);
 
 			node.state.loaded = true;
 			node.children = [];
@@ -1544,6 +1553,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
  *            is the linked folder
  * @param treeDepth
  *            Number of parents of this file including the linked folder
+ * @deprecated
  */
 function addFileToFileTreeTable(file, parentFolderId, linkedFolderId, treeDepth, foldersOnly)
 {
@@ -1665,6 +1675,7 @@ function expand(folderId) {
  * expandOrShrinkChildren() to update its children.
  * 
  * @param folderId
+ * @deprecated
  */
 function toggleExpandShrink(folderId) {	
 	var $expandShrinkSpan = $('#' + getTableRowIdForFile(folderId)).find('a.expandShrink.shrinkable');
@@ -1683,14 +1694,13 @@ function toggleExpandShrink(folderId) {
  * Shows/Hides the children rows for the current folder, recursively closing
  * their children (call is made for non-folders: that should have no effect
  * since those will not have children).
- * 
- * FIXME: This shouldn't expand collapsed children...
- * 
+ *  * 
  * Assume folder B is collapsed within folder A, which is also collapsed. When
  * folder A is expanded, it should not expand folder B by default.
  * 
  * @param folderId
  * @param shrinking
+ * @deprecated
  */
 function expandOrShrinkChildren(folderId, shrinking) {
 	$('tr.' + getClassForFoldersChildren(folderId)).each(function() {
@@ -1714,6 +1724,7 @@ function expandOrShrinkChildren(folderId, shrinking) {
  * @param fileTitle The file's title
  * @param $siblings Array of siblings to sort the new entry with
  * @return added true = added; false = not added
+ * @deprecated
  */
 function addFileInOrderWithSiblings(newEntry, fileTitle, $siblings) {
 	var result = false;
@@ -1765,8 +1776,7 @@ var MONTHS = [
               ];
 
 /**
- * Returns given date/time as time of day for today, "May 5" if today is not
- * "May 5".
+ * Return the time if the given date/time string is for today, else return the date.
  * 
  * @param googleDateIso
  * @returns {String}
@@ -1817,6 +1827,7 @@ function getGoogleDateOrTime(googleDateIso) {
  * 
  * @param fileId Id of Google File
  * @returns {Boolean} true = table row exists
+ * @deprecated
  */
 function findFileInFileTreeTable(fileId) {
 	return $('#' + getTableRowIdForFile(fileId)).length > 0;
@@ -1825,6 +1836,7 @@ function findFileInFileTreeTable(fileId) {
 /**
  * Removes the newly linked folder from the linking table, so it does not look
  * still unlinked.
+ * @deprecated
  */
 function removeLinkedFolderFromLinkingTable(linkedFolderId) {
 	$('#' + getLinkingTableRowIdForFolder(linkedFolderId)).remove();
@@ -1835,6 +1847,8 @@ function removeLinkedFolderFromLinkingTable(linkedFolderId) {
  * descendants.
  * 
  * @param fileId
+ * 
+ * @deprecated
  */
 function removeFileTreeFromTable(fileId) {
 	fileTree.delete_node(fileId);
@@ -1851,6 +1865,8 @@ function removeFileTreeFromTable(fileId) {
  * Removes the unlinked folder and all its descendants from the table.  Simple
  * operation as every trow in the entire linked folder's tree share the same
  * class.
+ * 
+ * @deprecated
  */
 function removeUnlinkedFileTreeFromTable(unlinkedFolderId) {
 	$('#FileTreeTableTbody').find('tr.' + getClassForLinkedFolder(unlinkedFolderId)).remove();
@@ -1859,6 +1875,8 @@ function removeUnlinkedFileTreeFromTable(unlinkedFolderId) {
 /**
  * Returns the class to be put into each <tr> showing a file that belongs to the
  * linked folder with the given ID.
+ * 
+ * @deprecated
  */
 function getClassForLinkedFolder(linkedFolderId) {
 	return 'linkedGoogleFolder' + linkedFolderId;
@@ -1867,6 +1885,8 @@ function getClassForLinkedFolder(linkedFolderId) {
 /**
  * Returns the class put into <tr> for each of the given folder's children (not
  * their grandchildren).
+ * 
+ * @deprecated
  * 
  * @param parentFolderId
  * @returns {String}
@@ -1877,11 +1897,18 @@ function getClassForFoldersChildren(parentFolderId) {
 
 /**
  * Returns ID of the <tr> for the file with the given ID.
+ * 
+ * @deprecated
  */
 function getTableRowIdForFile(fileId) {
 	return 'FileTreeTableTrGoogleFile' + fileId;
 }
 
+/**
+ * @deprecated
+ * @param tableRowId
+ * @returns
+ */
 function getFileIdFromTableRowId(tableRowId) {
 	var match = /FileTreeTableTrGoogleFile(.*)$/.exec(tableRowId);
 	if (match) {
@@ -1893,6 +1920,7 @@ function getFileIdFromTableRowId(tableRowId) {
 
 /**
  * Returns ID of the linking table's <tr> for the folder with the given ID
+ * @deprecated
  */
 function getLinkingTableRowIdForFolder(folderId) {
 	return 'LinkedFolderTrGoogleFolder' + folderId;
