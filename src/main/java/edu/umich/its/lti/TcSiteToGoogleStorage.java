@@ -62,7 +62,7 @@ public class TcSiteToGoogleStorage {
 			state = SettingsClientUtils.setSetting(tcSessionData,
 					linking.toString());
 			if(state) {
-				request.getSession().setAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION, linking.toString());
+				setSettingToSession(request, linking.toString());
 			}else {
 				M_log.error("Setting service call is unsuccessful and putting the Settings value in session failed");
 			}
@@ -91,7 +91,7 @@ public class TcSiteToGoogleStorage {
 		if (state) {
 			GoogleCache.getInstance().setLinkForSite(
 					tcSessionData.getContextId(), result);
-			request.getSession().setAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION, null);
+			setSettingToSession(request, null);
 		}else {
 			M_log.error("Setting service call is unsuccessful and putting the Settings value in session failed");
 		}
@@ -101,7 +101,8 @@ public class TcSiteToGoogleStorage {
 
 	/**
 	 * Getting the shared/linked folder from the setting service. 
-	 * Intermittently some times the get call to setting service is not fetching the correct value. So storing this value in session for accessing it for later calls that need this value. 
+	 * During the launch of the LTI tool we only get the value from setting service as Intermittently some times the get call to setting service is not fetching the correct value.  
+	 * So after getting the value from Setting Service we are storing this value in session for accessing it for later calls that need this value. 
 	 * @throws ServletException
 	 * @throws IOException
 	 * */
@@ -109,12 +110,22 @@ public class TcSiteToGoogleStorage {
 			TcSessionData tcSessionData,HttpServletRequest request) throws IOException, ServletException {
 		TcSiteToGoogleLink result = null;
 		String linkedGoogleFolder = SettingsClientUtils.getSettingString(tcSessionData);
-		request.getSession().setAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION, linkedGoogleFolder);
+		setSettingToSession(request, linkedGoogleFolder);
 
 		if (linkedGoogleFolder != null) {
 			result = parseLink(linkedGoogleFolder);
 		}
 		return result;
+	}
+	/**
+	 * Helper method to set the  value <site_id>,<user_id>,<user_email_address>,<google-folder-id> to the session 
+	 * @param request
+	 * @param linkedGoogleFolder
+	 */
+
+	private static void setSettingToSession(HttpServletRequest request,
+			String linkedGoogleFolder) {
+		request.getSession().setAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION, linkedGoogleFolder);
 	}
 
 	/**

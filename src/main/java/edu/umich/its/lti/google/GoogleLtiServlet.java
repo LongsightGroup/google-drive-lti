@@ -448,7 +448,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void checkBackButtonHit(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws IOException, ServletException {
-		String link= (String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
+		String link = getSettingsValueFromSession(request);
 		if (link==null) {
 			response.getWriter().print(NOSUCCESS);
 		} else {
@@ -785,7 +785,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		String fileId = request.getParameter(PARAM_FILE_ID);
 		TcSiteToGoogleLink link=null;
 		String instructorEmailAddress = "";
-		String value=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
+		String value = getSettingsValueFromSession(request);
 		if(value!=null) {
 			link = TcSiteToGoogleStorage.parseLink(value);
 			instructorEmailAddress = link.getUserEmailAddress();
@@ -819,6 +819,16 @@ public class GoogleLtiServlet extends HttpServlet {
 		Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
 		result = new FolderPermissionsHandler(link, drive, fileId);
 		return result;
+	}
+	/**
+	 * Helper method to get the stored value <site_id>,<user_id>,<user_email_address>,<google-folder-id> from the session 
+	 * @param request
+	 * @return
+	 */
+
+	private String getSettingsValueFromSession(HttpServletRequest request) {
+		String value=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
+		return value;
 	}
 	
 	/**
@@ -991,7 +1001,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void getInstructorEmailAddressFromSettingService(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData) throws Exception  {
 		try {
-			String link= (String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
+			String link = getSettingsValueFromSession(request);
 			if(link!=null) {
 			String instructorEmailAddress = TcSiteToGoogleStorage.parseLink(link).getUserEmailAddress();
 			getGoogleOwnerAccessToken(request, response, tcSessionData, instructorEmailAddress);
