@@ -72,33 +72,23 @@
 
 <div id="alertContainer" class="clearfix"></div>
 
-<div id="jstree" class="sharedView"></div>
+<div id="fileTree"></div>
 
-<table class="table table-striped table-bordered table-hover"
-	width="100%">
-	<tbody id="FileTreeTableTbody">
-	</tbody>
-</table>
 <script type="text/javascript">
-	// On startup: display Google resources on the screen
-
 	$(document).ready(function() {
 		if (getGoogleAccessToken() === 'ERROR') {
 			$('#par3').show();
 		} else {
-			var list = getConfigLinkedFolders();
+			var sharedFolderIds = getConfigLinkedFolders();
 
-			if (list && list.length > 0) {
+			if (sharedFolderIds && sharedFolderIds.length > 0) {
 				$('#par1').show();
-				initializeFileTree('#jstree', {
-					'folderId' : list[0]
+				initializeFileTree('#fileTree', {
+					'folderId' : sharedFolderIds[0]
 				});
 			} else {
 				$('#par2').show();
 			}
-
-			showLinkedGoogleFolders();
 		}
 	});
 </script>
-

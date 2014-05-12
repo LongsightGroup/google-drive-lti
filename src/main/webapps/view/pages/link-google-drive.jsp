@@ -25,36 +25,20 @@
 
 <div id="alertContainer" class="clearfix"></div>
 
-<!--  button id="removeChildren">Remove Children</button  -->
-
-<div id="jstree" class="unsharedView"></div>
-
-<!-- <table class="table table-striped table-bordered table-hover"
-	width="100%">
-	<tbody id="FileTreeTableTbody">
-	</tbody>
-</table> -->
+<div id="fileTree"></div>
 
 <script type="text/javascript">
 	$(document).ready(function() {
 		if (getGoogleAccessToken() === 'ERROR') {
 			$('#par3').show();
 		}
-		
-		// A null folder ID refers to the user's GD root folder
-		var parentFolderId = null;
-		var linkedFolderId = null;
-		var depth = 0;
-		var foldersOnly = true;
 
-		initializeFileTree('#jstree', {
+		initializeFileTree('#fileTree', {
 			'onlyOwnedFolders' : true
 		});
-		//getFoldersChildren(parentFolderId, linkedFolderId, depth, foldersOnly);
 
-		// TODO: remove call to searchItems() after file tree is obsolete
+		// TODO: remove call to searchItems() after file tree is complete
 		searchItems();
 		checkBackButtonHit();
-
 	});
 </script>
