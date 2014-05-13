@@ -578,14 +578,14 @@ function getGoogleAccessToken() {
     		accessTokenHandler='null';
     		accessTokenTime='null';
     	}
-
     }
-    
+
 	return accessTokenHandler;
 }
 
 function requestGoogleAccessToken() {
 	var result = null;
+
 	result = $.ajax({
 		url: getPageUrl(),
 		dataType: 'json',
@@ -1238,7 +1238,7 @@ function fileTreeRedrawNode(node) {
 						'html' : $('<a>', {
 							'href' : '#',
 							'class' : BUTTON_CLASSES,
-							'html' : 'Unshare',
+							'html' : unlinkFolderButton + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 							'onclick' : "unlinkFolderFromSite('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
 						})}));
 				} else {
@@ -1247,7 +1247,7 @@ function fileTreeRedrawNode(node) {
 						'html' : $('<a>', {
 							'href' : '#',
 							'class' : BUTTON_CLASSES,
-							'html' : 'Delete',
+							'html' : deleteFolderButton +' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(file.title)) + '</span>',
 							'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
 							+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
 						})}));
