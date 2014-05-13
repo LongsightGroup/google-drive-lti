@@ -1247,7 +1247,7 @@ function fileTreeRedrawNode(node) {
 						'html' : $('<a>', {
 							'href' : '#',
 							'class' : BUTTON_CLASSES,
-							'html' : deleteFolderButton +' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(file.title)) + '</span>',
+							'html' : deleteFolderButton +' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 							'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
 							+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
 						})}));
