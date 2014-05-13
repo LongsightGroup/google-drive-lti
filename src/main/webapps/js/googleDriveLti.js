@@ -126,6 +126,7 @@ function showLinkedGoogleFolder(folderId, foldersOnly) {
 }
 
 var fileTree = null;
+var fileTreeSearchTimeout = false;
 
 /**
  * Displays the given folder on the page, so the user can open it in another
@@ -245,100 +246,6 @@ function listAncestorsForFileRecursive(currentFileId, parentFileId, rootParent) 
 				listAncestorsForFileRecursive(parentFileId, grandParent.id, grandParent.isRoot);
 			}
 		});
-	}
-}
-
-/**
- * Used in search form.  When carriage return is pressed (character code 13), start the search.
- * @param e
- */
-function AutoClick(e) {
-	var carriageReturnKeyCode = 13;
-
-	if (e.keyCode == carriageReturnKeyCode) {
-		searchItems();
-	}
-}
-
-/**
- * Apply a highlight color to table rows that match the search field. Also
- * expand all collapsed ancestors and mark them to be displayed as part of the
- * search results.
- * @deprecated
- */
-function searchItems() {
-	var searchValue = $('#UnlinkedFolderSearchInput').val().trim();
-
-	// The Bootstrap error class gives a good highlight color for table rows
-	var searchResultClass = 'error';
-
-	// Remove highlight from any previous matches
-	$('tbody#FileTreeTableTbody tr').removeClass(
-			searchResultClass).removeClass('searchResult').removeClass(
-			'searchNonResult');
-
-	if (searchValue !== '') {
-		var matchedItems = $('tbody#FileTreeTableTbody tr').has(
-				'td a span.title:contains("' + searchValue + '")');
-
-		if (matchedItems) {
-			matchedItems.addClass(searchResultClass).addClass('searchResult');
-
-			matchedItems.each(function() {
-				expandAndIncludeParent($(this));
-			});
-
-			$('tbody#FileTreeTableTbody tr').not('.searchResult').addClass('searchNonResult');
-		}
-	}
-}
-
-/**
- * @param item
- * @deprecated
- */
-function expandAndIncludeParent(item) {
-	var itemClasses = item.attr('class');
-
-	if (itemClasses) {
-		$.each(itemClasses.split(/\s+/), function(index, itemClass) {
-			if (itemClass.search('child-of-') == 0) {
-				var parentId = itemClass.substring(9);
-
-				expand(parentId);
-
-				var parentNode = $('tbody#FileTreeTableTbody tr#'
-						+ getTableRowIdForFile(parentId));
-				if (parentNode) {
-					parentNode.addClass('searchResult');
-					expandAndIncludeParent(parentNode);
-				} else {
-					return;
-				}
-			}
-		});
-	}
-}
-
-/**
- * When called as result of AJAX call, this displays the folders on the screen:
- * see searchItems() for details.
- * @deprecated
- */
-function searchItemsCallback(data, courseId) {
-	if (data && (typeof(data.items) !== 'undefined') && (data.items.length > 0))
-	{
-		var folders = sortFilesByTitle(data.items);
-		for (var folderIndex in folders) {
-			var folder = folders[folderIndex];
-			if (!getIsFolderLinked(folder)) {
-				// Get folder's ancestors (specifying root=false, as Google response does not indicate).
-				listAncestorsForFileRecursive(folder.id, folder.id, false);
-				// Add to the table
-				addFolderToLinkFolderTable(folder, null, 0);
-			}
-		}
-
 	}
 }
 
@@ -1378,6 +1285,19 @@ function fileTreeHandleItemClick(event, data) {
 }
 
 /**
+ * Check the search text input element for a non-null string and call the jsTree search method.
+ * 
+ * @param {String} fileTreeSearchSelector A valid jQuery selector for the search text input element.
+ */
+function fileTreeSearch(fileTreeSearchSelector) {
+	var searchText = $(fileTreeSearchSelector).val().trim();
+	
+	if (searchText) {
+		fileTree.search(searchText);
+	}
+}
+
+/**
  * @param fileTreeDivSelector
  * @param options
  *            Object containing optional parameters: <blockquote>
@@ -1409,7 +1329,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		};
 
 		fileTree = fileTreeDiv.jstree({
-			'plugins' : [ 'sort', 'types', 'appendContent' ],
+			'plugins' : [ 'sort', 'types', 'appendContent', 'search' ],
 			'sort' : fileTreeNodeSortComparator,
 			'types' : {
 				NODE_TYPE_FOLDER : {},
@@ -1503,6 +1423,23 @@ function initializeFileTree(fileTreeDivSelector, options) {
 
 		fileTreeDiv.on('select_node.jstree', fileTreeHandleItemClick);
 
+		var fileTreeSearchSelector = fileTreeDivSelector + '_search';
+		
+		$(fileTreeSearchSelector).keyup(function() {
+			if (fileTreeSearchTimeout) {
+				clearTimeout(fileTreeSearchTimeout);
+			}
+			
+			fileTreeSearchTimeout = setTimeout(function() {
+				fileTreeSearch(fileTreeSearchSelector);
+			}, 250);
+		});
+		
+
+		$(fileTreeDivSelector + '_searchButton').click(function() {
+			fileTreeSearch(fileTreeSearchSelector);
+		});
+		
 		/**
 		 * Remove children example
 		 * 
