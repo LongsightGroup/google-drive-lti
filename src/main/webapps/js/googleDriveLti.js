@@ -1377,9 +1377,6 @@ function fileTreeHandleItemClick(event, data) {
 	window.open(googleDriveItemCache[data.node.id].alternateLink, '_blank');
 }
 
-
-var queryFolderId;
-
 /**
  * @param fileTreeDivSelector
  * @param options
@@ -1426,9 +1423,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 								: null);
 					},
 					'data' : function(node) {
-//						var queryFolderId = node.id;
-						queryFolderId = node.id;
-						console.log('queryFolderId set to: ' + queryFolderId);
+						var queryFolderId = node.id;
 						var query = '';
 						var data = {
 							'access_token' : getGoogleAccessToken(),
@@ -1449,17 +1444,11 @@ function initializeFileTree(fileTreeDivSelector, options) {
 						return data;
 					},
 					'error' : function(data, textStatus, jqXHR) {
-						var errorType = 'some other error';
-						
 						if (data.status === 404) {
-							errorType = '404 error';
-							checkSharedFolderDeletionStatus(data.responseJSON.error.message.split(' ').pop());
+							// Get ID of folder that caused error from the GD error message.  Is there a better way?
+							var sharedFolderId = data.responseJSON.error.message.split(' ').pop();
+							checkSharedFolderDeletionStatus(sharedFolderId);
 						}
-
-						alert('jsTree data loading error: ' + errorType + ' ' + data.responseJSON.error.message.split(' ').pop());
-						console.log(data);
-						console.log(textStatus);
-						console.log(jqXHR);
 					},
 					'dataFilter' : function(rawResponseText,
 							type) {
