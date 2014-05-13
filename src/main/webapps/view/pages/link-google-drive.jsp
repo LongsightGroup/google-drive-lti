@@ -16,8 +16,8 @@
 	<div class="pull-right">
 		<form class="form-search" onsubmit="return false;"> 
 			<div class="input-append" style="margin-right: 73px">
-				<input id="UnlinkedFolderSearchInput" type="text" class="span12 search-query" onKeyUp="return AutoClick(event);">
-				<button type="button" class="btn" id="searchButton" onclick="searchItems();">${requestScope.search}</button>
+				<input id="fileTree_search" type="text" class="span12 search-query">
+				<button type="button" class="btn" id="fileTree_searchButton">${requestScope.search}</button>
 			</div>
 		</form> 
 	</div>
@@ -37,8 +37,6 @@
 			'onlyOwnedFolders' : true
 		});
 
-		// TODO: remove call to searchItems() after file tree is complete
-		searchItems();
 		checkBackButtonHit();
 	});
 </script>
