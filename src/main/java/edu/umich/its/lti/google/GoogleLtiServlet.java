@@ -185,8 +185,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String FOLDER_TITLE = "folderTitle";
 	private static final String SUCCESS = "SUCCESS";
 	private static final String NOSUCCESS = "NOSUCCESS";
-	//creating a constant to hold the value stored in the Setting service(SS) in session. some time the value returned from the SS is incorrect.  
+	//creating a constant to hold the value stored in the Setting service(SS) in session.   
 	public static final String SETTING_SERVICE_VALUE_IN_SESSION = "SettingValue";
+	//creating a constant to hold the access token generated, in session.
+	private static final String ACCESS_TOKEN_IN_SESSION = "accessToken";
 	
 	// Constructors --------------------------------------------------
 
@@ -965,10 +967,12 @@ public class GoogleLtiServlet extends HttpServlet {
 		String userEmailAddress = tcSessionData.getUserEmailAddress();
 		if (getIsEmpty(userEmailAddress)) {
 					M_log.error("Error: unable to get access token - the ToolProvider(TP) server does not know the user's email address.");
+			response.getWriter().print("ERROR");
 			return;
 		}
 		// Throws exception for bad email and other reasons.  Should we catch it?
 		GoogleAccessToken accessToken =  GoogleSecurity.getGoogleAccessTokenWithTimeStamp(getGoogleServiceAccount(), userEmailAddress);
+		request.getSession().setAttribute(ACCESS_TOKEN_IN_SESSION, accessToken);
 		if(accessToken==null) {
 			StringBuilder s=new StringBuilder();
 			s.append(" ERROR: User \"" );
@@ -979,9 +983,9 @@ public class GoogleLtiServlet extends HttpServlet {
 			s.append(tcSessionData.getUserId());
 			s.append(")\"");
 			M_log.error(s.toString());
+			response.getWriter().print("ERROR");
 			return;
 		}
-		request.getSession().setAttribute("accessToken", accessToken);
 		if(request.getMethod().equals("GET")) {
 		StringBuilder jsonTokenObject = new StringBuilder("{");
 		jsonTokenObject.append("\"access_token\" : \"").append(accessToken.getToken()).append("\"");
@@ -1020,7 +1024,7 @@ public class GoogleLtiServlet extends HttpServlet {
 					throws IOException {
 		String accessToken=null;
 		if(ownerEmailAddress.equals(tcSessionData.getUserEmailAddress())) {
-			GoogleAccessToken token=(GoogleAccessToken)request.getSession().getAttribute("accessToken");
+			GoogleAccessToken token=(GoogleAccessToken)request.getSession().getAttribute(ACCESS_TOKEN_IN_SESSION);
 			if(token!=null) {
 				accessToken=token.getToken();
 			}

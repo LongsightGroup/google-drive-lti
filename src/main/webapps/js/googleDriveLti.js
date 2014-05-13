@@ -556,14 +556,16 @@ function getIsInstructor() {
  * } 
  */
 function getGoogleAccessToken() {
-	if($.trim(accessTokenHandler)==='null'||$.trim(accessTokenHandler) === ''||$.trim(accessTokenHandler)==='undefined'){
-		accessTokenHandler='ERROR';
+	if($.trim(accessTokenHandler) === ''||$.trim(accessTokenHandler)==='undefined'){
+		accessTokenHandler='null';
 	}
+	//Returns the current time in milliseconds since midnight, January 1, 1970 UTC,
 	var date = new Date();
     var currentTimeInMilliSeconds = date.getTime();
-    var fiftyNineMinutesInMilliSeconds=3540000;
-    if((currentTimeInMilliSeconds-accessTokenTime)>fiftyNineMinutesInMilliSeconds){
+     var fortyFiveMinutesInMilliSeconds=2700000;
+    if((currentTimeInMilliSeconds-accessTokenTime)>fortyFiveMinutesInMilliSeconds){
     	var tokenResponse=requestGoogleAccessToken();
+    	if(tokenResponse!=='ERROR'){
     	$.each(JSON.parse(tokenResponse), function(i, result) {
     		if(i==="access_token"){
     			accessTokenHandler=result;
@@ -571,14 +573,19 @@ function getGoogleAccessToken() {
     			accessTokenTime=result;
     		}
     	});
+    	}
+    	else{
+    		accessTokenHandler='null';
+    		accessTokenTime='null';
+    	}
 
     }
+    
 	return accessTokenHandler;
 }
 
 function requestGoogleAccessToken() {
 	var result = null;
-
 	result = $.ajax({
 		url: getPageUrl(),
 		dataType: 'json',

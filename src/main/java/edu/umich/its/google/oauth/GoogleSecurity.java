@@ -24,7 +24,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -124,8 +123,9 @@ public class GoogleSecurity {
 			credential.refreshToken();
 			String accessToken = credential.getAccessToken();
 			Clock clock = credential.getClock();
+			//Returns the current time in milliseconds since midnight, January 1, 1970 UTC.
 			long currentTimeMillis = clock.currentTimeMillis();
-			 googleAccessToken = new GoogleAccessToken(accessToken,currentTimeMillis);
+			googleAccessToken = new GoogleAccessToken(accessToken,currentTimeMillis);
 		} catch (Exception err) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Failed to get access token for user \"");

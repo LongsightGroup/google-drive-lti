@@ -76,7 +76,7 @@
 
 <script type="text/javascript">
 	$(document).ready(function() {
-		if (getGoogleAccessToken() === 'ERROR') {
+		if (getGoogleAccessToken() === 'null') {
 			$('#par3').show();
 		} else {
 			var sharedFolderIds = getConfigLinkedFolders();
