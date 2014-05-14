@@ -124,13 +124,6 @@ if(accessToken!=null){
 %>
 					</p>
 					<ul class="nav">
-						<%
-	if (data.getIsInstructor()) {
-%>
-						<li class="active"><a>${header2}</a></li>
-						<%
-	}
-%>
 						<li><a href="view/pages/help/about.html" target="GDLHelp">${about}</a></li>
 						<li><a href="view/pages/help/help.html" target="GDLHelp">${help}</a></li>
 					</ul>

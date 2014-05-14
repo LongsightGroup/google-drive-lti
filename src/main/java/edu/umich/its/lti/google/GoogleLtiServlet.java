@@ -1157,7 +1157,6 @@ public class GoogleLtiServlet extends HttpServlet {
 			request.setAttribute("deleteFolderErrorAlert",
 					resource.getString("gd.delete.folder.error.alert"));
 
-			request.setAttribute("header2", resource.getString("gd.header2"));
 			request.setAttribute("about",
 					resource.getString("gd.header3.about"));
 			request.setAttribute("help", resource.getString("gd.header4.help"));
