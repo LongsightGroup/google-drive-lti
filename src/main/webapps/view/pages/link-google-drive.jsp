@@ -13,7 +13,7 @@
 	<div class="pull-left">
 		<p class="muted">${linkingViewInfo}</p>
 	</div>
-	<div class="pull-right">
+	<div class="pull-right hidden-phone hidden-xs">
 		<form class="form-search" onsubmit="return false;"> 
 			<div class="input-append" style="margin-right: 73px">
 				<input id="fileTree_search" type="text" class="span12 search-query">

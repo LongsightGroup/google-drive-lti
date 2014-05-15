@@ -1192,13 +1192,16 @@ function fileTreeRedrawNode(node) {
 	if (node) {
 		var nodeData = fileTree.get_node(node);
 		var item = googleDriveItemCache[nodeData.id];
+		var columnClass = null;
 		var newContent = $();
 		var isRootNode = (item.id === rootNodeId);
 
 		if (onlyOwnedFolders) {
+			// Second column content: Share Folder button if it's not the root folder.
+			columnClass = 'shareButtonColumn';
 			if (!isRootNode) {
 				newContent = newContent.add($('<span>', {
-					'class' : 'shareButtonColumn',
+					'class' : columnClass,
 				}).append($('<a>', {
 					'href' : '#',
 					
@@ -1208,15 +1211,16 @@ function fileTreeRedrawNode(node) {
 				})));
 			} else {
 				newContent = newContent.add($('<span>', {
-					'class' : 'shareButtonColumn',
+					'class' : columnClass,
 					'html' : '&nbsp;',
 				}));
 			}
 		} else {
 			// Second column content: Instructors see the add menu button.
+			columnClass = 'addMenuButtonColumn';
 			if (getIsInstructor() && getIsFolder(item.mimeType)) {
 				newContent = newContent.add($('<span>', {
-					'class' : 'addMenuButtonColumn',
+					'class' : columnClass,
 					'html' : $('#FolderDropdownTemplate').html()
 						.replace(/\[FolderIdParam\]/g, escapeAllQuotes(item.id))
 						.replace(/\[LinkedFolderIdParam\]/g,escapeAllQuotes(rootNodeId))
@@ -1224,13 +1228,13 @@ function fileTreeRedrawNode(node) {
 				}));
 			} else {
 				newContent = newContent.add($('<span>', {
-					'class' : 'addMenuButtonColumn',
+					'class' : columnClass,
 					'html' : '&nbsp;',
 				}));
 			}
 
 			// Third column content: Instructors see unshare or delete button.
-			columnClass = 'unshareAndDeleteButtonColumn';
+			columnClass = 'unshareAndDeleteButtonColumn hidden-phone hidden-xs';
 			if (getIsInstructor()){
 				if (isRootNode) {
 					newContent = newContent.add($('<span>', {
@@ -1260,11 +1264,15 @@ function fileTreeRedrawNode(node) {
 			}
 		}
 
-		newContent = newContent.add('<span>'
-				+ getGoogleDateOrTime(item.modifiedDate)
-				+ ' <span class="modified_by">'
-				+ item.lastModifyingUserName
-				+ '</span></span>');
+		// Last column (third or fourth depending upon view) content: modification date and user
+		columnClass = 'hidden-phone hidden-xs';
+		newContent = newContent.add($('<span>', {
+			'class' : columnClass,
+			'html' : getGoogleDateOrTime(item.modifiedDate) + ' ',
+		}).append($('<span>', {
+			'class' : 'modified_by',
+			'html' : item.lastModifyingUserName,
+		})));
 
 		$(node).find('a:first').after($('<span>', {
 			'class' : 'extras',
