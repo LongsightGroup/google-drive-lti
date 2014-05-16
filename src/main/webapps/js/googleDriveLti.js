@@ -1206,7 +1206,7 @@ function fileTreeRedrawNode(node) {
 					'href' : '#',
 					
 					'class' : BUTTON_CLASSES,
-					'html' : linkFolderButton,
+					'html' : linkFolderButton + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 					'onclick' : "linkFolder('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
 				})));
 			} else {
