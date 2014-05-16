@@ -29,8 +29,8 @@ body {
 	color: #AAA;
 }
 
-TABLE {
-	background-color: #fff;
+table {
+	background-color: #ffffff;
 }
 
 .large-text {
@@ -119,6 +119,7 @@ tr.searchNonResult {
 	clear: both;
 }
 
+/* begin styles for file tree node extra columns */
 span.extras {
 	display: inline-block;
 	width: 250px;
@@ -141,3 +142,14 @@ span.addMenuButtonColumn {
 span.unshareAndDeleteButtonColumn {
 	width: 60px;
 }
+/* end styles for file tree node extra columns */
+
+/* begin styles for file tree node shaded background */
+div#fileTree ul {
+	background-color: #ffffff;
+}
+
+.shadedBackground {
+	background-color: #d3d3d3 !important;
+}
+/* end styles for file tree node shaded background */

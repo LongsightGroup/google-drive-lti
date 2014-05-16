@@ -1460,6 +1460,11 @@ function initializeFileTree(fileTreeDivSelector, options) {
 			fileTreeLabelExpansionElement(fileTree.get_node(data.node, true));
 		});
 		
+		fileTreeDiv.on('after_close.jstree after_open.jstree load_node.jstree', function(event, data) {
+			fileTreeDiv.find('li').removeClass('shadedBackground');
+			fileTreeDiv.find('li:odd').addClass('shadedBackground');
+		});
+
 		var fileTreeSearchSelector = fileTreeDivSelector + '_search';
 		
 		$(fileTreeSearchSelector).keyup(function() {
