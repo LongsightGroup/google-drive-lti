@@ -1273,11 +1273,13 @@ function fileTreeRedrawNode(node) {
 			'class' : 'modified_by',
 			'html' : item.lastModifyingUserName,
 		})));
-
+		
 		$(node).find('a:first').after($('<span>', {
 			'class' : 'extras',
 			'html' : newContent,
 		}));
+		
+		fileTreeLabelExpansionElement($(node));
 	}
 
 	return node;
@@ -1310,6 +1312,22 @@ function fileTreeSearch(fileTreeSearchSelector) {
 	if (searchText) {
 		fileTree.search(searchText);
 	}
+}
+
+/**
+ * Given a file tree node, add an element within its expand/collapse icon
+ * element that contains appropriate text for screen readers. If the node has
+ * the "jstree-open" class, add text for "Collapse". Otherwise, add text for
+ * "Expand".
+ * 
+ * @param element
+ *            jQuery object for the file tree node.
+ */
+function fileTreeLabelExpansionElement(element) {
+	element.find('i.jstree-ocl:first').html($('<span>', {
+		'class' : 'sr-only',
+		'html' : element.hasClass('jstree-open') ? screenReaderLabelCollapseFolder : screenReaderLabelExpandFolder,
+	}));
 }
 
 /**
@@ -1437,7 +1455,11 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		}).jstree(true);
 
 		fileTreeDiv.on('select_node.jstree', fileTreeHandleItemClick);
-
+		
+		fileTreeDiv.on('close_node.jstree open_node.jstree', function(event, data) {
+			fileTreeLabelExpansionElement(fileTree.get_node(data.node, true));
+		});
+		
 		var fileTreeSearchSelector = fileTreeDivSelector + '_search';
 		
 		$(fileTreeSearchSelector).keyup(function() {

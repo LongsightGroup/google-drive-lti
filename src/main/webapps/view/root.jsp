@@ -27,6 +27,9 @@ String buttonNo =(String)request.getAttribute("buttonNo");
 String buttonOk =(String)request.getAttribute("buttonOk");
 String buttonCreate =(String)request.getAttribute("buttonCreate");
 String buttonDelete =(String)request.getAttribute("buttonDelete");
+String screenReaderLabelCollapseFolder =(String)request.getAttribute("screenReaderLabelCollapseFolder");
+String screenReaderLabelExpandFolder =(String)request.getAttribute("screenReaderLabelExpandFolder");
+String screenReaderHelpKeyboardNavigation =(String)request.getAttribute("screenReaderHelpKeyboardNavigation");
 String contextUrl =(String)request.getAttribute("contextUrl");
 String userEmailAddress =(String)request.getAttribute("userEmailAddress");
 String deleteFileErrorAlert =(String)request.getAttribute("deleteFileErrorAlert");
@@ -80,6 +83,8 @@ if(accessToken!=null){
     var buttonOk='<%=buttonOk %>';
     var buttonCreate='<%=buttonCreate %>';
     var buttonDelete='<%=buttonDelete %>';
+    var screenReaderLabelCollapseFolder='<%=screenReaderLabelCollapseFolder %>';
+    var screenReaderLabelExpandFolder='<%=screenReaderLabelExpandFolder %>';
     var contextUrl='<%=contextUrl%>';
     var userEmailAddress='<%=userEmailAddress%>';
     var deleteFileErrorAlert='<%=deleteFileErrorAlert %>';
@@ -137,6 +142,7 @@ if(accessToken!=null){
 				<div id="spinner" style="display: none"></div>
 				<!--[if IE 8]><div class="alert alert-error">${errorMessageIe8}</div><![endif]-->
 				<div class="grey_container">
+					<p class="sr-only"><%=screenReaderHelpKeyboardNavigation %></p>
 					<jsp:include page="${requestScope.jspPage.pageFileUrl}"
 						flush="false" />
 				</div>

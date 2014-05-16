@@ -1215,6 +1215,12 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.button.create"));
 			request.setAttribute("buttonDelete",
 					resource.getString("gd.button.delete"));
+			request.setAttribute("screenReaderLabelCollapseFolder",
+					resource.getString("gd.screenReader.label.collapseFolder"));
+			request.setAttribute("screenReaderLabelExpandFolder",
+					resource.getString("gd.screenReader.label.expandFolder"));
+			request.setAttribute("screenReaderHelpKeyboardNavigation",
+					resource.getString("gd.screenReader.help.keyboardNavigation"));
 			request.setAttribute("contextUrl",
 					getGoogleServiceAccount().getContextURL());
 			if(request.getMethod().equals("POST")) {
