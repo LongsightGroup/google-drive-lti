@@ -1309,9 +1309,7 @@ function fileTreeHandleItemClick(event, data) {
 function fileTreeSearch(fileTreeSearchSelector) {
 	var searchText = $(fileTreeSearchSelector).val().trim();
 	
-	if (searchText) {
-		fileTree.search(searchText);
-	}
+	fileTree.search(searchText);
 }
 
 /**
