@@ -855,15 +855,18 @@ function openDialogToCreateItem(fileType, parentFolderId, linkedFolderId, depth)
 				courseId,
 				'application/vnd.google-apps.' + fileTypeLowerCase,
 				function(file) {
-					addFileToFileTreeTable(file, parentFolderId, linkedFolderId, depth + 1);
-
 					googleDriveItemCache[file.id] = file;
 
+					var parentFolder = fileTree.get_node(parentFolderId);
+					
+					// setting false forces parent folder to reload when refreshed
+					parentFolder.state.loaded = false;
+					
 					// (re)-load parent folder's contents
-					fileTree.refresh_node(parentFolderId);
+					fileTree.refresh_node(parentFolder);
 
 					// open parent folder, just in case it's closed
-					fileTree.open_node(parentFolderId);
+					fileTree.open_node(parentFolder);
 				});
 		
 		showInfo($('#alertContainer'), sprintf(createItemAlert, fileTypeLowerCase, escapeHtml(title)));
