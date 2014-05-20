@@ -1275,7 +1275,7 @@ function fileTreeRedrawNode(node) {
 		})));
 		
 		$(node).find('a:first').after($('<span>', {
-			'class' : 'extras',
+			'class' : 'extras pull-right',
 			'html' : newContent,
 		}));
 		
@@ -1353,6 +1353,8 @@ function initializeFileTree(fileTreeDivSelector, options) {
 	var fileTreeDiv = $(fileTreeDivSelector).first();
 
 	if (fileTreeDiv.length == 1) {
+//		$.jstree.defaults.core.themes.dots = false;
+		
 		$.jstree.plugins.appendContent = function(options, parent) {
 			this.redraw_node = function(node, deep, isCallback) {
 				node = parent.redraw_node.call(this, node, deep, isCallback);
@@ -1370,6 +1372,10 @@ function initializeFileTree(fileTreeDivSelector, options) {
 			},
 			'core' : {
 				'check_callback' : true, // allow all tree node changes (create, delete, etc.)
+				'themes' : {
+					'dots' : false,
+					'responsive' : false,
+				},
 				'data' : {
 					'url' : function(node) {
 						return _getGoogleDriveUrl((node.id == JSTREE_ROOT_NODE_ID) ? options.folderId
@@ -1453,6 +1459,12 @@ function initializeFileTree(fileTreeDivSelector, options) {
 				},
 			},
 		}).jstree(true);
+		
+//		fileTree.hide_dots();
+//		var xxx = $('.jstree-container-ul');
+//		console.log(xxx);
+//		xxx.addClass('jstree-no-dots');
+//		console.log(xxx);
 
 		fileTreeDiv.on('select_node.jstree', fileTreeHandleItemClick);
 		

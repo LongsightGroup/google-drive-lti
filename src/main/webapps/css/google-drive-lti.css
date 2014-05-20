@@ -119,11 +119,34 @@ tr.searchNonResult {
 	clear: both;
 }
 
+/* Attempt to fix jsTree in some browsers.  jsTree uses "white-space: nowrap;" */
+.jstree-node {
+	white-space: normal !important;
+}
+
+/*
+.jstree-default .jstree-open>.jstree-ocl {
+background-image: none;
+}
+
+.jstree-default .jstree-open>.jstree-ocl:after {
+	content: "\25BC";
+}
+
+.jstree-default .jstree-closed>.jstree-ocl {
+background-image: none;
+}
+
+.jstree-default .jstree-closed>.jstree-ocl:after {
+	content: "\25B7";
+}
+*/
+
 /* begin styles for file tree node extra columns */
 span.extras {
 	display: inline-block;
 	width: 250px;
-	float: right;
+	/* float: right; */
 	white-space: nowrap;
 }
 
