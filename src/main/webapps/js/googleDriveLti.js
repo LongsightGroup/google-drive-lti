@@ -1353,7 +1353,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 	var fileTreeDiv = $(fileTreeDivSelector).first();
 
 	if (fileTreeDiv.length == 1) {
-//		$.jstree.defaults.core.themes.dots = false;
 		
 		$.jstree.plugins.appendContent = function(options, parent) {
 			this.redraw_node = function(node, deep, isCallback) {
@@ -1460,12 +1459,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 			},
 		}).jstree(true);
 		
-//		fileTree.hide_dots();
-//		var xxx = $('.jstree-container-ul');
-//		console.log(xxx);
-//		xxx.addClass('jstree-no-dots');
-//		console.log(xxx);
-
 		fileTreeDiv.on('select_node.jstree', fileTreeHandleItemClick);
 		
 		fileTreeDiv.on('close_node.jstree open_node.jstree', function(event, data) {
