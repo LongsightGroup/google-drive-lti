@@ -1369,6 +1369,10 @@ function initializeFileTree(fileTreeDivSelector, options) {
 				NODE_TYPE_FOLDER : {},
 				NODE_TYPE_NONFOLDER : {},
 			},
+			'search' : {
+				'fuzzy' : false,
+				'show_only_matches' : true,
+			}, 
 			'core' : {
 				'check_callback' : true, // allow all tree node changes (create, delete, etc.)
 				'themes' : {
