@@ -11,9 +11,9 @@
 		xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 		id="WebApp_ID"
 		version="3.0">
-  <display-name>Google Drive LTI for Sakai</display-name>
+  <display-name>GDrive</display-name>
   <javaee:display-name>googleDriveLti</javaee:display-name>
-  <javaee:description>Google Drive LTI</javaee:description>
+  <javaee:description>GDrive: Google Drive LTI Tool for Sakai</javaee:description>
   <servlet>
     <servlet-name>GoogleDriveLti</servlet-name>
     <servlet-class>edu.umich.its.lti.google.GoogleLtiServlet</servlet-class>
