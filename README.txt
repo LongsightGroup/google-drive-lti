@@ -3,7 +3,7 @@
 ===========
 This is an LTI 2.0 compliant tool that integrates Google Drive with an LMS such as Sakai. Because this tool relies on some LTI 2.0 features, it can only be run on Sakai 10 or greater.
 
-This tool allows an instructor to associate a Google Drive folder with a Sakai site, which grants everyone in that site's roster read-only access to the folder and it's contents. Once granted, this access is valid both from within the Google Drive LTI tool as well as from the Googie Drive UI itself.
+This tool allows an instructor to associate a Google Drive folder with a Sakai site, which grants everyone in that site's roster read-only access to the folder and it's contents. Once granted, this access is valid both from within the GDrive tool as well as from the Googie Drive UI itself.
 
 
          
@@ -25,7 +25,7 @@ This tool allows an instructor to associate a Google Drive folder with a Sakai s
    googleDriveLti.service.account.email.address=
    googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
    
-   ## LTI key,secret launch URL property should match with the properites configuring the google Drive LTI tool in LMS
+   ## LTI key,secret launch URL property should match with the properites configuring the GDrive tool in LMS
    googleDriveLti.lti.secret=
    googleDriveLti.lti.key=
    # LTI launch URL should be defined, especially if the HttpServletRequest.getRequestURL().toString() does not return a valid value 
