@@ -900,7 +900,7 @@ function fileTreeRedrawNode(node) {
 			}
 		} else {
 			// Second column content: Instructors see the add menu button.
-			columnClass = 'addMenuButtonColumn';
+			columnClass = 'col-md-4 addMenuButtonColumn';
 			if (getIsInstructor() && getIsFolder(item.mimeType)) {
 				newContent = newContent.add($('<span>', {
 					'class' : columnClass,
@@ -917,7 +917,7 @@ function fileTreeRedrawNode(node) {
 			}
 
 			// Third column content: Instructors see unshare or delete button.
-			columnClass = 'unshareAndDeleteButtonColumn hidden-phone hidden-xs';
+			columnClass = 'col-md-4 unshareAndDeleteButtonColumn hidden-phone hidden-xs';
 			if (getIsInstructor()){
 				if (isRootNode) {
 					newContent = newContent.add($('<span>', {
@@ -948,8 +948,8 @@ function fileTreeRedrawNode(node) {
 		}
 
 		// Last column (third or fourth depending upon view) content: modification date and user
-		columnClass = 'hidden-phone hidden-xs';
-		newContent = newContent.add($('<span>', {
+		columnClass = 'col-md-4 metaData hidden-phone hidden-xs';
+		newContent = newContent.add($('<small>', {
 			'class' : columnClass,
 			'html' : getGoogleDateOrTime(item.modifiedDate) + ' ',
 		}).append($('<span>', {
@@ -958,7 +958,8 @@ function fileTreeRedrawNode(node) {
 		})));
 		
 		$(node).find('a:first').after($('<span>', {
-			'class' : 'extras pull-right',
+			'class' : 'extras',
+			'class' : 'extras pull-right row',
 			'html' : newContent,
 		}));
 		
