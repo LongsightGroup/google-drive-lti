@@ -30,6 +30,7 @@ String buttonDelete =(String)request.getAttribute("buttonDelete");
 String screenReaderLabelCollapseFolder =(String)request.getAttribute("screenReaderLabelCollapseFolder");
 String screenReaderLabelExpandFolder =(String)request.getAttribute("screenReaderLabelExpandFolder");
 String screenReaderHelpKeyboardNavigation =(String)request.getAttribute("screenReaderHelpKeyboardNavigation");
+String monthNames =(String)request.getAttribute("monthNames");
 String contextUrl =(String)request.getAttribute("contextUrl");
 String userEmailAddress =(String)request.getAttribute("userEmailAddress");
 String deleteFileErrorAlert =(String)request.getAttribute("deleteFileErrorAlert");
@@ -85,6 +86,7 @@ if(accessToken!=null){
     var buttonDelete='<%=buttonDelete %>';
     var screenReaderLabelCollapseFolder='<%=screenReaderLabelCollapseFolder %>';
     var screenReaderLabelExpandFolder='<%=screenReaderLabelExpandFolder %>';
+    var monthNames='<%=monthNames %>';
     var contextUrl='<%=contextUrl%>';
     var userEmailAddress='<%=userEmailAddress%>';
     var deleteFileErrorAlert='<%=deleteFileErrorAlert %>';

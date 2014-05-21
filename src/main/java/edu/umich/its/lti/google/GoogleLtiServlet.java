@@ -1221,6 +1221,8 @@ public class GoogleLtiServlet extends HttpServlet {
 					resource.getString("gd.screenReader.label.expandFolder"));
 			request.setAttribute("screenReaderHelpKeyboardNavigation",
 					resource.getString("gd.screenReader.help.keyboardNavigation"));
+			request.setAttribute("monthNames",
+					resource.getString("gd.monthNames"));
 			request.setAttribute("contextUrl",
 					getGoogleServiceAccount().getContextURL());
 			if(request.getMethod().equals("POST")) {
