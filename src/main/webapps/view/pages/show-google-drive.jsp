@@ -72,7 +72,7 @@
 
 <div id="alertContainer" class="clearfix"></div>
 
-<div id="fileTree" class="showGoogleDrive"></div>
+<div id="fileTree"></div>
 
 <script type="text/javascript">
 	$(document).ready(function() {
