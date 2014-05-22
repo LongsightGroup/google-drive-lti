@@ -138,11 +138,26 @@ span.extras {
 .jstree-children {
     margin-top:5px !important;
 }
-.jstree-children li:last-child, .jstree-open.shadedBackground {
+.jstree-children li:last-child, .jstree-open.shadedBackground{
     padding-bottom:0;
-    
 }
-
+.jstree-node.jstree-last.jstree-closed, .jstree-node.jstree-leaf.jstree-last {
+    padding-bottom:3px;
+}
+.jstree-container-ul li:hover {
+    background:#ffe !important;
+}
+.jstree-container-ul li.shadedBackground:hover {
+    background:#ddd !important;
+}
+.jstree-anchor {
+    color:#08c !important;
+    font-weight:bold;
+}
+.jstree-anchor:hover,.jstree-anchor:focus, .js-tree-default .jstree-hovered {
+    color:#005580 !important;
+    background:none !important;
+}
 a.jstree-anchor {
     width:40%;
     overflow: hidden; 
@@ -169,9 +184,9 @@ span.unshareAndDeleteButtonColumn {
 }
 small.metaData {
     float: left;
-    font-size: 15px;
     margin-left: 5px;
     overflow: hidden;
+    padding-right:5px;
     text-overflow: ellipsis;
     width: 200px;
 }

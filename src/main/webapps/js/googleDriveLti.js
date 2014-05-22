@@ -953,7 +953,7 @@ function fileTreeRedrawNode(node) {
 			'class' : columnClass,
 			'html' : getGoogleDateOrTime(item.modifiedDate) + ' ',
 		}).append($('<span>', {
-			'class' : 'modified_by',
+			'class' : 'muted',
 			'html' : item.lastModifyingUserName,
 		})));
 		
