@@ -144,11 +144,11 @@ span.extras {
 .jstree-node.jstree-last.jstree-closed, .jstree-node.jstree-leaf.jstree-last {
     padding-bottom:3px;
 }
-.jstree-container-ul li:hover {
+.jstree-container-ul ul > li:hover {
     background:#ffe !important;
 }
-.jstree-container-ul li.shadedBackground:hover {
-    background:#ddd !important;
+.jstree-container-ul ul > li.shadedBackground:hover {
+    background:#eee !important;
 }
 .jstree-anchor {
     color:#08c !important;
