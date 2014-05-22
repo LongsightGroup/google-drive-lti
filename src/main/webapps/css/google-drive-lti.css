@@ -12,33 +12,6 @@ body {
 	padding-bottom: 40px;
 }
 
-.sidebar-nav {
-	padding: 9px 0;
-}
-
-.indent1 {
-	padding-left: 10px;
-}
-
-.indent2 {
-	padding-left: 20px;
-}
-
-.modified_by {
-	font-size: .7em;
-	color: #AAA;
-}
-
-table {
-	background-color: #ffffff;
-}
-
-.large-text {
-	font-size: 1.5em;
-	font-weight: bold;
-	margin-top: 20px;
-}
-
 .hide {
 	display: none;
 }
@@ -57,46 +30,12 @@ table {
 	display: inline-block;
 }
 
-.itemLink {
-	display: block;
-	float: left;
-	width: 90%;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.itemLink:hover {
-	text-decoration: none;
-	cursor: pointer
-}
-
-.expandShrink {
-	padding: 0 5px;
-	display: block;
-	width: 2%;
-	float: left;
-}
-
-.expandShrink:hover {
-	font-weight: bold;
-	cursor: pointer
-}
-
 .header-controls .controls {
 	text-align: right
 }
 
-.expandShrink:hover,.expandShrink:focus {
-	text-decoration: none
-}
-
 h4.modal-title {
 	text-transform: capitalize;
-}
-
-tr.searchNonResult {
-	display: none !important;
 }
 
 .sr-only {
