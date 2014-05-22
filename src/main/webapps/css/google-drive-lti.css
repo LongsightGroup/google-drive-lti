@@ -159,7 +159,7 @@ span.extras {
     background:none !important;
 }
 a.jstree-anchor {
-    width:40%;
+    width:50%;
     overflow: hidden; 
     text-overflow:ellipsis;
 }
