@@ -113,7 +113,8 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 							if (userConfirmed === true) {
 								deleteDriveFile(ownerToken, fileId, function() {
 									fileTree.delete_node(fileId);
-									showInfo($('#alertContainer'), sprintf(applicationProperties['gd.delete.item.alert'], itemType, escapeHtml(fileTitle)));
+									showInfo($('#alertContainer'), sprintf(applicationProperties['gd.delete.item.alert'],
+									        itemType, escapeHtml(fileTitle)));
 								});
 							}
 						}
@@ -143,7 +144,8 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 				if (userConfirmed === true) {
 					deleteDriveFile(getGoogleAccessToken(), fileId, function() {
 						fileTree.delete_node(fileId);
-						showInfo($('#alertContainer'), sprintf(applicationProperties['gd.delete.item.alert'], itemType, escapeHtml(fileTitle)));
+						showInfo($('#alertContainer'), sprintf(applicationProperties['gd.delete.item.alert'], 
+						        itemType, escapeHtml(fileTitle)));
 					});
 				}
 			}
@@ -277,12 +279,14 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 			callback : function(sendNotificationEmails) {
 				giveRosterPermissions(folderId,
 						sendNotificationEmails);
-				showInfo($('#alertContainer'), sprintf(applicationProperties['gd.link.folder.alert'], escapeHtml(folderTitle)));
+				showInfo($('#alertContainer'), sprintf(applicationProperties['gd.link.folder.alert'],
+				        escapeHtml(folderTitle)));
 			}
 		});
 	} else {
 		removeRosterPermissions(folderId);
-		showInfo($('#alertContainer'), sprintf(applicationProperties['gd.unlink.folder.alert'], escapeHtml(folderTitle)));
+		showInfo($('#alertContainer'), sprintf(applicationProperties['gd.unlink.folder.alert'],
+		        escapeHtml(folderTitle)));
 	}
 }
 
@@ -640,7 +644,8 @@ function openDialogToCreateItem(fileType, parentFolderId, linkedFolderId, depth)
 					fileTree.open_node(parentFolder);
 				});
 		
-		showInfo($('#alertContainer'), sprintf(applicationProperties['gd.create.item.alert'], fileTypeLowerCase, escapeHtml(title)));
+		showInfo($('#alertContainer'), sprintf(applicationProperties['gd.create.item.alert'], 
+		        fileTypeLowerCase, escapeHtml(title)));
 	});
 }
 
@@ -722,14 +727,20 @@ function linkFolder(folderId, folderTitle) {
 	if (folderRelationship !== null) {
 		getDriveFile(getGoogleAccessToken(), folderRelationship.linked.id, function(data) {
 			if ((typeof(data) === 'object') && (typeof(data.title) !== 'undefined')) {
-				notifyUserFolderCannotBeLinked(folderTitle, 'this is ' + folderRelationship.type + ' of linked folder ' + data.title + '.');
+				notifyUserFolderCannotBeLinked(folderTitle, 
+                        sprintf(applicationProperties['gd.link.folder.error.reason.specificFolder'], 
+                                folderRelationship.type, data.title));
 			} else {
-				notifyUserFolderCannotBeLinked(folderTitle, 'this is ' + folderRelationship.type + ' of a linked folder.');
+				notifyUserFolderCannotBeLinked(folderTitle, 
+				        sprintf(applicationProperties['gd.link.folder.error.reason.genericFolder'], 
+				                folderRelationship.type));
 			}
 		},
 		function() {
 			// Error getting linked folder...
-			notifyUserFolderCannotBeLinked(folderTitle, 'this is ' + folderRelationship.type + ' of a linked folder.');
+			notifyUserFolderCannotBeLinked(folderTitle, 
+			        sprintf(applicationProperties['gd.link.folder.error.reason.genericFolder'], 
+			                folderRelationship.type));
 		});
 	} else 
 	{
@@ -745,7 +756,8 @@ function linkFolder(folderId, folderTitle) {
  * @param reason
  */
 function notifyUserFolderCannotBeLinked(folderTitle, reason) {
-	bootbox.alert(sprintf(applicationProperties['gd.link.folder.error.alert'], escapeHtml(folderTitle), reason));
+	bootbox.alert(sprintf(applicationProperties['gd.link.folder.error.alert'],
+	        escapeHtml(folderTitle), reason));
 }
 
 /**
@@ -889,8 +901,10 @@ function fileTreeRedrawNode(node) {
 					'href' : '#',
 					
 					'class' : BUTTON_CLASSES,
-					'html' : applicationProperties['gd.link.folder.button'] + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
-					'onclick' : "linkFolder('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
+					'html' : applicationProperties['gd.link.folder.button'] + 
+					    ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
+					'onclick' : "linkFolder('" + escapeAllQuotes(item.id) + "', '" +
+					    escapeAllQuotes(item.title) + "'); return false;",
 				})));
 			} else {
 				newContent = newContent.add($('<span>', {
@@ -925,8 +939,10 @@ function fileTreeRedrawNode(node) {
 						'html' : $('<a>', {
 							'href' : '#',
 							'class' : BUTTON_CLASSES,
-							'html' : applicationProperties['gd.unlink.button'] + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
-							'onclick' : "unlinkFolderFromSite('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
+							'html' : applicationProperties['gd.unlink.button'] + 
+							    ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
+							'onclick' : "unlinkFolderFromSite('" + escapeAllQuotes(item.id) + "', '" + 
+							    escapeAllQuotes(item.title) + "'); return false;",
 						})}));
 				} else {
 					newContent = newContent.add($('<span>', {
@@ -934,9 +950,11 @@ function fileTreeRedrawNode(node) {
 						'html' : $('<a>', {
 							'href' : '#',
 							'class' : BUTTON_CLASSES,
-							'html' : applicationProperties['gd.delete.button'] + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
-							'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
-							+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
+							'html' : applicationProperties['gd.delete.button'] + 
+							    ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
+							'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + 
+							    escapeAllQuotes(item.title) + "', '" + escapeAllQuotes(item.mimeType) + "', '" + 
+							    escapeAllQuotes(item.userPermission.role) + "');",
 						})}));
 				}
 			} else {
@@ -1005,10 +1023,11 @@ function fileTreeSearch(fileTreeSearchSelector) {
  *            jQuery object for the file tree node.
  */
 function fileTreeLabelExpansionElement(element) {
-	element.find('i.jstree-ocl:first').html($('<span>', {
-		'class' : 'sr-only',
-		'html' : element.hasClass('jstree-open') ? applicationProperties['gd.screenReader.label.collapseFolder'] : applicationProperties['gd.screenReader.label.expandFolder'],
-	}));
+    element.find('i.jstree-ocl:first').html($('<span>', {
+        'class': 'sr-only',
+        'html': element.hasClass('jstree-open') ? applicationProperties['gd.screenReader.label.collapseFolder']
+                : applicationProperties['gd.screenReader.label.expandFolder'],
+    }));
 }
 
 /**
@@ -1089,7 +1108,8 @@ function initializeFileTree(fileTreeDivSelector, options) {
 					},
 					'error' : function(data, textStatus, jqXHR) {
 						if (data.status === 404) {
-							// Get ID of folder that caused error from the GD error message.  Is there a better way?
+							// Get ID of folder that caused error from the GD error message.  
+						    // Is there a better way?
 							var sharedFolderId = data.responseJSON.error.message.split(' ').pop();
 							checkSharedFolderDeletionStatus(sharedFolderId);
 						}
