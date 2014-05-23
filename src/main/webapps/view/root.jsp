@@ -2,41 +2,16 @@
 This is root file, managing structure of the web pages.  It includes the header,
 contents, and footers.
 --%>
+<%@page import="java.util.Map"%>
 <%@page isELIgnored="false"%>
 <%@page import="edu.umich.its.lti.TcSessionData"%>
 <%@page import="edu.umich.its.google.oauth.GoogleAccessToken"%>
 <%TcSessionData data = (TcSessionData)request.getAttribute("TcSessionData");
-String linkFolderButton =(String)request.getAttribute("linkFolderButton");
-String unlinkFolderButton =(String)request.getAttribute("unlinkFolderButton");
-String unlinkFolderAlert =(String)request.getAttribute("unlinkFolderAlert");
-String linkFolderAlert =(String)request.getAttribute("linkFolderAlert");
-String deleteButton =(String)request.getAttribute("deleteButton");
-String deleteFilePrompt =(String)request.getAttribute("deleteFilePrompt");
-String deleteFolderPrompt =(String)request.getAttribute("deleteFolderPrompt");
-String deleteItemPromptHeader =(String)request.getAttribute("deleteItemPromptHeader");
-String createItemPromptHeader =(String)request.getAttribute("createItemPromptHeader");
-String createItemPrompt =(String)request.getAttribute("createItemPrompt");
-String createItemPromptError =(String)request.getAttribute("createItemPromptError");
-String createItemAlert =(String)request.getAttribute("createItemAlert");
-String deleteItemAlert =(String)request.getAttribute("deleteItemAlert");
-String linkFolderErrorAlert =(String)request.getAttribute("linkFolderErrorAlert");
-String sendEmailPrompt =(String)request.getAttribute("sendEmailPrompt");
-String sendEmailPromptHeader =(String)request.getAttribute("sendEmailPromptHeader");
-String buttonYes =(String)request.getAttribute("buttonYes");
-String buttonNo =(String)request.getAttribute("buttonNo");
-String buttonOk =(String)request.getAttribute("buttonOk");
-String buttonCreate =(String)request.getAttribute("buttonCreate");
-String buttonDelete =(String)request.getAttribute("buttonDelete");
-String screenReaderLabelCollapseFolder =(String)request.getAttribute("screenReaderLabelCollapseFolder");
-String screenReaderLabelExpandFolder =(String)request.getAttribute("screenReaderLabelExpandFolder");
-String screenReaderHelpKeyboardNavigation =(String)request.getAttribute("screenReaderHelpKeyboardNavigation");
-String monthNames =(String)request.getAttribute("monthNames");
+
+Map<String, String> applicationProperties =(Map<String, String>)request.getAttribute("applicationProperties");
+String applicationPropertiesJson =(String)request.getAttribute("applicationPropertiesJson");
 String contextUrl =(String)request.getAttribute("contextUrl");
 String userEmailAddress =(String)request.getAttribute("userEmailAddress");
-String deleteFileErrorAlert =(String)request.getAttribute("deleteFileErrorAlert");
-String deleteFolderErrorAlert =(String)request.getAttribute("deleteFolderErrorAlert");
-String errorMsg404 =(String)request.getAttribute("errorMsg404");
-String errorMessageIe8 =(String)request.getAttribute("errorMessageIe8");
 String contextLabel =(String)request.getAttribute("contextLabel");
 String token=null;
 Long tokenTimeStamp=null;
@@ -63,36 +38,11 @@ if(accessToken!=null){
       ${requestScope.GoogleDriveConfigJson}
     </script>
 <script type="text/javascript">
-    var linkFolderButton='<%=linkFolderButton%>';
-    var unlinkFolderButton='<%=unlinkFolderButton %>';
-    var linkFolderAlert='<%=linkFolderAlert %>';
-    var unlinkFolderAlert='<%=unlinkFolderAlert %>';
-    var deleteFolderButton='<%=deleteButton %>';
-    var deleteFilePrompt='<%=deleteFilePrompt %>';
-    var deleteFolderPrompt='<%=deleteFolderPrompt %>';
-    var deleteItemPromptHeader='<%=deleteItemPromptHeader %>';
-    var createItemPromptHeader='<%=createItemPromptHeader %>';
-    var createItemPrompt='<%=createItemPrompt %>';
-    var createItemPromptError='<%=createItemPromptError %>';
-    var createItemAlert='<%=createItemAlert %>';
-    var deleteItemAlert='<%=deleteItemAlert %>';
-    var linkFolderErrorAlert='<%=linkFolderErrorAlert %>';
-    var sendEmailPromptHeader='<%=sendEmailPromptHeader %>';
-    var sendEmailPrompt='<%=sendEmailPrompt %>';
-    var buttonYes='<%=buttonYes %>';
-    var buttonNo='<%=buttonNo %>';
-    var buttonOk='<%=buttonOk %>';
-    var buttonCreate='<%=buttonCreate %>';
-    var buttonDelete='<%=buttonDelete %>';
-    var screenReaderLabelCollapseFolder='<%=screenReaderLabelCollapseFolder %>';
-    var screenReaderLabelExpandFolder='<%=screenReaderLabelExpandFolder %>';
-    var monthNames='<%=monthNames %>';
     var contextUrl='<%=contextUrl%>';
     var userEmailAddress='<%=userEmailAddress%>';
-    var deleteFileErrorAlert='<%=deleteFileErrorAlert %>';
-    var deleteFolderErrorAlert='<%=deleteFolderErrorAlert %>';
     var accessTokenHandler='<%=token %>';
     var accessTokenTime='<%=tokenTimeStamp %>';
+    var applicationProperties = <%=applicationPropertiesJson %>;
     </script>
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
 <script src="js/jquery-plugin-xdr.js" type="text/javascript"></script>
@@ -124,15 +74,16 @@ if (username == null) {
 }
 if (username != null) {
 %>
-					${loggedMsg} <a href="#" class="navbar-link">&nbsp;<%=username%></a>
-					<%
-}
+						<%=applicationProperties.get("gd.logged.in") %> <a href="#" class="navbar-link"><%=username %></a>
+						<%
+	}
 %>
-				</p>
-				<ul class="nav">
-					<li><a href="view/pages/help/about.html" target="GDLHelp">${about}</a></li>
-					<li><a href="view/pages/help/help.html" target="GDLHelp">${help}</a></li>
-				</ul>
+					</p>
+					<ul class="nav">
+						<li><a href="view/pages/help/about.html" target="GDLHelp"><%=applicationProperties.get("gd.header3.about") %></a></li>
+						<li><a href="view/pages/help/help.html" target="GDLHelp"><%=applicationProperties.get("gd.header4.help") %></a></li>
+					</ul>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -140,9 +91,9 @@ if (username != null) {
 		<div class="row-fluid">
 			<div class="span12">
 				<div id="spinner" style="display: none"></div>
-				<!--[if IE 8]><div class="alert alert-error">${errorMessageIe8}</div><![endif]-->
+				<!--[if IE 8]><div class="alert alert-error"><%=applicationProperties.get("gd.error.message.ie8") %></div><![endif]-->
 				<div class="grey_container">
-					<p class="sr-only"><%=screenReaderHelpKeyboardNavigation %></p>
+					<p class="sr-only"><%=applicationProperties.get("gd.screenReader.help.keyboardNavigation") %></p>
 					<jsp:include page="${requestScope.jspPage.pageFileUrl}"
 						flush="false" />
 				</div>
@@ -153,12 +104,12 @@ if (username != null) {
 				String role = data.getUserRoles();
 				if (role.equals("Learner")) {
 			%>
-			<div id="par1" class="hide">${studentAccessMsg}.</div>
-			<div id="par2" class="hide alert alert-info">${studentNoFolderAccessMsg}.</div>
+			<div id="par1" class="hide"><%=applicationProperties.get("gd.student.view.access.msg") %></div>
+			<div id="par2" class="hide alert alert-info"><%=applicationProperties.get("gd.student.view.nofolder.message") %></div>
 			<%} %>
-			<div id="par3" class="hide alert alert-error">${invalidAccountMsg}</div>
-			<div id="par4" class="hide alert alert-error">${errorMsg404}</div>
-			<div id="permissionUpdate" class="hide alert alert-error">${permissionUpdate}</div>
+			<div id="par3" class="hide alert alert-error"><%=applicationProperties.get("gd.invalid.account.message") %></div>
+			<div id="par4" class="hide alert alert-error"><%=applicationProperties.get("gd.error.msg.404") %></div>
+			<div id="permissionUpdate" class="hide alert alert-error"><%=applicationProperties.get("gd.student.view.permission.update") %></div>
 			<div id="par5"></div>
 		</footer>
 	</div>

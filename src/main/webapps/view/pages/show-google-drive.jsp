@@ -1,10 +1,11 @@
+<%@page import="java.util.Map"%>
 <%@page import="edu.umich.its.lti.TcSessionData"%>
-
+<%Map<String, String> applicationProperties =(Map<String, String>)request.getAttribute("applicationProperties"); %>
 <div style="display: none;">
 	<div id="FolderDropdownTemplate">
 		<div class="dropdown">
 			<a class="dropdown-toggle btn btn-xs btn-mini" id="dLabel" role="button"
-				data-toggle="dropdown" data-target="#" href="/page.html">${addButton}
+				data-toggle="dropdown" data-target="#" href="/page.html"><%=applicationProperties.get("gd.add.button") %>
 				<b class="caret"></b>
 			</a>
 			<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
@@ -43,7 +44,7 @@
 			*/
 %>
 				<li><a href="#" tabindex="-1"
-					onclick="openDialogToCreateItem('<%=fileType%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);">${addButton}
+					onclick="openDialogToCreateItem('<%=fileType%>', '[FolderIdParam]', '[LinkedFolderIdParam]', [FolderDepthParam]);"><%=applicationProperties.get("gd.add.button") %>
 						<%=fileType%></a></li>
 				<%
 		}
@@ -58,13 +59,13 @@
 %>
 <div class="row-fluid header-controls">
 	<h2>${requestScope.jspPage.pageTitle}</h2>
-	<p class="muted pull-left">${requestScope.info}</p>
+	<p class="muted pull-left"><%=applicationProperties.get("gd.linked.view.info") %></p>
 	<p class="pull-right "></p>
 </div>
 <%
     } else {
 %>
-<h3>${studentInfo}</h3>
+<h3><%=applicationProperties.get("gd.student.view.info") %></h3>
 
 <%
     }

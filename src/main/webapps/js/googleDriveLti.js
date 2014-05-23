@@ -78,17 +78,17 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 				var deleteMsg = null;
 				if ($.trim(ownerToken) == 'ERROR') {
 					if (isFolder) {
-						deleteMsg = sprintf(deleteFolderErrorAlert,
+						deleteMsg = sprintf(applicationProperties['gd.delete.folder.error.alert'],
 								escapeHtml(fileTitle));
 					} else {
-						deleteMsg = sprintf(deleteFileErrorAlert,
+						deleteMsg = sprintf(applicationProperties['gd.delete.file.error.alert'],
 								escapeHtml(fileTitle));
 					}
 					bootbox.alert({
 						message : deleteMsg,
 						buttons : {
 							ok : {
-								label : buttonOk,
+								label : applicationProperties['gd.button.ok'],
 							}
 						}
 					});
@@ -96,24 +96,24 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 					var deleteConfirmationMessage = null;
 					if (isFolder) {
 						deleteConfirmationMessage = sprintf(
-								deleteFolderPrompt, escapeHtml(fileTitle));
+								applicationProperties['gd.delete.folder.prompt'], escapeHtml(fileTitle));
 					} else {
-						deleteConfirmationMessage = sprintf(deleteFilePrompt, itemType,
+						deleteConfirmationMessage = sprintf(applicationProperties['gd.delete.file.prompt'], itemType,
 								escapeHtml(fileTitle));
 					}
 					bootbox.confirm({
-						title: sprintf(deleteItemPromptHeader, itemType),
+						title: sprintf(applicationProperties['gd.delete.item.prompt.header'], itemType),
 						message : deleteConfirmationMessage,
 						buttons : {
 							confirm : {
-								label : buttonDelete
+								label : applicationProperties['gd.button.delete'],
 							}
 						},
 						callback : function(userConfirmed) {
 							if (userConfirmed === true) {
 								deleteDriveFile(ownerToken, fileId, function() {
 									fileTree.delete_node(fileId);
-									showInfo($('#alertContainer'), sprintf(deleteItemAlert, itemType, escapeHtml(fileTitle)));
+									showInfo($('#alertContainer'), sprintf(applicationProperties['gd.delete.item.alert'], itemType, escapeHtml(fileTitle)));
 								});
 							}
 						}
@@ -124,26 +124,26 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 	} else if (role === "owner") {
 		var deleteConfirmationMessage = null;
 		if (isFolder) {
-			deleteConfirmationMessage = sprintf(deleteFolderPrompt,
+			deleteConfirmationMessage = sprintf(applicationProperties['gd.delete.folder.prompt'],
 					escapeHtml(fileTitle));
 		} else {
-			deleteConfirmationMessage = sprintf(deleteFilePrompt, itemType,
+			deleteConfirmationMessage = sprintf(applicationProperties['gd.delete.file.prompt'], itemType,
 					escapeHtml(fileTitle));
 		}
 
 		bootbox.confirm({
-			title: sprintf(deleteItemPromptHeader, itemType),
+			title: sprintf(applicationProperties['gd.delete.item.prompt.header'], itemType),
 			message : deleteConfirmationMessage,
 			buttons : {
 				confirm : {
-					label : buttonDelete
+					label : applicationProperties['gd.button.delete']
 				}
 			},
 			callback : function(userConfirmed) {
 				if (userConfirmed === true) {
 					deleteDriveFile(getGoogleAccessToken(), fileId, function() {
 						fileTree.delete_node(fileId);
-						showInfo($('#alertContainer'), sprintf(deleteItemAlert, itemType, escapeHtml(fileTitle)));
+						showInfo($('#alertContainer'), sprintf(applicationProperties['gd.delete.item.alert'], itemType, escapeHtml(fileTitle)));
 					});
 				}
 			}
@@ -161,7 +161,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
  * @returns non-empty title string or null if user selected "Cancel"
  */
 function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
-	var defaultItemPrompt = sprintf(createItemPrompt, itemType.toLowerCase());
+	var defaultItemPrompt = sprintf(applicationProperties['gd.create.item.prompt'], itemType.toLowerCase());
 	var itemPrompt = defaultItemPrompt;
 	var itemTitle = defaultTitle;
 
@@ -172,11 +172,11 @@ function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
 	var displayPrompt = function() {
 		var promptDialog = bootbox.prompt({
 			inputType: 'text',
-			title : sprintf(createItemPromptHeader, itemType),
+			title : sprintf(applicationProperties['gd.create.item.prompt.header'], itemType),
 			value : itemTitle,
 			buttons : {
 				confirm : {
-					label : buttonCreate
+					label : applicationProperties['gd.button.create'],
 				}
 			},
 			callback : function(itemTitle) {
@@ -187,7 +187,7 @@ function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
 						// Empty responses are invalid. Prompt again
 						// with error message.
 						itemPrompt = defaultItemPrompt + '<br/><em>'
-								+ createItemPromptError + '</em>';
+								+ applicationProperties['gd.create.item.prompt.error'] + '</em>';
 						displayPrompt();
 						return;
 					}
@@ -264,25 +264,25 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 
 	if (!unlinked) {
 		bootbox.confirm({
-			title : sendEmailPromptHeader,
-			message : sendEmailPrompt,
+			title : applicationProperties['gd.send.email.prompt.header'],
+			message : applicationProperties['gd.send.email.prompt'],
 			buttons : {
 				confirm : {
-					label : buttonYes
+					label : applicationProperties['gd.button.yes'],
 				},
 				cancel : {
-					label : buttonNo
+					label : applicationProperties['gd.button.no'],
 				}
 			},
 			callback : function(sendNotificationEmails) {
 				giveRosterPermissions(folderId,
 						sendNotificationEmails);
-				showInfo($('#alertContainer'), sprintf(linkFolderAlert, escapeHtml(folderTitle)));
+				showInfo($('#alertContainer'), sprintf(applicationProperties['gd.link.folder.alert'], escapeHtml(folderTitle)));
 			}
 		});
 	} else {
 		removeRosterPermissions(folderId);
-		showInfo($('#alertContainer'), sprintf(unlinkFolderAlert, escapeHtml(folderTitle)));
+		showInfo($('#alertContainer'), sprintf(applicationProperties['gd.unlink.folder.alert'], escapeHtml(folderTitle)));
 	}
 }
 
@@ -471,7 +471,7 @@ function linkFolderToSite(folderId, callback) {
 			message : data.responseText,
 			buttons : {
 				ok : {
-					label : buttonOk,
+					label : applicationProperties['gd.button.ok'],
 				}
 			}
 		});
@@ -498,7 +498,7 @@ function unlinkFolderToSite(folderId, callback) {
 			message : data.responseText,
 			buttons : {
 				ok : {
-					label : buttonOk,
+					label : applicationProperties['gd.button.ok'],
 				}
 			}
 		});
@@ -578,7 +578,7 @@ function removeRosterPermissions(folderId) {
 			  message: data.responseText,
 			  buttons: {
 			    ok: {
-			      label: buttonOk,
+			      label: applicationProperties['gd.button.ok'],
 			    }
 			  },
 			  callback:function(){
@@ -640,7 +640,7 @@ function openDialogToCreateItem(fileType, parentFolderId, linkedFolderId, depth)
 					fileTree.open_node(parentFolder);
 				});
 		
-		showInfo($('#alertContainer'), sprintf(createItemAlert, fileTypeLowerCase, escapeHtml(title)));
+		showInfo($('#alertContainer'), sprintf(applicationProperties['gd.create.item.alert'], fileTypeLowerCase, escapeHtml(title)));
 	});
 }
 
@@ -745,7 +745,7 @@ function linkFolder(folderId, folderTitle) {
  * @param reason
  */
 function notifyUserFolderCannotBeLinked(folderTitle, reason) {
-	bootbox.alert(sprintf(linkFolderErrorAlert, escapeHtml(folderTitle), reason));
+	bootbox.alert(sprintf(applicationProperties['gd.link.folder.error.alert'], escapeHtml(folderTitle), reason));
 }
 
 /**
@@ -870,7 +870,7 @@ function fileTreeNodeSortComparator(nodeIdA, nodeIdB) {
  */
 function fileTreeRedrawNode(node) {
 	// this bootstrap version uses "btn-mini", new version uses "btn-xs"
-	var BUTTON_CLASSES = 'btn btn-xs btn-mini btn-default';
+	var BUTTON_CLASSES = 'btn btn-xs btn-mini';
 
 	if (node) {
 		var nodeData = fileTree.get_node(node);
@@ -889,7 +889,7 @@ function fileTreeRedrawNode(node) {
 					'href' : '#',
 					
 					'class' : BUTTON_CLASSES,
-					'html' : linkFolderButton + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
+					'html' : applicationProperties['gd.link.folder.button'] + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 					'onclick' : "linkFolder('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
 				})));
 			} else {
@@ -925,7 +925,7 @@ function fileTreeRedrawNode(node) {
 						'html' : $('<a>', {
 							'href' : '#',
 							'class' : BUTTON_CLASSES,
-							'html' : unlinkFolderButton + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
+							'html' : applicationProperties['gd.unlink.button'] + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 							'onclick' : "unlinkFolderFromSite('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "'); return false;",
 						})}));
 				} else {
@@ -934,7 +934,7 @@ function fileTreeRedrawNode(node) {
 						'html' : $('<a>', {
 							'href' : '#',
 							'class' : BUTTON_CLASSES,
-							'html' : deleteFolderButton +' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
+							'html' : applicationProperties['gd.delete.button'] + ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 							'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + escapeAllQuotes(item.title) + "', '" 
 							+ escapeAllQuotes(item.mimeType) + "', '" + escapeAllQuotes(item.userPermission.role) + "');",
 						})}));
@@ -958,7 +958,6 @@ function fileTreeRedrawNode(node) {
 		})));
 		
 		$(node).find('a:first').after($('<span>', {
-			'class' : 'extras',
 			'class' : 'extras pull-right row',
 			'html' : newContent,
 		}));
@@ -1008,7 +1007,7 @@ function fileTreeSearch(fileTreeSearchSelector) {
 function fileTreeLabelExpansionElement(element) {
 	element.find('i.jstree-ocl:first').html($('<span>', {
 		'class' : 'sr-only',
-		'html' : element.hasClass('jstree-open') ? screenReaderLabelCollapseFolder : screenReaderLabelExpandFolder,
+		'html' : element.hasClass('jstree-open') ? applicationProperties['gd.screenReader.label.collapseFolder'] : applicationProperties['gd.screenReader.label.expandFolder'],
 	}));
 }
 
@@ -1045,7 +1044,8 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		};
 
 		fileTree = fileTreeDiv.jstree({
-			'plugins' : [ 'sort', 'types', 'appendContent', 'search' ],
+//		    'plugins' : [ 'sort', 'types', 'appendContent', 'search', 'wholerow' ],
+			'plugins' : [ 'sort', 'types', 'appendContent', 'search'],
 			'sort' : fileTreeNodeSortComparator,
 			'types' : {
 				NODE_TYPE_FOLDER : {},
@@ -1201,7 +1201,7 @@ function parseMonthNames(monthNames) {
 	return months;
 };
 
-var MONTHS = parseMonthNames(monthNames); // from gd.monthNames property
+var MONTHS = parseMonthNames(applicationProperties['gd.monthNames']);
 
 /**
  * Return the time if the given date/time string is for today, else return the date.

@@ -25,9 +25,11 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -43,6 +45,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.protocol.HTTP;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.Permission;
@@ -883,7 +887,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			if (!validatePermissionsRequiredParams(request, response,
 					tcSessionData)) {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				response.getWriter().print(resource.getString("permission.error.six"));
+				response.getWriter().print(resource.getString("gd.permission.error.six"));
 				return;
 			}
 			FolderPermissionsHandler handler = getHandler(request, response,
@@ -900,7 +904,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				 s.append(tcSessionData.getContextId());
 				 s.append("\"");
 				M_log.error(s.toString());
-				response.getWriter().print(resource.getString("permission.error.six"));
+				response.getWriter().print(resource.getString("gd.permission.error.six"));
 				return; // Quick return to simplify code
 			}
 			
@@ -923,7 +927,7 @@ public class GoogleLtiServlet extends HttpServlet {
                 }
             else {
                         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                        response.getWriter().print(resource.getString("permission.error.six"));
+                        response.getWriter().print(resource.getString("gd.permission.error.six"));
                         StringBuilder s=new StringBuilder();
                         s.append(" Some of google permissions removal failed for the class roster to shared folder of Instructor with User Id: \"" );
                         s.append(tcSessionData.getUserId());
@@ -937,7 +941,7 @@ public class GoogleLtiServlet extends HttpServlet {
                 }
 		} catch (Exception err) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			response.getWriter().print(resource.getString("permission.error.six"));
+			response.getWriter().print(resource.getString("gd.permission.error.six"));
 			StringBuilder s=new StringBuilder();
 			s.append(" Removal of google permissions Failed for the class roster to shared folder of Instructor with User Id: \"" );
 			s.append(tcSessionData.getUserId());
@@ -1115,6 +1119,19 @@ public class GoogleLtiServlet extends HttpServlet {
 		loadJspPage(request, response, tcSessionData, JspPage.valueOf(pageName));
 	}
 
+	private Map<String, String> convertResourceBundleToMap(
+			ResourceBundle resource) {
+		Map<String, String> map = new HashMap<String, String>();
+
+		Enumeration<String> keys = resource.getKeys();
+		while (keys.hasMoreElements()) {
+			String key = keys.nextElement();
+			map.put(key, resource.getString(key));
+		}
+
+		return map;
+	}
+	
 	/**
 	 * Forwards the request to open owner (container) JSP /view/root.jsp,
 	 * loading the given JSP page as container's contents.
@@ -1136,93 +1153,12 @@ public class GoogleLtiServlet extends HttpServlet {
 			request.setAttribute("jspPage", jspPage);
 			retrieveGoogleDriveConfigFromSession(tcSessionData, request);
 
-			request.setAttribute("search", resource.getString("gd.search"));
-			request.setAttribute("linkingViewInfo",
-					resource.getString("gd.linking.view.info"));
-			request.setAttribute("createAndLinkButton",
-					resource.getString("gd.create.link.button"));
-			request.setAttribute("contextLabel",tcSessionData.getContextLabel());
+            Map<String, String> applicationProperties = convertResourceBundleToMap(resource);
 
-			request.setAttribute("info",
-					resource.getString("gd.linked.view.info"));
-			request.setAttribute("studentInfo",
-					resource.getString("gd.student.view.info"));
-			request.setAttribute("deleteButton",
-					resource.getString("gd.delete.button"));
-			request.setAttribute("addButton",
-					resource.getString("gd.add.button"));
-			
-			request.setAttribute("deleteFileErrorAlert",
-					resource.getString("gd.delete.file.error.alert"));
-			request.setAttribute("deleteFolderErrorAlert",
-					resource.getString("gd.delete.folder.error.alert"));
+            request.setAttribute("applicationProperties", applicationProperties);
+            request.setAttribute("applicationPropertiesJson", new JacksonFactory().toString(applicationProperties));
+            request.setAttribute("contextLabel",tcSessionData.getContextLabel());
 
-			request.setAttribute("about",
-					resource.getString("gd.header3.about"));
-			request.setAttribute("help", resource.getString("gd.header4.help"));
-			request.setAttribute("loggedMsg",
-					resource.getString("gd.logged.in"));
-			request.setAttribute("studentAccessMsg",
-					resource.getString("gd.student.view.access.msg"));
-			request.setAttribute("studentNoFolderAccessMsg",
-					resource.getString("gd.student.view.nofolder.message"));
-			request.setAttribute("invalidAccountMsg",
-					resource.getString("gd.invalid.account.message"));
-			request.setAttribute("permissionUpdate",
-					resource.getString("gd.student.view.permission.update"));
-			request.setAttribute("linkFolderButton",
-					resource.getString("gd.link.folder.button"));
-			request.setAttribute("unlinkFolderButton",
-					resource.getString("gd.unlink.button"));
-			request.setAttribute("unlinkFolderAlert",
-					resource.getString("gd.unlink.folder.alert"));
-			request.setAttribute("linkFolderAlert",
-					resource.getString("gd.link.folder.alert"));
-			request.setAttribute("errorMsg404",
-							resource.getString("gd.error.msg.404"));
-			request.setAttribute("errorMessageIe8",
-					resource.getString("gd.error.message.ie8"));
-
-			request.setAttribute("deleteFilePrompt",
-					resource.getString("gd.delete.file.prompt"));
-			request.setAttribute("deleteFolderPrompt",
-					resource.getString("gd.delete.folder.prompt"));
-			request.setAttribute("deleteItemPromptHeader",
-					resource.getString("gd.delete.item.prompt.header"));
-			request.setAttribute("createItemPromptHeader",
-					resource.getString("gd.create.item.prompt.header"));
-			request.setAttribute("createItemPrompt",
-					resource.getString("gd.create.item.prompt"));
-			request.setAttribute("createItemPromptError",
-					resource.getString("gd.create.item.prompt.error"));
-			request.setAttribute("createItemAlert",
-					resource.getString("gd.create.item.alert"));
-			request.setAttribute("deleteItemAlert",
-					resource.getString("gd.delete.item.alert"));
-			request.setAttribute("linkFolderErrorAlert",
-					resource.getString("gd.link.folder.error.alert"));
-			request.setAttribute("sendEmailPrompt",
-					resource.getString("gd.send.email.prompt"));
-			request.setAttribute("sendEmailPromptHeader",
-					resource.getString("gd.send.email.prompt.header"));
-			request.setAttribute("buttonYes",
-					resource.getString("gd.button.yes"));
-			request.setAttribute("buttonNo",
-					resource.getString("gd.button.no"));
-			request.setAttribute("buttonOk",
-					resource.getString("gd.button.ok"));
-			request.setAttribute("buttonCreate",
-					resource.getString("gd.button.create"));
-			request.setAttribute("buttonDelete",
-					resource.getString("gd.button.delete"));
-			request.setAttribute("screenReaderLabelCollapseFolder",
-					resource.getString("gd.screenReader.label.collapseFolder"));
-			request.setAttribute("screenReaderLabelExpandFolder",
-					resource.getString("gd.screenReader.label.expandFolder"));
-			request.setAttribute("screenReaderHelpKeyboardNavigation",
-					resource.getString("gd.screenReader.help.keyboardNavigation"));
-			request.setAttribute("monthNames",
-					resource.getString("gd.monthNames"));
 			request.setAttribute("contextUrl",
 					getGoogleServiceAccount().getContextURL());
 			if(request.getMethod().equals("POST")) {
