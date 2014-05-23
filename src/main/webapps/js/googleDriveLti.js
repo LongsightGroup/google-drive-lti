@@ -1063,8 +1063,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		};
 
 		fileTree = fileTreeDiv.jstree({
-//		    'plugins' : [ 'sort', 'types', 'appendContent', 'search', 'wholerow' ],
-			'plugins' : [ 'sort', 'types', 'appendContent', 'search'],
+		    'plugins' : [ 'sort', 'types', 'appendContent', 'search', 'wholerow' ],
 			'sort' : fileTreeNodeSortComparator,
 			'types' : {
 				NODE_TYPE_FOLDER : {},
