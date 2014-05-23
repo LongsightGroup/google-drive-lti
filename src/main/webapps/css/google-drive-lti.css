@@ -8,7 +8,6 @@
 }
 
 body {
-	padding-top: 60px;
 	padding-bottom: 40px;
 }
 
@@ -17,8 +16,7 @@ body {
 }
 
 #spinner {
-	background: transparent url("../images/ajax_loader_blue_128.gif") top
-		left no-repeat;
+	background: transparent url("../images/ajax_loader_blue_128.gif") top left no-repeat;
 	width: 128px;
 	height: 128px;
 	position: absolute;
@@ -83,9 +81,6 @@ span.extras {
 .jstree-node.jstree-last.jstree-closed, .jstree-node.jstree-leaf.jstree-last {
     padding-bottom:3px;
 }
-.jstree-container-ul ul > li:hover {
-    background:#ffe !important;
-}
 .jstree-container-ul ul > li.shadedBackground:hover {
     background:#eee !important;
 }
@@ -115,6 +110,7 @@ span.shareButtonColumn {
 span.addMenuButtonColumn {
     float:left;
     min-width: 47px;
+	margin-right:5px;
 }
 
 span.unshareAndDeleteButtonColumn {
@@ -128,6 +124,9 @@ small.metaData {
     padding-right:5px;
     text-overflow: ellipsis;
     width: 200px;
+}
+small.metaData .muted:before {
+	content:" - "
 }
 /* end styles for file tree node extra columns */
 

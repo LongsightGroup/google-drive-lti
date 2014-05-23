@@ -107,34 +107,32 @@ if(accessToken!=null){
 <script src="js/googleDriveLti.js" type="text/javascript"></script>
 </head>
 <body>
-	<div class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar navbar-inverse">
 		<div class="navbar-inner">
-			<div class="container-fluid">
-				<button type="button" class="btn btn-navbar" data-toggle="collapse"
-					data-target=".nav-collapse">
-					<span class="icon-bar"></span> <span class="icon-bar"></span> <span
-						class="icon-bar"></span>
-				</button>
-				<a class="brand"><%=contextLabel%></a>
-				<div class="nav-collapse collapse">
-					<p class="navbar-text pull-right">
-						<%
-	String username = data.getUserNameFull();
-	if (username == null) {
-		username = data.getUserSourceDid();
-	}
-	if (username != null) {
+			<button type="button" class="btn btn-navbar" data-toggle="collapse"
+				data-target=".nav-collapse">
+				<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+					class="icon-bar"></span>
+			</button>
+			<a class="brand"><%=contextLabel%></a>
+			<div class="nav-collapse collapse">
+				<p class="navbar-text pull-right visible-desktop">
+					<%
+String username = data.getUserNameFull();
+if (username == null) {
+	username = data.getUserSourceDid();
+}
+if (username != null) {
 %>
-						${loggedMsg} <a href="#" class="navbar-link">&nbsp;<%=username%></a>
-						<%
-	}
+					${loggedMsg} <a href="#" class="navbar-link">&nbsp;<%=username%></a>
+					<%
+}
 %>
-					</p>
-					<ul class="nav">
-						<li><a href="view/pages/help/about.html" target="GDLHelp">${about}</a></li>
-						<li><a href="view/pages/help/help.html" target="GDLHelp">${help}</a></li>
-					</ul>
-				</div>
+				</p>
+				<ul class="nav">
+					<li><a href="view/pages/help/about.html" target="GDLHelp">${about}</a></li>
+					<li><a href="view/pages/help/help.html" target="GDLHelp">${help}</a></li>
+				</ul>
 			</div>
 		</div>
 	</div>
