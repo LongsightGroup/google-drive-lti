@@ -16,12 +16,14 @@ body {
 }
 
 #spinner {
-	background: transparent url("../images/ajax_loader_blue_128.gif") top left no-repeat;
-	width: 128px;
-	height: 128px;
-	position: absolute;
-	top: 20%;
-	left: 33%;
+    background: transparent url("../images/ajax_loader_blue_128.gif") top
+        left no-repeat;
+    width: 128px;
+    height: 128px;
+    position: absolute;
+    top: 20%;
+    left: 33%;
+    z-index: 1; /* make it appear in front */
 }
 
 .dropdown {
