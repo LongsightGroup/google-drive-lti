@@ -83,8 +83,8 @@ span.extras {
 }
 
 .jstree-anchor {
-    color:#08c !important;
-    font-weight:bold;
+    color: #0088cc !important;
+    font-weight: bold;
 }
 
 a.jstree-anchor {
@@ -94,11 +94,11 @@ a.jstree-anchor {
 }
 
 span.extras>span {
-	display: block;
+    display: block;
 }
 
 span.shareButtonColumn {
-	float:left;
+    float: left;
     min-width: 80px;
 }
 
@@ -109,9 +109,11 @@ span.addMenuButtonColumn {
 }
 
 span.unshareAndDeleteButtonColumn {
-    float:left;
-    min-width: 50px;
+    float: left;
+    text-align: center;
+    min-width: 60px;
 }
+
 small.metaData {
     float: left;
     margin-left: 5px;
@@ -132,6 +134,6 @@ div#fileTree ul {
 }
 
 .shadedBackground {
-	background-color: #eee !important;
+	background-color: #eeeeee !important;
 }
 /* end styles for file tree node shaded background */
