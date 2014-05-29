@@ -979,7 +979,7 @@ function fileTreeRedrawNode(node) {
 			'class' : 'extras pull-right row',
 			'html' : newContent,
 		}));
-		
+
 		fileTreeLabelExpansionElement($(node));
 	}
 
@@ -1028,6 +1028,27 @@ function fileTreeLabelExpansionElement(element) {
         'html': element.hasClass('jstree-open') ? applicationProperties['gd.screenReader.label.collapseFolder']
                 : applicationProperties['gd.screenReader.label.expandFolder'],
     }));
+}
+
+/**
+ * Given a jsTree node, if it's a folder and it hasn't any children, update its
+ * DOM element to show the open-folder expansion handle. Also set the node's
+ * loaded state to false, which will cause it to be displayed properly later
+ * when its parent is collapsed and subsequently expanded.
+ * 
+ * @param treeNode A jsTree node
+ */
+function fileTreeDecorateFolderIfEmpty(treeNode) {
+    if ((treeNode.type === NODE_TYPE_FOLDER) && (treeNode.children.length == 0)) {
+        var domElement = fileTree.get_node(treeNode.id, true);
+
+        // use 0 ms timeout to do this after browser updates and jsTree
+        // has finished
+        setTimeout(function() {
+            domElement.removeClass('jstree-leaf').addClass('jstree-open');
+            treeNode.state.loaded = false;
+        }, 0);
+    }
 }
 
 /**
@@ -1155,7 +1176,6 @@ function initializeFileTree(fileTreeDivSelector, options) {
 								googleDriveItemCache[data.id] = data;
 								rootNodeId = data.id;
 							}
-
 						}
 
 						return JSON.stringify(nodeData);
@@ -1175,6 +1195,10 @@ function initializeFileTree(fileTreeDivSelector, options) {
 			fileTreeDiv.find('li.jstree-node:odd').addClass('shadedBackground');
 		});
 
+        fileTreeDiv.on('load_node.jstree', function(event, data) {
+            fileTreeDecorateFolderIfEmpty(data.node);
+        });
+		
 		var fileTreeSearchSelector = fileTreeDivSelector + '_search';
 		
 		$(fileTreeSearchSelector).keyup(function() {
