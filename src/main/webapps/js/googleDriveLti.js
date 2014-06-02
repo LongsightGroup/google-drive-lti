@@ -1052,6 +1052,27 @@ function fileTreeDecorateFolderIfEmpty(treeNode) {
 }
 
 /**
+ * Given a DOM object of the div element that contains the file tree, update the
+ * shaded background by removing all shading then adding it back to all visible,
+ * oddly-numbered list items.
+ * 
+ * @param fileTreeDiv
+ *            DOM object of the div element that contains the file tree
+ */
+function fileTreeUpdateShadedBackground(fileTreeDiv) {
+    // Defer update to happen after jsTree delete operation; no negative impact
+    // on other operations.
+    setTimeout(function() {
+        fileTreeDiv.find('li.jstree-node')
+            .removeClass('shadedBackground');
+
+        // ":visible" needed to work with search results
+        fileTreeDiv.find('li.jstree-node:visible:odd')
+            .addClass('shadedBackground');
+    }, 0);
+}
+
+/**
  * @param fileTreeDivSelector
  * @param options
  *            Object containing optional parameters: <blockquote>
@@ -1189,11 +1210,12 @@ function initializeFileTree(fileTreeDivSelector, options) {
 		fileTreeDiv.on('close_node.jstree open_node.jstree', function(event, data) {
 			fileTreeLabelExpansionElement(fileTree.get_node(data.node, true));
 		});
-		
-		fileTreeDiv.on('after_close.jstree after_open.jstree load_node.jstree', function(event, data) {
-			fileTreeDiv.find('li.jstree-node').removeClass('shadedBackground');
-			fileTreeDiv.find('li.jstree-node:odd').addClass('shadedBackground');
-		});
+
+        fileTreeDiv.on('after_close.jstree after_open.jstree load_node.jstree '
+                + 'search.jstree clear_search.jstree delete_node.jstree',
+                function(event, data) {
+                    fileTreeUpdateShadedBackground(fileTreeDiv);
+                });
 
         fileTreeDiv.on('load_node.jstree', function(event, data) {
             fileTreeDecorateFolderIfEmpty(data.node);
