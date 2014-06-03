@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <%--
 This is root file, managing structure of the web pages.  It includes the header,
 contents, and footers.
@@ -29,7 +30,7 @@ if(accessToken!=null){
 <meta name="description" content="">
 <meta name="author" content="">
 <meta http-equiv="Cache-control" content="no-cache">
-
+<meta http-equiv="X-UA-Compatible" content="IE=9">
 <!-- Le styles -->
 <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
 <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
