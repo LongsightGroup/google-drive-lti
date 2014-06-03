@@ -206,15 +206,15 @@ function sprintf(format) {
 };
 
 function showInfo(container, message) {
-	container.append($('<div>', {
-		class : 'alert alert-info',
-		html : message
-	}).append($('<button>', {
-		type : 'button',
-		class : 'close',
-		html : '&times',
-		click : function() {
-			$(this).parent().remove();
-		}
-	})));
+    container.append($('<div>', {
+        'class': 'alert alert-info',
+        'html': message
+    }).append($('<button>', {
+        'type': 'button',
+        'class': 'close',
+        'html': '&times',
+        'click': function() {
+            $(this).parent().remove();
+        }
+    })));
 };
