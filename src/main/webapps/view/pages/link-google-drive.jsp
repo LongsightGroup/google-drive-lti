@@ -18,7 +18,7 @@
 	<div class="pull-right hidden-phone hidden-xs">
 		<form class="form-search" onsubmit="return false;"> 
 			<div class="input-append" style="margin-right: 73px">
-                <label for="fileTree_search" class="sr-only"><%=applicationProperties.get("gd.search") %></label>
+                <label for="fileTree_search" class="sr-only"><%=applicationProperties.get("gd.searchFieldLabel") %></label>
 				<input id="fileTree_search" type="text" class="span12 search-query">
 				<button type="button" class="btn" id="fileTree_searchButton"><%=applicationProperties.get("gd.search") %></button>
 			</div>
