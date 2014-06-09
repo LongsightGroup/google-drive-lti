@@ -333,41 +333,47 @@ function getIsInstructor() {
 }
 
 /**
- * Returns access token, retrieved from Google.Before using the access token doing a check if token 
- * is nearing the expiration time. Ideally the token expires in 60 minutes, but we are checking it on 59th minute.
- * If the time elapsed is greated than 59 minutes then a get a new access token.
- * The Json response getting accessToken and timeStamp in milliseconds when token is created.
- * {
- * "access_token" : "asdc", 
- * "time_stamp" : "1399634704598"
- * } 
+ * Returns a Google access token. Before returning the cached token, check
+ * whether it is nearing its expiration time. Tokens usually expire after 60
+ * minutes, but this method checks it a few minutes before that. If the
+ * expiration time has elapsed, get a new access token and cache it before
+ * returning it.
+ * 
+ * The JSON response to an access token request contains the token and a
+ * timestamp (in milliseconds) of when it was created. For example:
+ * 
+ * {'access_token' : 'asdc', 'time_stamp' : '1399634704598' }
+ * 
+ * @returns {String} Google access token
  */
 function getGoogleAccessToken() {
-	if ($.trim(accessTokenHandler) === ''
-			|| $.trim(accessTokenHandler) === 'undefined') {
-		accessTokenHandler = 'null';
+    var TOKEN_MAXIMUM_LIFESPAN = 2700000; // 45 minutes in milliseconds
+
+    var now = new Date().getTime();
+
+	if ($.trim(accessToken) === ''
+			|| $.trim(accessToken) === 'undefined') {
+		accessToken = 'null';
 	}
 
-	var date = new Date();
-	var currentTimeInMilliSeconds = date.getTime();
-	var fortyFiveMinutesInMilliSeconds = 2700000;
-	if ((currentTimeInMilliSeconds - accessTokenTime) > fortyFiveMinutesInMilliSeconds) {
+	if ((now - accessTokenTimestamp) > TOKEN_MAXIMUM_LIFESPAN) {
 		var tokenResponse = requestGoogleAccessToken();
+		
 		if (tokenResponse !== 'ERROR') {
-			$.each(JSON.parse(tokenResponse), function(i, result) {
-				if (i === "access_token") {
-					accessTokenHandler = result;
-				} else if (i === "time_stamp") {
-					accessTokenTime = result;
+			$.each(JSON.parse(tokenResponse), function(key, value) {
+				if (key === 'access_token') {
+					accessToken = value;
+				} else if (key === 'time_stamp') {
+					accessTokenTimestamp = value;
 				}
 			});
 		} else {
-			accessTokenHandler = 'null';
-			accessTokenTime = 'null';
+			accessToken = 'null';
+			accessTokenTimestamp = 'null';
 		}
 	}
 
-	return accessTokenHandler;
+	return accessToken;
 }
 
 function requestGoogleAccessToken() {

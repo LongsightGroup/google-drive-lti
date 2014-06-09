@@ -41,8 +41,8 @@ if(accessToken!=null){
 <script type="text/javascript">
     var contextUrl='<%=contextUrl%>';
     var userEmailAddress='<%=userEmailAddress%>';
-    var accessTokenHandler='<%=token %>';
-    var accessTokenTime='<%=tokenTimeStamp %>';
+    var accessToken='<%=token %>';
+    var accessTokenTimestamp='<%=tokenTimeStamp %>';
     var applicationProperties = <%=applicationPropertiesJson %>;
     </script>
 <script type="text/javascript" src="js/jquery.1.10.0.min.js"></script>
