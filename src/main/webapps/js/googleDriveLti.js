@@ -46,6 +46,17 @@ var FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder';
 //entry for each parent's parent.
 var googleFileParents = [];
 
+var googleDriveItemCache = {};
+var rootNodeId = null;
+var onlyOwnedFolders = false;
+
+// Special ID used by jsTree for its root node.
+var JSTREE_ROOT_NODE_ID = '#';
+
+// Node types supported for sorting purposes
+var NODE_TYPE_FOLDER = 'NODE_TYPE_FOLDER';
+var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
+
 bootbox.setDefaults({
 	closeButton : false
 });
@@ -76,7 +87,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 			data : getUpdateLtiParams(fileId, "getOwnerToken", false),
 			success : function(ownerToken) {
 				var deleteMsg = null;
-				if ($.trim(ownerToken) == 'ERROR') {
+				if ($.trim(ownerToken) === 'ERROR') {
 					if (isFolder) {
 						deleteMsg = sprintf(applicationProperties['gd.delete.folder.error.alert'],
 								escapeHtml(fileTitle));
@@ -88,7 +99,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 						message : deleteMsg,
 						buttons : {
 							ok : {
-								label : applicationProperties['gd.button.ok'],
+								label : applicationProperties['gd.button.ok']
 							}
 						}
 					});
@@ -106,7 +117,7 @@ function deleteGoogleFile(fileId, fileTitle, fileMimeType, role) {
 						message : deleteConfirmationMessage,
 						buttons : {
 							confirm : {
-								label : applicationProperties['gd.button.delete'],
+								label : applicationProperties['gd.button.delete']
 							}
 						},
 						callback : function(userConfirmed) {
@@ -178,7 +189,7 @@ function itemTitlePromptDialog(itemType, defaultTitle, validResponseCallback) {
 			value : itemTitle,
 			buttons : {
 				confirm : {
-					label : applicationProperties['gd.button.create'],
+					label : applicationProperties['gd.button.create']
 				}
 			},
 			callback : function(itemTitle) {
@@ -270,10 +281,10 @@ function notifyUserSiteLinkChangedWithFolder(folderId, folderTitle, newFolder, u
 			message : applicationProperties['gd.send.email.prompt'],
 			buttons : {
 				confirm : {
-					label : applicationProperties['gd.button.yes'],
+					label : applicationProperties['gd.button.yes']
 				},
 				cancel : {
-					label : applicationProperties['gd.button.no'],
+					label : applicationProperties['gd.button.no']
 				}
 			},
 			callback : function(sendNotificationEmails) {
@@ -475,7 +486,7 @@ function linkFolderToSite(folderId, callback) {
 			message : data.responseText,
 			buttons : {
 				ok : {
-					label : applicationProperties['gd.button.ok'],
+					label : applicationProperties['gd.button.ok']
 				}
 			}
 		});
@@ -502,7 +513,7 @@ function unlinkFolderToSite(folderId, callback) {
 			message : data.responseText,
 			buttons : {
 				ok : {
-					label : applicationProperties['gd.button.ok'],
+					label : applicationProperties['gd.button.ok']
 				}
 			}
 		});
@@ -582,7 +593,7 @@ function removeRosterPermissions(folderId) {
 			  message: data.responseText,
 			  buttons: {
 			    ok: {
-			      label: applicationProperties['gd.button.ok'],
+			      label: applicationProperties['gd.button.ok']
 			    }
 			  },
 			  callback:function(){
@@ -830,17 +841,6 @@ function getLatterIsAncestor(childFileId, ancestorFolderId) {
 	return result;
 }
 
-var googleDriveItemCache = {};
-var rootNodeId = null;
-var onlyOwnedFolders = false;
-
-// Special ID used by jsTree for its root node.
-var JSTREE_ROOT_NODE_ID = '#';
-
-// Node types supported for sorting purposes
-var NODE_TYPE_FOLDER = 'NODE_TYPE_FOLDER';
-var NODE_TYPE_NONFOLDER = 'NODE_TYPE_NONFOLDER';
-
 /**
  * Compare two file tree nodes for sorting purposes. Sort with folders
  * alphabetically first, followed by files alphabetically.
@@ -872,6 +872,23 @@ function fileTreeNodeSortComparator(nodeIdA, nodeIdB) {
 }
 
 /**
+ * Given a file tree node, add an element within its expand/collapse icon
+ * element that contains appropriate text for screen readers. If the node has
+ * the "jstree-open" class, add text for "Collapse". Otherwise, add text for
+ * "Expand".
+ * 
+ * @param element
+ *            jQuery object for the file tree node.
+ */
+function fileTreeLabelExpansionElement(element) {
+    element.find('i.jstree-ocl:first').html($('<span>', {
+        'class': 'sr-only',
+        'html': element.hasClass('jstree-open') ? applicationProperties['gd.screenReader.label.collapseFolder']
+                : applicationProperties['gd.screenReader.label.expandFolder']
+    }));
+}
+
+/**
  * When called by jsTree, this method will take a jsTree node object and add
  * other elements (buttons, menus, information) to it before returning the
  * altered node to jsTree for display.
@@ -896,7 +913,7 @@ function fileTreeRedrawNode(node) {
 			columnClass = 'shareButtonColumn';
 			if (!isRootNode) {
 				newContent = newContent.add($('<span>', {
-					'class' : columnClass,
+					'class' : columnClass
 				}).append($('<a>', {
 					'href' : '#',
 					
@@ -904,12 +921,12 @@ function fileTreeRedrawNode(node) {
 					'html' : applicationProperties['gd.link.folder.button'] + 
 					    ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 					'onclick' : "linkFolder('" + escapeAllQuotes(item.id) + "', '" +
-					    escapeAllQuotes(item.title) + "'); return false;",
+					    escapeAllQuotes(item.title) + "'); return false;"
 				})));
 			} else {
 				newContent = newContent.add($('<span>', {
 					'class' : columnClass,
-					'html' : '&nbsp;',
+					'html' : '&nbsp;'
 				}));
 			}
 		} else {
@@ -926,7 +943,7 @@ function fileTreeRedrawNode(node) {
 			} else {
 				newContent = newContent.add($('<span>', {
 					'class' : columnClass,
-					'html' : '&nbsp;',
+					'html' : '&nbsp;'
 				}));
 			}
 
@@ -942,7 +959,7 @@ function fileTreeRedrawNode(node) {
 							'html' : applicationProperties['gd.unlink.button'] + 
 							    ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 							'onclick' : "unlinkFolderFromSite('" + escapeAllQuotes(item.id) + "', '" + 
-							    escapeAllQuotes(item.title) + "'); return false;",
+							    escapeAllQuotes(item.title) + "'); return false;"
 						})}));
 				} else {
 					newContent = newContent.add($('<span>', {
@@ -954,13 +971,13 @@ function fileTreeRedrawNode(node) {
 							    ' <span class ="sr-only">' + escapeAllQuotes(escapeHtml(item.title)) + '</span>',
 							'onclick' : "deleteGoogleFile('" + escapeAllQuotes(item.id) + "', '" + 
 							    escapeAllQuotes(item.title) + "', '" + escapeAllQuotes(item.mimeType) + "', '" + 
-							    escapeAllQuotes(item.userPermission.role) + "');",
+							    escapeAllQuotes(item.userPermission.role) + "');"
 						})}));
 				}
 			} else {
 				newContent = newContent.add($('<span>', {
 					'class' : columnClass,
-					'html' : '&nbsp;',
+					'html' : '&nbsp;'
 				}));
 			}
 		}
@@ -969,15 +986,15 @@ function fileTreeRedrawNode(node) {
 		columnClass = 'col-md-4 metaData hidden-phone hidden-xs';
 		newContent = newContent.add($('<small>', {
 			'class' : columnClass,
-			'html' : getGoogleDateOrTime(item.modifiedDate) + ' ',
+			'html' : getGoogleDateOrTime(item.modifiedDate) + ' '
 		}).append($('<span>', {
 			'class' : 'muted',
-			'html' : item.lastModifyingUserName,
+			'html' : item.lastModifyingUserName
 		})));
 		
 		$(node).find('a:first').after($('<span>', {
 			'class' : 'extras pull-right row',
-			'html' : newContent,
+			'html' : newContent
 		}));
 
 		fileTreeLabelExpansionElement($(node));
@@ -1014,23 +1031,6 @@ function fileTreeSearch(fileTreeSearchSelector) {
 }
 
 /**
- * Given a file tree node, add an element within its expand/collapse icon
- * element that contains appropriate text for screen readers. If the node has
- * the "jstree-open" class, add text for "Collapse". Otherwise, add text for
- * "Expand".
- * 
- * @param element
- *            jQuery object for the file tree node.
- */
-function fileTreeLabelExpansionElement(element) {
-    element.find('i.jstree-ocl:first').html($('<span>', {
-        'class': 'sr-only',
-        'html': element.hasClass('jstree-open') ? applicationProperties['gd.screenReader.label.collapseFolder']
-                : applicationProperties['gd.screenReader.label.expandFolder'],
-    }));
-}
-
-/**
  * Given a jsTree node, if it's a folder and it hasn't any children, update its
  * DOM element to show the open-folder expansion handle. Also set the node's
  * loaded state to false, which will cause it to be displayed properly later
@@ -1039,7 +1039,7 @@ function fileTreeLabelExpansionElement(element) {
  * @param treeNode A jsTree node
  */
 function fileTreeDecorateFolderIfEmpty(treeNode) {
-    if ((treeNode.type === NODE_TYPE_FOLDER) && (treeNode.children.length == 0)) {
+    if ((treeNode.type === NODE_TYPE_FOLDER) && (treeNode.children.length === 0)) {
         var domElement = fileTree.get_node(treeNode.id, true);
 
         // use 0 ms timeout to do this after browser updates and jsTree
@@ -1094,7 +1094,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 
 	fileTreeDiv = $(fileTreeDivSelector).first();
 
-	if (fileTreeDiv.length == 1) {
+	if (fileTreeDiv.length === 1) {
 		
 		$.jstree.plugins.appendContent = function(options, parent) {
 			this.redraw_node = function(node, deep, isCallback) {
@@ -1109,31 +1109,31 @@ function initializeFileTree(fileTreeDivSelector, options) {
 			'sort' : fileTreeNodeSortComparator,
 			'types' : {
 				NODE_TYPE_FOLDER : {},
-				NODE_TYPE_NONFOLDER : {},
+				NODE_TYPE_NONFOLDER : {}
 			},
 			'search' : {
 				'fuzzy' : false,
-				'show_only_matches' : true,
+				'show_only_matches' : true
 			}, 
 			'core' : {
 				'check_callback' : true, // allow all tree node changes (create, delete, etc.)
 				'themes' : {
 					'dots' : false,
-					'responsive' : false,
+					'responsive' : false
 				},
 				'data' : {
 					'url' : function(node) {
-						return _getGoogleDriveUrl((node.id == JSTREE_ROOT_NODE_ID) ? options.folderId
+						return _getGoogleDriveUrl((node.id === JSTREE_ROOT_NODE_ID) ? options.folderId
 								: null);
 					},
 					'data' : function(node) {
 						var queryFolderId = node.id;
 						var query = '';
 						var data = {
-							'access_token' : getGoogleAccessToken(),
+							'access_token' : getGoogleAccessToken()
 						};
 
-						if (queryFolderId != JSTREE_ROOT_NODE_ID) {
+						if (queryFolderId !== JSTREE_ROOT_NODE_ID) {
 							query += "'"
 									+ queryFolderId
 									+ "' in parents and trashed = false";
@@ -1173,17 +1173,17 @@ function initializeFileTree(fileTreeDivSelector, options) {
 								'icon' : item.iconLink,
 								'type' : (isFolder) ? NODE_TYPE_FOLDER
 										: NODE_TYPE_NONFOLDER,
-								'children' : isFolder,
+								'children' : isFolder
 							};
 
 							if (isOpenedState === true) {
 								newNodeData.state = {
-									'opened' : true,
+									'opened' : true
 								};
 							}
 							
 							return newNodeData;
-						};
+						}
 
 						if (data) {
 							if (data.hasOwnProperty('items')) {
@@ -1200,9 +1200,9 @@ function initializeFileTree(fileTreeDivSelector, options) {
 						}
 
 						return JSON.stringify(nodeData);
-					},
-				},
-			},
+					}
+				}
+			}
 		}).jstree(true);
 		
 		fileTreeDiv.on('select_node.jstree', fileTreeHandleItemClick);
@@ -1256,7 +1256,7 @@ function initializeFileTree(fileTreeDivSelector, options) {
 function parseMonthNames(monthNames) {
 	var months = monthNames.split(',');
 
-	if (months.length != 12) {
+	if (months.length !== 12) {
 		console.log('ERROR: The string of month names did not contain 12 names.  Using default names instead.');
 		months = [ 'January', 'February', 'March', 'April', 'May', 'June',
 				'July', 'August', 'September', 'October', 'November',
@@ -1264,7 +1264,7 @@ function parseMonthNames(monthNames) {
 	}
 
 	return months;
-};
+}
 
 var MONTHS = parseMonthNames(applicationProperties['gd.monthNames']);
 
