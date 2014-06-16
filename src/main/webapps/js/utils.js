@@ -43,7 +43,7 @@ function escapeUrl(value) {
 function logError(message, textStatus, jqXHR, debugMode) {
 	if ((typeof(console) !== 'undefined') && (typeof(console.log) === 'function')) {
 		console.log(message + ': ' + textStatus);
-	} else if (debugMode == true) {
+	} else if (debugMode === true) {
 		alert(message + ': ' + textStatus);
 	}
 }
@@ -95,7 +95,7 @@ function getTimeIso(dt, useLocalTimezone) {
 	// From: http://stackoverflow.com/questions/2573521/how-do-i-output-an-iso-8601-formatted-string-in-javascript
 	if (!Date.prototype.toISOString) {
 		Date.prototype.toISOString = function() {
-			function pad(n) { return n < 10 ? '0' + n : n }
+			function pad(n) { return n < 10 ? '0' + n : n; }
 			// NOTE: removed newline after "return" to fix parsing the return in IE8 (MacBook Pro VM)
 			return this.getUTCFullYear() + '-'
 			+ pad(this.getUTCMonth() + 1) + '-'
@@ -119,7 +119,7 @@ function getTimeIso(dt, useLocalTimezone) {
  * Corrected to adjust for local time zone, so the resulting date/time is correct if string is GMZ
  */
 Date.fromISOString = (function(){
-	var tzoffset = (new Date).getTimezoneOffset();
+	var tzoffset = new Date().getTimezoneOffset();
 	function fastDateParse(y, m, d, h, i, s, ms){ // this -> tz
 		return new Date(y, m - 1, d, h || 0, +(i || 0) - this, s || 0, ms || 0);
 	}
@@ -128,12 +128,12 @@ Date.fromISOString = (function(){
 	return function(isoDateString){
 		var tz = isoDateString.substr(10).match(/([\-\+])(\d{1,2}):?(\d{1,2})?/) || 0;
 		if (tz) {
-			tz = tzoffset + (tz[1] == '-' ? -1 : 1) * (tz[3] != null ? +tz[2] * 60 + (+tz[3]) : +tz[2]);
+			tz = tzoffset + (tz[1] === '-' ? -1 : 1) * (tz[3] !== null ? +tz[2] * 60 + (+tz[3]) : +tz[2]);
 		} else {
 			tz = tzoffset;
 		}
 		return fastDateParse.apply(tz || 0, isoDateString.split(/\D/));
-	}
+	};
 })();
 
 /**
@@ -199,11 +199,11 @@ function sprintf(format) {
 	
 	if (format !== null) {
 		formatted = format.replace(/%((%)|s)/g, function(m) {
-			return m[2] || args[i++]
+			return m[2] || args[i++];
 		});
 	}
 	return formatted;
-};
+}
 
 function showInfo(container, message) {
     container.append($('<div>', {
@@ -217,4 +217,4 @@ function showInfo(container, message) {
             $(this).parent().remove();
         }
     })));
-};
+}
