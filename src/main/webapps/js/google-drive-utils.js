@@ -83,7 +83,7 @@ function createFile(accessToken, parentFolderId, fileTitle, fileDescription, goo
 	if ($.trim(parentFolderId) !== '') {
 		requestData['parents'] = [ {
 			'id' : parentFolderId,
-		} ]
+		} ];
 	}
 
 	$.ajax({
@@ -195,9 +195,10 @@ function deleteFilePermission(accessToken, fileId, permissionId, callback, error
 function getDriveFile(accessToken, fileId, callback, errorCallback, completeCallback) {
 	// Return if parameters for Google AJAX request are not valid
 	if (!verifyAllArgumentsNotEmpty(accessToken, fileId)) {
-		return;
+		return null;
 	}
-	$.ajax({
+	
+	var ajaxRequest = $.ajax({
 		timeout: 10000,	// Timeout (in ms) = 10sec
 		url: _getGoogleDriveUrl(fileId),
 		beforeSend: function(xhr) {
@@ -205,23 +206,31 @@ function getDriveFile(accessToken, fileId, callback, errorCallback, completeCall
 		},
 		type: 'GET',
 		dataType: 'json',
-		cache:false,
-		success: function(data, textStatus, jqXHR) {
-			if (typeof(callback) === 'function') {
-				callback(data, textStatus, jqXHR);
-			}
-		},
-		error: function(data, textStatus, jqXHR) {
-			if (typeof(errorCallback) === 'function') {
-				errorCallback(data, textStatus, jqXHR);
-			}
-		},
-		complete: function(jqXHR, textStatus) {
-			if (typeof(completeCallback) === 'function') {
-				completeCallback(jqXHR, textStatus);
-			}
-		}
-	});
+		cache:false});
+	
+	
+	if (typeof(callback) === 'function') {
+	    ajaxRequest.done(
+	            function(data, textStatus, jqXHR) {
+	                callback(data, textStatus, jqXHR);
+	            });
+	}
+
+	if (typeof(errorCallback) === 'function') {
+		ajaxRequest.fail(
+		        function(jqXHR, textStatus, errorThrown) {
+		            errorCallback(jqXHR, textStatus, errorThrown);
+		        });
+	}
+
+    if (typeof (completeCallback) === 'function') {
+        ajaxRequest.always(
+                function(jqXHR, textStatus) {
+                    completeCallback(jqXHR, textStatus);
+                });
+    }
+    
+    return ajaxRequest;
 }
 
 function getIsFolder(fileMimeType) {
@@ -396,12 +405,13 @@ function queryDriveFilesTrashed(accessToken, query, callback) {
  * See _queryDriveFiles() for parameters.
  */
 function queryDriveFilesNotTrashed(accessToken, query, callback) {
-	if ($.trim(query) === '') {
-		query = 'trashed = false';
-	} else {
-		query = query + ' AND trashed = false';
+    var completeQuery = 'trashed = false';
+    
+	if ($.trim(query) !== '') {
+	    completeQuery += ' and ' + query;
 	}
-	_queryDriveFiles(accessToken, query, callback);
+	
+	_queryDriveFiles(accessToken, completeQuery, callback);
 }
 
 /**
@@ -526,17 +536,18 @@ function _queryDriveFiles(accessToken, query, callback, completeCallback) {
  * Returns Google Drive's URL for accessing and modifying files
  */
 function _getGoogleDriveUrl(fileId, permissionId) {
-	var host = "../"; // relative path to proxy
-	var proxyName = contextUrl;
-	var result = host+proxyName+'/drive/v2/files/';
+	var hostName = '../'; // relative path to proxy
+	var googleDriveUrl = hostName + contextUrl + '/drive/v2/files/';
+	
 	if ($.trim(fileId) !== '') {
-		result = result + fileId;
+		googleDriveUrl += fileId;
+		
 		// Adding when permissionId is '', so URL is correct for all permissions
 		if (permissionId != null) {
-			result = result + '/permissions/' + permissionId;
+			googleDriveUrl += '/permissions/' + permissionId;
 		}
 	}
-	return result;
+	return googleDriveUrl;
 }
 
 /**
