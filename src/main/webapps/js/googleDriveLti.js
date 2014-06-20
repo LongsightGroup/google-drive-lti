@@ -21,22 +21,22 @@
  */
 
 if (typeof(jQuery) === 'undefined') {
-	console.log('ERROR: googleDriveLti.js requires jQuery');
+	console.warn('ERROR: googleDriveLti.js requires jQuery');
 }
 
 if (typeof(bootbox) === 'undefined') {
-	console.log('ERROR: googleDriveLti.js requires bootbox');
+	console.warn('ERROR: googleDriveLti.js requires bootbox');
 }
 
 if (typeof(getDriveFile) === 'undefined') {
 	if (getHasConsoleLogFunction()) {
-		console.log('ERROR: googleDriveLti.js requires google-drive-utils.js');
+		console.warn('ERROR: googleDriveLti.js requires google-drive-utils.js');
 	}
 }
 
 if (typeof(verifyAllArgumentsNotEmpty) === 'undefined') {
 	if (getHasConsoleLogFunction()) {
-		console.log('ERROR: googleDriveLti.js requires utils.js');
+		console.warn('ERROR: googleDriveLti.js requires utils.js');
 	}
 }
 
@@ -443,10 +443,10 @@ function checkSharedFolderDeletionStatus(sharedFolderId){
 									handleUnlinkingFolder(sharedFolderId);
 								}
 							},
-						    function(data, textStatus, jqXHR) {
-								if (data.status === 404) {
+							function(jqXHR, textStatus, errorThrown) {
+								if (jqXHR.status === 404) {
 									handleUnlinkingFolder(sharedFolderId);
-								} 
+								}
 								
 							}
 					);
@@ -1025,6 +1025,8 @@ function fileTreeHandleItemClick(event, data) {
 	window.open(googleDriveItemCache[data.node.id].alternateLink, '_blank');
 }
 
+var lastSearchText = null;
+
 /**
  * Check the search text input element for a non-null string and call the jsTree search method.
  * 
@@ -1033,7 +1035,11 @@ function fileTreeHandleItemClick(event, data) {
 function fileTreeSearch(fileTreeSearchSelector) {
 	var searchText = $(fileTreeSearchSelector).val().trim();
 	
-	fileTree.search(searchText);
+	if (searchText !== lastSearchText) {
+		fileTree.clear_search();
+		lastSearchText = searchText;
+		fileTree.search(searchText);
+	}
 }
 
 /**
@@ -1096,9 +1102,14 @@ function fileTreeUpdateShadedBackground(fileTreeDiv) {
 function initializeFileTree(fileTreeDivSelector, options) {
 	_.defaults(options, {onlyOwnedFolders: false, folderId: 'root'});
 	
+	var searchAjaxRequestList = {};
+	var googleDriveSearchMatchIDs;
+
 	onlyOwnedFolders = (options.onlyOwnedFolders === true);
 
 	fileTreeDiv = $(fileTreeDivSelector).first();
+	
+	$.jstree.defaults.core.worker = false;
 
 	if (fileTreeDiv.length === 1) {
 		
@@ -1118,6 +1129,66 @@ function initializeFileTree(fileTreeDivSelector, options) {
 				NODE_TYPE_NONFOLDER : {}
 			},
 			'search' : {
+				'ajax': function(searchString, returnNodeIDsToLoad) {
+					queryDriveFilesNotTrashed(
+							getGoogleAccessToken(),
+							"title contains '" + searchString + "' and mimeType = '" + FOLDER_MIME_TYPE + "' and 'me' in owners",
+							function(searchResults, textStatus, jqXHR) {
+								googleDriveSearchMatchIDs = [];
+								var ancestorIDs = [];
+
+								function getAllAncestorIDs(nodeID, returnAncestorIDs) {
+									if ((ancestorIDs.indexOf(nodeID) < 0) && (fileTree.is_loaded(nodeID) === false)) {
+										ancestorIDs.unshift(nodeID);
+									}
+
+									searchAjaxRequestList[nodeID] = getDriveFile(getGoogleAccessToken(), nodeID, 
+											function(fileInfo, textStatus, jqXHR) {
+										if (fileInfo.parents.length > 0) {
+											getAllAncestorIDs(fileInfo.parents[0].id, returnAncestorIDs);
+										}
+									}, 
+									null,
+									function() {
+										if (searchAjaxRequestList.hasOwnProperty(nodeID)) {
+											delete searchAjaxRequestList[nodeID];
+
+											if (Object.keys(searchAjaxRequestList).length === 0) {
+												// The last one out turns off the lights.
+												returnAncestorIDs(ancestorIDs);
+											}
+										}
+
+									});
+								}
+
+								// Before a new search begins, check for old search requests and kill them
+								if ((typeof(searchAjaxRequestList) === 'object') && (Object.keys(searchAjaxRequestList) > 0)) {
+									$.each(searchAjaxRequestList, function(key, requestObject) {
+										requestObject.abort();
+									});
+								}
+								searchAjaxRequestList = {};
+
+								if (searchResults && (searchResults.items.length > 0)) {
+									$.each(searchResults.items, function(index, item) {
+										googleDriveSearchMatchIDs.push(item.id);
+										if (item.parents.length > 0) {
+											getAllAncestorIDs(item.parents[0].id, function(itemAncestorIDs) {
+												returnNodeIDsToLoad(itemAncestorIDs);
+											});
+										}
+									});
+								} else {
+									returnNodeIDsToLoad([]);
+								}
+							});
+				},
+				'search_callback': function(searchString, node) {
+					// Sadly, this is required to make jsTree search results match Google's.
+					// Google only searches for text at the start of each "word" in item names.
+					return googleDriveSearchMatchIDs.indexOf(node.id) >= 0;
+				},
 				'fuzzy' : false,
 				'show_only_matches' : true
 			}, 
@@ -1153,11 +1224,11 @@ function initializeFileTree(fileTreeDivSelector, options) {
 
 						return data;
 					},
-					'error' : function(data, textStatus, jqXHR) {
-						if (data.status === 404) {
+					'error' : function(jqXHR, textStatus, errorThrown) {
+						if (jqXHR.status === 404) {
 							// Get ID of folder that caused error from the GD error message.  
-						    // Is there a better way?
-							var sharedFolderId = data.responseJSON.error.message.split(' ').pop();
+							// Is there a better way?
+							var sharedFolderId = jqXHR.responseJSON.error.message.split(' ').pop();
 							checkSharedFolderDeletionStatus(sharedFolderId);
 						}
 					},
@@ -1263,7 +1334,7 @@ function parseMonthNames(monthNames) {
 	var months = monthNames.split(',');
 
 	if (months.length !== 12) {
-		console.log('ERROR: The string of month names did not contain 12 names.  Using default names instead.');
+		console.warn('ERROR: The string of month names did not contain 12 names.  Using default names instead.');
 		months = [ 'January', 'February', 'March', 'April', 'May', 'June',
 				'July', 'August', 'September', 'October', 'November',
 				'December' ];
