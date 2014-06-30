@@ -109,8 +109,20 @@ The following LTI (aka External Tool) settings must be set
 [Known Problems]
 ================
 
-The current implementation assumes that the Sakai instance (or LTI Consumer) 
+1.  The current implementation assumes that the Sakai instance (or LTI Consumer) 
 sufficiently secures a user's account information and email address.
 Otherwise, if a user is able to change the email address sent to the 
 Google LTI provider, they will have (add/delete) access to that user's 
 Google Drive resources. 
+
+2.  Searches only match the start of "words" in folder names.  That is, if the user has
+a folder named "my testfest", a search for "fest" will not return the folder.  However, a search 
+for "test" will.  This is the way the searches work in Google Drive itself, therefore, GDrive's
+search is similar.
+
+3.  Expanding folders in search results do not display sub-folders because they do not
+match the search text.  For example, a site owner has a complex directory structure in Google Drive.
+Nested several layers deep they have a folder named "photos" and within it is another folder
+they want to share with their site.  A search for "photos" returns that folder as expected. 
+However, expanding that folder reveals nothing, because the nested folders don't match the search
+text.
