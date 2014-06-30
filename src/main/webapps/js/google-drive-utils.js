@@ -536,17 +536,17 @@ function _queryDriveFiles(accessToken, query, callback, completeCallback) {
  * Returns Google Drive's URL for accessing and modifying files
  */
 function _getGoogleDriveUrl(fileId, permissionId) {
-	var hostName = '../'; // relative path to proxy
-	var googleDriveUrl = hostName + contextUrl + '/drive/v2/files/';
-	
+	var googleDriveUrl = '../' + contextUrl + '/drive/v2/files/';
+
 	if ($.trim(fileId) !== '') {
 		googleDriveUrl += fileId;
-		
+
 		// Adding when permissionId is '', so URL is correct for all permissions
 		if (permissionId != null) {
 			googleDriveUrl += '/permissions/' + permissionId;
 		}
 	}
+
 	return googleDriveUrl;
 }
 
