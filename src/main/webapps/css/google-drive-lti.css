@@ -139,3 +139,12 @@ div#fileTree ul {
 	background-color: #eeeeee !important;
 }
 /* end styles for file tree node shaded background */
+
+/* bootstrap overrides for accessibility (addressing color contrast failures) */
+.navbar-inverse .brand, .navbar-inverse .brand, .navbar-inverse .nav > li > a, .navbar-inverse .navbar-text, .navbar-inverse .navbar-link  {
+    color: #fff !important;
+}
+
+small.metaData .muted {
+    color:#000;
+}
