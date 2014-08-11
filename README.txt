@@ -55,6 +55,9 @@ This tool allows an instructor to associate a Google Drive folder with a Sakai s
     OR// This is an alternate configuration (deployed web application is ROOT application, such as is done by Amazon AWS Elastic Beanstalk):
 
     googleDriveLti.context=googledrivelti
+    
+4f. Google Sharing a folder/file limit. Making this limit configurable in future if google changes its mind  
+    googleDriveLti.google.sharing.limit.size=
 
 6. Enable Basic LTI in sakai.properties
    

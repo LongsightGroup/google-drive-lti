@@ -294,6 +294,16 @@ public class GoogleLtiServlet extends HttpServlet {
 							resource.getString("gd.launch.post.failure"));
 					return;
 				}
+				List<String> roster = RosterClientUtils.getRoster(tcSessionData);
+				int googleSharingLimit = getGoogleServiceAccount().getGoogleSharingLimit();
+				/*Checking if the roster size is greater than Google accepted limit. Made the limit configurable in case google changes that in future.
+				The Logic (roster-1) meaning, the person sharing his folder is also included in roster. 
+				So the Folder is already owned by him so google won't apply the sharing limit on owner of the folder */
+				if((roster.size()-1)>=googleSharingLimit) {
+					doError(request, response,
+							resource.getString("gd.launch.error.msg.roster.size.greater.than.google.approved")+googleSharingLimit+"</u>");
+					return;
+				}
 				TcSiteToGoogleLink link = TcSiteToGoogleStorage
 						.getLinkingFromSettingService(tcSessionData,request);
 				

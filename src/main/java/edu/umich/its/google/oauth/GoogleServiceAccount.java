@@ -58,6 +58,7 @@ public class GoogleServiceAccount {
 	private static final String PROPERTY_SUFFIX_LTI_SECRET = ".lti.secret";
 	private static final String PROPERTY_SUFFIX_LTI_KEY = ".lti.key";
 	private static final String PROPERTY_SUFFIX_LTI_URL = ".lti.launchUrl";
+	private static final String PROPERTY_SUFFIX_GOOGLE_APPROVED_SHARING_LIMIT= ".google.sharing.limit.size";
 	// These constants are used for loading properties from system files
 	private static final String SYSTEM_PROPERTY_FILE_PATH = "googleServicePropsPath";
 	private static final String SYSTEM_PROPERTY_FILE_DEFAULT_NAME = "googleServiceProps.properties";
@@ -133,6 +134,8 @@ public class GoogleServiceAccount {
 
 	private String contextURL;
 	private String ltiUrl;
+	
+	private int googleSharingLimit;
 	
 	private String propertiesPrefix;
 
@@ -306,6 +309,7 @@ public class GoogleServiceAccount {
 		setLtiKey(getStringProperty(PROPERTY_SUFFIX_LTI_KEY));
 		setLtiUrl(getStringProperty(PROPERTY_SUFFIX_LTI_URL));
 		setContextURL(getStringProperty(PROPERTY_SUFFIX_GOOGLE_CONTEXT));
+		setGoogleSharingLimit(Integer.parseInt(getStringProperty(PROPERTY_SUFFIX_GOOGLE_APPROVED_SHARING_LIMIT)));
 	}
 
 	/**
@@ -323,5 +327,13 @@ public class GoogleServiceAccount {
 	 */
 	private String getStringProperty(String suffix) {
 		return System.getProperty(getPropertiesPrefix() + suffix);
+	}
+
+	public int getGoogleSharingLimit() {
+		return googleSharingLimit;
+	}
+
+	public void setGoogleSharingLimit(int googleSharingLimit) {
+		this.googleSharingLimit = googleSharingLimit;
 	}
 }
