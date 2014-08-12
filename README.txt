@@ -56,8 +56,8 @@ This tool allows an instructor to associate a Google Drive folder with a Sakai s
 
     googleDriveLti.context=googledrivelti
     
-4f. Google Sharing a folder/file limit. Making this limit configurable in future if google changes its mind  
-    googleDriveLti.google.sharing.limit.size=
+4f. Google Sharing a folder/file limit. Making this limit configurable in future if google changes its mind . Here is the link to google support page https://support.google.com/drive/answer/2494827?hl=en
+    googleDriveLti.google.sharing.limit.size=200
 
 6. Enable Basic LTI in sakai.properties
    

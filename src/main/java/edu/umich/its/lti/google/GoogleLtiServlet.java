@@ -23,6 +23,7 @@ package edu.umich.its.lti.google;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -189,6 +190,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final String FOLDER_TITLE = "folderTitle";
 	private static final String SUCCESS = "SUCCESS";
 	private static final String NOSUCCESS = "NOSUCCESS";
+	private static final int ZERO=0;
 	//creating a constant to hold the value stored in the Setting service(SS) in session.   
 	public static final String SETTING_SERVICE_VALUE_IN_SESSION = "SettingValue";
 	//creating a constant to hold the access token generated, in session.
@@ -295,14 +297,37 @@ public class GoogleLtiServlet extends HttpServlet {
 					return;
 				}
 				List<String> roster = RosterClientUtils.getRoster(tcSessionData);
-				int googleSharingLimit = getGoogleServiceAccount().getGoogleSharingLimit();
+				int googleSharingLimit = 0;
+				String googleSharingLimitString = getGoogleServiceAccount().getGoogleSharingLimit();
+				if(googleSharingLimitString==null||(googleSharingLimitString.isEmpty())) {
+					doError(request, response,
+							resource.getString("gd.launch.error.msg.google.sharing.limit.missing"));
+					M_log.error("The Google sharing Limit variable is missing from googleServiceProps.properties file");
+					return;
+				}else {
+					googleSharingLimit=Integer.parseInt(googleSharingLimitString);
+				}
 				/*Checking if the roster size is greater than Google accepted limit. Made the limit configurable in case google changes that in future.
 				The Logic (roster-1) meaning, the person sharing his folder is also included in roster. 
 				So the Folder is already owned by him so google won't apply the sharing limit on owner of the folder */
+				
+				if(googleSharingLimit!=ZERO) {
 				if((roster.size()-1)>=googleSharingLimit) {
+					StringBuilder sb =new StringBuilder();
+					sb.append("The Roster size is greater than the google acceptable support while sharing a folder/file. the roster size:  \"");
+					sb.append(roster.size());
+					sb.append("\" for the context id: \"");
+					sb.append(tcSessionData.getContextId());
+					sb.append("\" User Id: \"");
+					sb.append(tcSessionData.getUserId());
+					sb.append("\" Email Address: \"");
+					sb.append(tcSessionData.getUserEmailAddress());
+					sb.append("\"");
+					M_log.error(sb.toString());
 					doError(request, response,
-							resource.getString("gd.launch.error.msg.roster.size.greater.than.google.approved")+googleSharingLimit+"</u>");
+							MessageFormat.format(resource.getString("gd.launch.error.msg.roster.size.greater.than.google.approved"), googleSharingLimit));
 					return;
+				}
 				}
 				TcSiteToGoogleLink link = TcSiteToGoogleStorage
 						.getLinkingFromSettingService(tcSessionData,request);

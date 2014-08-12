@@ -135,7 +135,7 @@ public class GoogleServiceAccount {
 	private String contextURL;
 	private String ltiUrl;
 	
-	private int googleSharingLimit;
+	private String googleSharingLimit;
 	
 	private String propertiesPrefix;
 
@@ -236,6 +236,8 @@ public class GoogleServiceAccount {
 		sb.append(getPrivateKeyFilePath());
 		sb.append("\", ltiUrl=\"");
 		sb.append(getLtiUrl());
+		sb.append("\", googleSharingLimit=\"");
+		sb.append(getGoogleSharingLimit());
 		sb.append("\", ltiKey=\"");
 		sb.append(getLtiKey());
 		sb.append("\", scopes=\"");
@@ -309,7 +311,7 @@ public class GoogleServiceAccount {
 		setLtiKey(getStringProperty(PROPERTY_SUFFIX_LTI_KEY));
 		setLtiUrl(getStringProperty(PROPERTY_SUFFIX_LTI_URL));
 		setContextURL(getStringProperty(PROPERTY_SUFFIX_GOOGLE_CONTEXT));
-		setGoogleSharingLimit(Integer.parseInt(getStringProperty(PROPERTY_SUFFIX_GOOGLE_APPROVED_SHARING_LIMIT)));
+		setGoogleSharingLimit(getStringProperty(PROPERTY_SUFFIX_GOOGLE_APPROVED_SHARING_LIMIT));
 	}
 
 	/**
@@ -329,11 +331,11 @@ public class GoogleServiceAccount {
 		return System.getProperty(getPropertiesPrefix() + suffix);
 	}
 
-	public int getGoogleSharingLimit() {
+	public String getGoogleSharingLimit() {
 		return googleSharingLimit;
 	}
 
-	public void setGoogleSharingLimit(int googleSharingLimit) {
+	public void setGoogleSharingLimit(String googleSharingLimit) {
 		this.googleSharingLimit = googleSharingLimit;
 	}
 }
