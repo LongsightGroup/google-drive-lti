@@ -5,7 +5,7 @@
 	     
 	<groupId>googleDriveLti</groupId>
 	<artifactId>google-drive-lti</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>2.2-rc</version>
 	<packaging>war</packaging>
 	<name>GDrive</name>
 
