@@ -682,6 +682,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private int insertCurrentPermissionsForSingleUser(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData,
 			HashMap<String,String> singleUser) throws Exception {
+		M_log.debug("In the Insersion of permission call for single user.....");
 		int result = 0;
 		try {
 			if (!validatePermissionsRequiredParams(request, response,
@@ -753,6 +754,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private int insertPermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData,
 			HashMap<String,HashMap<String, String>> roster) throws ServletException, IOException {
+		M_log.debug("In the Insertion of permission call......");
 		int result = 0;
 		try {
 			if (!validatePermissionsRequiredParams(request, response,
@@ -780,6 +782,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			boolean sendNotificationEmails = Boolean.parseBoolean(request
 					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each given person
+			M_log.debug("Starting Google Api call for inserting the Permissions  ");
 			for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
 			    String emailAddress = entry.getKey();
 			    HashMap<String, String> value = entry.getValue();
@@ -805,6 +808,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			s.append("\"");
 			M_log.error(s.toString(),err);
 		}
+		M_log.debug("Number of Permissions Successfully Inserted: "+result+" / "+(roster.size()-1));
 		return result;
 	}
 	/**
@@ -821,6 +825,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	private FolderPermissionsHandler getHandler(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws ServletException, IOException {
+		M_log.debug("In the Folder Permission handler call for request: " +request.getParameter(PARAMETER_ACTION));
 		FolderPermissionsHandler result = null;
 		String siteId = tcSessionData.getContextId();
 		String fileId = request.getParameter(PARAM_FILE_ID);
@@ -869,6 +874,7 @@ public class GoogleLtiServlet extends HttpServlet {
 
 	private String getSettingsValueFromSession(HttpServletRequest request) {
 		String value=(String)request.getSession().getAttribute(SETTING_SERVICE_VALUE_IN_SESSION);
+		M_log.debug("The value in the session while getting it: "+value);
 		return value;
 	}
 	
@@ -918,6 +924,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void removePermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws Exception {
+		M_log.debug("In the Removal of permission call");
+		int numberOfPermissionsRemoved = 0;
+		int rosterSize=0;
 		try {
 			if (!validatePermissionsRequiredParams(request, response,
 					tcSessionData)) {
@@ -945,11 +954,11 @@ public class GoogleLtiServlet extends HttpServlet {
 			
 			HashMap<String,HashMap<String, String>> roster = getRoster(request,tcSessionData);
             Set<String> rosterEmailAddressKey = roster.keySet();
-            int rosterSize = rosterEmailAddressKey.size();
-            int numberOfPermissionsRemoved = 0;
+            rosterSize = rosterEmailAddressKey.size();
             for (String emailAddress : rosterEmailAddressKey) {
                 if (!getIsEmpty(emailAddress)
                         && !handler.getIsInstructor(emailAddress)) {
+                	M_log.debug("Removal of permission call to google for user: "+emailAddress);
                        PermissionId permissionIDOfEachPersonWithGoogleAccount = handler.getDrive().permissions().getIdForEmail(emailAddress).execute();
                         if (handler.removePermission(permissionIDOfEachPersonWithGoogleAccount.getId())) {
                             numberOfPermissionsRemoved++;
@@ -987,7 +996,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			s.append("\"");
 			M_log.error(s.toString(),err);
 		}
-
+		 M_log.debug("Number of permissions REMOVED Successfully: "+numberOfPermissionsRemoved+" / "+(rosterSize-1));
 	}
 
 	/**
@@ -1251,6 +1260,7 @@ public class GoogleLtiServlet extends HttpServlet {
 
 		private Permission insertPermission(String userEmailAddress,String role,
 				boolean sendNotificationEmails) {
+			M_log.debug("Inserting permission call to google for user: "+userEmailAddress);
 			Permission result = null;
 			try {
 				Permission newPermission = new Permission();
@@ -1280,6 +1290,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		}
 
 		private boolean removePermission(String permissionId) {
+			M_log.debug("and actual removal call to google");
 			boolean result = false;
 			try {
 				getDrive().permissions().delete(getFileId(), permissionId)

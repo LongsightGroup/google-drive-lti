@@ -23,6 +23,11 @@ package edu.umich.its.lti;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import edu.umich.its.lti.google.GoogleLtiServlet;
+
 /**
  * This class is used to store the unlinked folder in a map 
  * just before the deletion from the LTI setting service 
@@ -30,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * **/
 
 public class GoogleCache {
+	private static final Log M_log = LogFactory.getLog(GoogleCache.class);
 	private static final GoogleCache INSTANCE=new GoogleCache();
 
 	public static GoogleCache getInstance() {
@@ -49,10 +55,16 @@ public class GoogleCache {
 	}
 
 	public TcSiteToGoogleLink getLinkForSite(String siteId) {
-		return siteI2LinkMap.get(siteId);
+		TcSiteToGoogleLink tcSiteToGoogleLink = siteI2LinkMap.get(siteId);
+		M_log.debug("Getting from cache.... ");
+		M_log.debug(tcSiteToGoogleLink!=null?" Siteid: "+tcSiteToGoogleLink.getSiteId()+"EmailId: "+tcSiteToGoogleLink.getUserEmailAddress():tcSiteToGoogleLink);
+		return tcSiteToGoogleLink;
 	}
 
 	public void setLinkForSite(String siteId, TcSiteToGoogleLink link) {
 		siteI2LinkMap.put(siteId, link);
+		M_log.debug("Setting to cache.... ");
+		M_log.debug(link!=null?" Siteid: "+link.getSiteId()+"EmailId: "+link.getUserEmailAddress():link);
+		
 	}
 }

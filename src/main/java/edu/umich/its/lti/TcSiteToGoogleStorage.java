@@ -84,6 +84,7 @@ public class TcSiteToGoogleStorage {
 		Boolean state = false;
 		TcSiteToGoogleLink result = null;
 		String linkedGoogleFolder=(String)request.getSession().getAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION);
+		M_log.debug("The value of session in setUnLinkingToSettingService function: "+linkedGoogleFolder );
 		if (linkedGoogleFolder != null) {
 			result = parseLink(linkedGoogleFolder);
 		}
@@ -126,6 +127,7 @@ public class TcSiteToGoogleStorage {
 	private static void setSettingToSession(HttpServletRequest request,
 			String linkedGoogleFolder) {
 		request.getSession().setAttribute(GoogleLtiServlet.SETTING_SERVICE_VALUE_IN_SESSION, linkedGoogleFolder);
+		M_log.debug("The value in the session while setting: "+linkedGoogleFolder);
 	}
 
 	/**
