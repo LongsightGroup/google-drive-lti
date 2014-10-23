@@ -1,7 +1,7 @@
 
 [ PURPOSE ]
 ===========
-This is an LTI 2.0 compliant tool that integrates Google Drive with an LMS such as Sakai. Because this tool relies on some LTI 2.0 features, it can only be run on Sakai 10 or greater.
+This is an LTI 1.2+ compliant tool that integrates Google Drive with an LMS such as Sakai. Plans are in place to implement LTI 2.0 compliance, but until then, this tool can only be run on Sakai 2.9 or greater (relying on LTI 1.1 + settings service).
 
 This tool allows an instructor to associate a Google Drive folder with a Sakai site, which grants everyone in that site's roster read-only access to the folder and it's contents. Once granted, this access is valid both from within the GDrive tool as well as from the Googie Drive UI itself.
 
