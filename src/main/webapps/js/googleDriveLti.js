@@ -457,7 +457,7 @@ function checkSharedFolderDeletionStatus(sharedFolderId){
 
 
 function handleUnlinkingFolder(folderId){
-	unlinkFolderToSite(folderId,function() {
+	unlinkFolderToSiteForDeletedFolderInGoogleDrive(folderId,function() {
 		actionAfterChecking();
 	});
 }
@@ -526,6 +526,30 @@ function unlinkFolderToSite(folderId, callback) {
 	});
 }
 
+function unlinkFolderToSiteForDeletedFolderInGoogleDrive(folderId, callback) {
+	$.ajax({
+		url: getPageUrl(),
+		type: 'GET',
+		data: getUpdateLtiParams(
+				folderId,
+				"unlinkGoogleFolderForDeletedFolder",
+				false)
+	}).done(function(data) {
+		if ($.trim(data) === 'SUCCESS') {
+						callback(data);
+					} 
+	}).fail(function(data){
+		bootbox.alert({
+			message : data.responseText,
+			buttons : {
+				ok : {
+					label : applicationProperties['gd.button.ok']
+				}
+			}
+		});
+	});
+}
+
 /**
  * Sends request to TP to give people in the roster read-only access to the to
  * students for the given shared folder. Multiple instructors in the roster who
@@ -540,8 +564,20 @@ function giveRosterPermissions(folderId, sendNotificationEmails) {
 				"giveRosterAccess",
 				sendNotificationEmails)
 	}).done(function(data) {
-			openPage('Home');
+		bootbox.alert({
+			  message: data,
+			  buttons: {
+			    ok: {
+			      label: applicationProperties['gd.button.ok']
+			    }
+			  },
+			  callback:function(){
+				  openPage('Home');
+			  }
+			});
 						
+	}).fail(function(data){
+		openPage('Home');
 	});
 }
 
@@ -590,9 +626,18 @@ function removeRosterPermissions(folderId) {
 				"removeRosterAccess",
 				false)
 	}).done(function(data) {
-					if ($.trim(data) === 'SUCCESS') {
-						openPage('LinkFolder');
-					}
+		bootbox.alert({
+			  message: data,
+			  buttons: {
+			    ok: {
+			      label: applicationProperties['gd.button.ok']
+			    }
+			  },
+			  callback:function(){
+				  openPage('LinkFolder');
+			  }
+			});
+		
 					
 	}).fail(function(data){
 		bootbox.alert({

@@ -33,8 +33,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -46,7 +46,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.protocol.HTTP;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
@@ -77,6 +76,7 @@ import edu.umich.its.lti.utils.RosterClientUtils;
  *
  **/
 /**
+ * 
  * @author pushyami
  *
  */
@@ -175,6 +175,7 @@ public class GoogleLtiServlet extends HttpServlet {
 	public static final String PARAM_ACTION_CHECK_BACK_BUTTON = "checkBackButton";
 	private static final String PARAM_ACTION_LINK_GOOGLE_FOLDER = "linkGoogleFolder";
 	public static final String PARAM_ACTION_UNLINK_GOOGLE_FOLDER = "unlinkGoogleFolder";
+	public static final String PARAM_ACTION_UNLINK_GOOGLE_FOLDER_FOR_DELETED_FOLDER= "unlinkGoogleFolderForDeletedFolder";
 	public static final String PARAM_ACTION_GIVE_ROSTER_ACCESS = "giveRosterAccess";
 	private static final String PARAM_ACTION_GIVE_CURRENT_USER_ACCESS = "giveCurrentUserAccess";
 	public static final String PARAM_ACTION_REMOVE_ROSTER_ACCESS = "removeRosterAccess";
@@ -195,7 +196,20 @@ public class GoogleLtiServlet extends HttpServlet {
 	public static final String SETTING_SERVICE_VALUE_IN_SESSION = "SettingValue";
 	//creating a constant to hold the access token generated, in session.
 	private static final String ACCESS_TOKEN_IN_SESSION = "accessToken";
+	private static final long SIXTY_MINUTES_IN_MILLI_SEC=3600000; 
 	
+	/* The HashMap holds <SiteID, TimeStamp>. We add content to the map during running google permission call.
+	 * Apparently google call for huge rosters (200) takes ( as of 11/04/14) 5 minutes.
+	 * once the Ajax request for permission call is issued from browser, if the browser doesn't get a response from server after certain amount time then browser tries to talks to server
+	 * hey! what happened to my request? So server see this as another request from browser independent of the first and runs a second permission call while the first is still going on. 
+	 * This process can trigger multiple calls. so the solution to this is to separate the Permission call on a separate thread and issue a immediate response to browser and message the user.
+	 * The hashmap is created in helping handling the request from the browser.
+	 * 
+	 * Note: While Running in a clustered environment behind the load balancer, an instructor starts the request on server A. While the permission call is going on, same instructor 
+	 * making a request for the same site from different browser say may be placed on server B creates totally different duplicateChecker object. So the second request might be honored.
+	 * */
+	 
+	private ConcurrentHashMap<String, Long> duplicateChecker=new ConcurrentHashMap<String, Long>();
 	// Constructors --------------------------------------------------
 
 	public GoogleLtiServlet() {
@@ -235,6 +249,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			HttpServletResponse response) {
 		try {
 			String requestedAction = request.getParameter(PARAMETER_ACTION);
+			M_log.debug("Action : "+requestedAction);
 			// This is used to monitor this service is alive: return "Hi"
 			if (PARAM_ACTION_VERIFY_SERVICE_IS_ALIVE.equals(requestedAction)) {
 				response.getWriter().print("Hi");
@@ -249,7 +264,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			} else if (PARAM_ACTION_CHECK_BACK_BUTTON.equals(requestedAction)) {
 				checkBackButtonHit(request, response, tcSessionData);
 			} else if (PARAM_ACTION_UNLINK_GOOGLE_FOLDER
-					.equals(requestedAction)) {
+					.equals(requestedAction) || PARAM_ACTION_UNLINK_GOOGLE_FOLDER_FOR_DELETED_FOLDER.equals(requestedAction)) {
 				unlinkGoogleFolder(request, response, tcSessionData);
 			} else if (PARAM_ACTION_GIVE_ROSTER_ACCESS
 					.equals(requestedAction)) {
@@ -259,7 +274,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				insertCurrentUserPermissions(request, response, tcSessionData);
 			} else if (PARAM_ACTION_REMOVE_ROSTER_ACCESS
 					.equals(requestedAction)) {
-				removePermissions(request, response, tcSessionData);
+				removePermissions(request,response,tcSessionData);
 			} else if (PARAM_ACTION_GET_ACCESS_TOKEN.equals(requestedAction)) {
 				getGoogleAccessToken(request, response, tcSessionData);
 			}else if (PARAM_OWNER_ACCESS_TOKEN.equals(requestedAction)) {
@@ -374,8 +389,11 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 
 	/**
-	 * Saves relationship of folder and site in LTI setting service, 
-	 * 
+	 * Saves relationship of folder and site( a string) in LTI setting service(SS), 
+	 * Before proceeding with putting the string to the SS, we check if the Hash map has 
+	 * current site's siteId if it is then this request is not honored and user gets the error message.
+	 * This is the case when removal of permission is going on a separate thread and user might try 
+	 * to share a folder.
 	 * @param request
 	 * @param response
 	 * @param tcSessionData
@@ -383,6 +401,14 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private void linkGoogleFolder(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData) throws Exception  {
+
+		if(isSiteIdInMap(tcSessionData)) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().print(resource.getString("gd.sharing.warn.prompt"));
+			String content="Sharing of the folder call is requested while the removal of permission is going on, this request is denied as per the work flow and user is alerted with proper message. The Email Id: \"";
+			helperLogMessages(tcSessionData, content,null);
+			return;
+		}
 		String folderId = request.getParameter(PARAM_FILE_ID);
 		TcSiteToGoogleLink newLink = new TcSiteToGoogleLink(
 				tcSessionData.getContextId(),
@@ -392,41 +418,29 @@ public class GoogleLtiServlet extends HttpServlet {
 		// Setting service.
 		try {
 			if(TcSiteToGoogleStorage.setLinkingToSettingService(tcSessionData,newLink,request)) {
-			response.getWriter().print(SUCCESS);
+				response.getWriter().print(SUCCESS);
 			}
 			else {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				response.getWriter().print(resource.getString("gd.error.linking.setting.service"));
-				StringBuilder s=new StringBuilder();
-				s.append("A request for ");
-				s.append("sharing of Folder failed for the Site Id: \"");
-				s.append(tcSessionData.getContextId());
-				s.append("\" User Id: \"");
-				s.append(tcSessionData.getUserId());
-				s.append("\" Email Address: \"");
-				s.append(tcSessionData.getUserEmailAddress());
-				s.append("\"");
-				M_log.error(s.toString());
+				String content="A request for sharing of Folder failed for the Email Id: \"";
+				helperLogMessages(tcSessionData, content,null);
+
 			}
-				
+
 		} catch (Exception e) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("gd.error.linking.setting.service"));
-			StringBuilder s=new StringBuilder();
-			s.append("A request for ");
-			s.append("sharing of Folder failed for the Site Id: \"");
-			s.append(tcSessionData.getContextId());
-			s.append("\" User Id: \"");
-			s.append(tcSessionData.getUserId());
-			s.append("\" Email Address: \"");
-			s.append(tcSessionData.getUserEmailAddress());
-			s.append("\"");
-			M_log.error(s.toString(),e);
+			String content="A request for sharing of Folder failed for the Email Id: \"";
+			helperLogMessages(tcSessionData, content,e);
 		}
 	}
 
 	/**
-	 * Removes relationship of folder and site from the  LTI setting service, 
+	 * Removes relationship of folder and site(a string) from the  LTI setting service(SS), 
+	 * Before proceeding with removing the string from SS, we check if the Hash map has 
+	 * current site's siteId if it is then this request is not honored and user gets the error message.
+	 * This is the case when inserting of permission is going on a separate thread and user might try unshare a folder.
 	 * 
 	 * @param request
 	 * @param response
@@ -435,42 +449,57 @@ public class GoogleLtiServlet extends HttpServlet {
 	 */
 	private void unlinkGoogleFolder(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData) throws Exception {
+		if(isSiteIdInMap(tcSessionData)) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().print(resource.getString("gd.unsharing.warn.prompt"));
+			String content="Unsharing of the folder call is requested while the removal of permission is going on, this request is denied as per the work flow and user is alerted with proper message. The Email Id: \"";
+			helperLogMessages(tcSessionData, content,null);
+			return;
+		}
 		try {
-			if(
-			TcSiteToGoogleStorage
-					.setUnLinkingToSettingService(tcSessionData,request)) {
+			if(TcSiteToGoogleStorage.setUnLinkingToSettingService(tcSessionData,request)) {
+				removeSiteIdForDeletedFolderFromGoogleDriveCase(request,
+						tcSessionData);
 				response.getWriter().print(SUCCESS);
 			}
 			else {
+				removeSiteIdForDeletedFolderFromGoogleDriveCase(request,
+						tcSessionData);
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				response.getWriter().print(resource.getString("gd.error.unlinking.setting.service"));
-				StringBuilder s=new StringBuilder();
-				s.append("A request for ");
-				s.append("unsharing of Folder failed for the Site Id: \"");
-				s.append(tcSessionData.getContextId());
-				s.append("\" User Id: \"");
-				s.append(tcSessionData.getUserId());
-				s.append("\" Email Address: \"");
-				s.append(tcSessionData.getUserEmailAddress());
-				s.append("\"");
-				M_log.error(s.toString());
+				String content="A request for unsharing of Folder failed for the Email Id: \"";
+				helperLogMessages(tcSessionData, content,null);
 			}
-			
+
 		} catch (Exception e) {
+			removeSiteIdForDeletedFolderFromGoogleDriveCase(request,
+					tcSessionData);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("gd.error.unlinking.setting.service"));
-			StringBuilder s=new StringBuilder();
-			s.append("A request for ");
-			s.append("unsharing of Folder failed for the Site Id: \"");
-			s.append(tcSessionData.getContextId());
-			s.append("\" User Id: \"");
-			s.append(tcSessionData.getUserId());
-			s.append("\" Email Address: \"");
-			s.append(tcSessionData.getUserEmailAddress());
-			s.append("\"");
-			M_log.error(s.toString(),e);
+			String content="A request for unsharing of Folder failed for the Email Id: \"";
+			helperLogMessages(tcSessionData, content,e);
 		}
+	}
 
+	private void removeSiteIdForDeletedFolderFromGoogleDriveCase(
+			HttpServletRequest request, TcSessionData tcSessionData) {
+		if(request.getParameter(PARAMETER_ACTION).equals(PARAM_ACTION_UNLINK_GOOGLE_FOLDER_FOR_DELETED_FOLDER)) {
+			removeSiteIdFromMap(tcSessionData);
+		}
+	}
+
+	private boolean isSiteIdInMap(TcSessionData tcSessionData) {
+		Long oldKey = duplicateChecker.put(tcSessionData.getContextId(), System.currentTimeMillis()); 
+		M_log.debug("duplicateCheckerHashMap while share: "+duplicateChecker.toString());
+		if (oldKey != null ) {
+			// something in the map already
+			M_log.debug("Current Site Found in the DuplicateChecker HashMap with siteId: "+tcSessionData.getContextId());
+			return true;
+		}else { 
+			//nothing in map, a brand new request
+			M_log.debug("Current Site is not Found in the DuplicateChecker HashMap with siteId: "+tcSessionData.getContextId());
+			return false;
+		}
 	}
 
 	/**
@@ -631,11 +660,18 @@ public class GoogleLtiServlet extends HttpServlet {
 	private void insertRosterPermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws ServletException, IOException {
+		M_log.info("In the insertRosterPermissions call for siteId:  "+tcSessionData.getContextId()+" UserId: "+tcSessionData.getUserId());
 		HashMap<String, HashMap<String, String>> roster = getRoster(request, tcSessionData);
-		insertPermissions(request, response, tcSessionData, roster);
+		M_log.debug("Roster Size: "+roster.size());
+		//not running permission call for single person since that person already has permission to the folder
+		if(roster.size()!=1) {
+			insertPermissions(request, response, tcSessionData, roster);
+		}else {
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.getWriter().print(resource.getString("gd.insert.permission.warn.prompt"));
+		}
 		// Title set in request by insertPermissions: get and clear it
 		request.removeAttribute(FOLDER_TITLE);
-		response.getWriter().print(SUCCESS);
 	}
 
 	private void insertCurrentUserPermissions(HttpServletRequest request,
@@ -666,16 +702,8 @@ public class GoogleLtiServlet extends HttpServlet {
 		else {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("gd.error.permission.single.user"));
-			StringBuilder s=new StringBuilder();
-			s.append(" Insertion of permission Failed to google for single User to shared folder of with User Id: \"" );
-			s.append(tcSessionData.getUserId());
-			s.append("\" and Email Address: \"");
-			s.append(tcSessionData.getUserEmailAddress());
-			s.append("\" for the Site Id: \"");
-			s.append(tcSessionData.getContextId());
-			s.append("\"");
-			M_log.error(s.toString());
-			
+			String content="Insertion of permission Failed to google for single User to shared folder of with the Email Id: \"";
+			helperLogMessages(tcSessionData, content,null);
 		}
 	}
 	
@@ -694,15 +722,8 @@ public class GoogleLtiServlet extends HttpServlet {
 			// google file object
 			File file = handler.getFile();
 			if (file == null) {
-				StringBuilder s =new StringBuilder();
-			     s.append("Error: unable to insert Google Folder permissions for single user, as the folder was not retrieved from Google Drive for user email address: \"");
-			     s.append(tcSessionData.getUserEmailAddress());
-			     s.append(" \" and User id : \"");
-			     s.append(tcSessionData.getUserId());
-			     s.append("\" for the Site Id: \"");
-				 s.append(tcSessionData.getContextId());
-				 s.append("\"");
-				M_log.error(s.toString());
+				String content="Error: unable to insert Google Folder permissions for single user, as the folder was not retrieved from Google Drive for user email address: \"";
+				helperLogMessages(tcSessionData, content,null);
 				return 0; // Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
@@ -725,15 +746,9 @@ public class GoogleLtiServlet extends HttpServlet {
 			
 		} catch (Exception err) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			StringBuilder s=new StringBuilder();
-			s.append(" Insertion of permission Failed to google for single User to shared folder of with User Id: \"" );
-			s.append(tcSessionData.getUserId());
-			s.append("\" and Email Address: \"");
-			s.append(tcSessionData.getUserEmailAddress());
-			s.append("\" for the Site Id: \"");
-			s.append(tcSessionData.getContextId());
-			s.append("\"");
-			M_log.error(s.toString(),err);
+			String content="Insertion of permission Failed to google for single User to shared folder of with Email Id: \"";
+			helperLogMessages(tcSessionData, content,err);
+		
 		}
 		return result;
 	}
@@ -748,69 +763,135 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * This would be the case because the instructor already gave them those
 	 * permissions.
 	 * 
-	 * @return Number of permissions that were successfully inserted
+	 * 
 	 */
 	
-	private int insertPermissions(HttpServletRequest request,
+	
+	private void insertPermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData,
 			HashMap<String,HashMap<String, String>> roster) throws ServletException, IOException {
-		M_log.debug("In the Insertion of permission call......");
-		int result = 0;
+		M_log.info("In the Insertion of permission call...... SiteId: "+tcSessionData.getContextId()+" UserId: "+tcSessionData.getUserId());
 		try {
 			if (!validatePermissionsRequiredParams(request, response,
 					tcSessionData)) {
-				return 0;
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				return;
 			}
 			FolderPermissionsHandler handler = getHandler(request, response,
 					tcSessionData);
 			// google file object
+			if(handler==null) {
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				String content="Error: unable to insert Google Folder permissions, as the folder was not retrieved from Google Drive for Instructor email address: \"";
+				helperLogMessages(tcSessionData, content,null);
+				return; // Quick return to simplify code
+			}
 			File file = handler.getFile();
 			if (file == null) {
-				StringBuilder s =new StringBuilder();
-			     s.append("Error: unable to insert Google Folder permissions, as the folder was not retrieved from Google Drive for Instructor email address: \"");
-			     s.append(tcSessionData.getUserEmailAddress());
-			     s.append(" \" and User id : \"");
-			     s.append(tcSessionData.getUserId());
-			     s.append("\" for the Site Id: \"");
-				 s.append(tcSessionData.getContextId());
-				 s.append("\"");
-				M_log.error(s.toString());
-				return 0; // Quick return to simplify code
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				String content="Error: unable to insert Google Folder permissions, as the folder was not retrieved from Google Drive for Instructor email address: \"";
+				helperLogMessages(tcSessionData, content,null);
+				return; // Quick return to simplify code
 			}
 			// Ugly way to pass title to the calling method
 			request.setAttribute(FOLDER_TITLE, file.getTitle());
+
 			boolean sendNotificationEmails = Boolean.parseBoolean(request
 					.getParameter(PARAM_SEND_NOTIFICATION_EMAILS));
 			// Insert permission for each given person
-			M_log.debug("Starting Google Api call for inserting the Permissions  ");
-			for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
-			    String emailAddress = entry.getKey();
-			    HashMap<String, String> value = entry.getValue();
-			    String roles = value.get("role");
-			    if (!getIsEmpty(emailAddress)
-						&& !handler.getIsInstructor(emailAddress)) {
-					// If result not null, the user has permission >= inserted
-					if (null != handler.insertPermission(emailAddress,roles,
-							sendNotificationEmails)) {
-						result++;
-					}
-				}
-			}
-			
+			new InsertPermissionHandler(roster,handler,sendNotificationEmails,tcSessionData).start();
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.getWriter().print(resource.getString("gd.insert.permission.warn.prompt"));
+			M_log.info("In the Insertion of permission call after starting a new thread and giving usefull message to user. SiteId: "+tcSessionData.getContextId()+" UserId: "+tcSessionData.getUserId());
+
 		} catch (Exception err) {
-			StringBuilder s=new StringBuilder();
-			s.append(" Insertion of permissions Failed to google for the class roster to shared folder of Instructor with User Id: \"" );
-			s.append(tcSessionData.getUserId());
-			s.append("\" and Email Address: \"");
-			s.append(tcSessionData.getUserEmailAddress());
-			s.append("\" for the Site Id: \"");
-			s.append(tcSessionData.getContextId());
-			s.append("\"");
-			M_log.error(s.toString(),err);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			String content="Insertion of permission Failed to google for the class roster to shared folder of Instructor with Email Id: \"";
+			helperLogMessages(tcSessionData, content,err);
 		}
-		M_log.debug("Number of Permissions Successfully Inserted: "+result+" / "+(roster.size()-1));
-		return result;
+		return;
 	}
+
+	
+	/**
+	 * Creating a new class to run the google insert permission call on separate thread
+	 * since huge roster size take long time to modify permission
+	 * @author pushyami
+	 */
+	public class InsertPermissionHandler extends Thread{
+
+		private FolderPermissionsHandler handler;
+		private boolean sendNotificationEmail;
+		private TcSessionData tcSessionData;
+		// making a copy of this roster to avoid getting a ConcurrentException error when iterating through it later
+		private HashMap<String, HashMap<String, String>> roster_copy=new HashMap<String, HashMap<String, String>>();
+
+		public InsertPermissionHandler(HashMap<String, HashMap<String, String>> roster,FolderPermissionsHandler handler,boolean sendNotificationEmail,TcSessionData tcSessionData) {
+			HashMap<String, HashMap<String, String>> tmp=new HashMap<String, HashMap<String, String>>(roster);
+			tmp.keySet().removeAll(roster_copy.keySet());
+			roster_copy.putAll(tmp);
+			this.handler=handler;
+			this.sendNotificationEmail=sendNotificationEmail;
+			this.tcSessionData=tcSessionData;
+		}
+		public void run() {
+			try {
+				M_log.info("Starting of Insertion of Permission call on seperate thread for SiteId: "+tcSessionData.getContextId()+" UserId: "+tcSessionData.getUserId());
+				insertPermissionCallToGoogleOnSeperateThread(roster_copy, handler, sendNotificationEmail,tcSessionData);
+				M_log.info("Ending of Insertion of Permission call on seperate thread for SiteId: "+tcSessionData.getContextId()+" UserId: "+tcSessionData.getUserId());
+			} catch (Exception e) {
+				removeSiteIdFromMap(tcSessionData);
+				String content="Insertion of permission Failed to google for the class roster to shared folder of Instructor with Email Id: \"";
+				helperLogMessages(tcSessionData, content,e);
+			}
+		}
+	}
+	/**
+	 * Actual permission call to google running on a separate thread. We have HashMap that is holding the SiteId and Time stamp. As of 11/04/14 Google take 5 minute 
+	 * to insert permission for Roster size =200. While iterating through the Roster list we are checking  if the time has passed 60 minutes since the start, then we will
+	 * terminate the thread. Once the insertion of permission call is complete we remove the siteId from the HashMap to allow further requests.
+	 * @param roster
+	 * @param handler
+	 * @param sendNotificationEmails
+	 * @param tcSessionData
+	 * @throws Exception
+	 */
+	private void insertPermissionCallToGoogleOnSeperateThread(
+			HashMap<String, HashMap<String, String>> roster, 
+			FolderPermissionsHandler handler, boolean sendNotificationEmails,TcSessionData tcSessionData) throws Exception {
+		long start = System.currentTimeMillis();
+		long end = start + SIXTY_MINUTES_IN_MILLI_SEC; // 60* 60 seconds * 1000 ms/sec
+		int numberOFPermissionsInserted = 0;
+		M_log.debug("duplicateCheckerHashMap while share: "+duplicateChecker.toString());
+		for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
+			String emailAddress = entry.getKey();
+			HashMap<String, String> value = entry.getValue();
+			if(System.currentTimeMillis() > end) {
+				String content="The Google call insertion of permission for the roster size: \""+roster.size()+"\" took more than 60 minutes, this is unusual. The Email Id: \"";
+				helperLogMessages(tcSessionData, content,null);
+				break;
+			}
+			String roles = value.get("role");
+			if (!getIsEmpty(emailAddress) && !handler.getIsInstructor(emailAddress)) {
+				StringBuilder s=new StringBuilder();
+				s.append("Insertion of permission call to google for user: ");
+				s.append(emailAddress);
+				s.append(" in site :");
+				s.append(tcSessionData.getContextId());
+				M_log.debug(s.toString());
+				// If result not null, the user has permission >= inserted
+				if (null != handler.insertPermission(emailAddress,roles,
+						sendNotificationEmails)) {
+					numberOFPermissionsInserted++;
+				}
+
+			}
+
+		}
+		removeSiteIdFromMap(tcSessionData);
+		M_log.info("Number of permissions Inserted Successfully to site:"+tcSessionData.getContextId()+" UserId: "+tcSessionData.getUserId()+" is " +numberOFPermissionsInserted+" / "+(roster.size()-1));
+	}
+	
 	/**
 	 * Getting the instructors email address( that is needed during for manipulating permission calls) stored in the Setting service(SS) from the Session instead of SS 
 	 * as call to SS intermittently not fetching correct value.
@@ -920,13 +1001,10 @@ public class GoogleLtiServlet extends HttpServlet {
 	 * Permissions for owners of the folder are not
 	 * touched.
 	 */
-	
 	private void removePermissions(HttpServletRequest request,
 			HttpServletResponse response, TcSessionData tcSessionData)
 					throws Exception {
-		M_log.debug("In the Removal of permission call");
-		int numberOfPermissionsRemoved = 0;
-		int rosterSize=0;
+		M_log.info("In the Removal of permission call... For Site Id: "+tcSessionData.getContextId()+" UserId: "+tcSessionData.getContextId());
 		try {
 			if (!validatePermissionsRequiredParams(request, response,
 					tcSessionData)) {
@@ -936,67 +1014,113 @@ public class GoogleLtiServlet extends HttpServlet {
 			}
 			FolderPermissionsHandler handler = getHandler(request, response,
 					tcSessionData);
+			if(handler==null) {
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				response.getWriter().print(resource.getString("gd.permission.error.six"));
+				String content="Error: unable to remove Google Folder permissions, as the folder was not retrieved from Google Drive for Instructor email address: \"";
+				helperLogMessages(tcSessionData, content,null);
+				return;
+			}
 			File file = handler.getFile();
 			if (file == null) {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				StringBuilder s =new StringBuilder();
-			     s.append("Error: unable to remove Google Folder permissions, as the folder was not retrieved from Google Drive for Instructor email address: \"");
-			     s.append(tcSessionData.getUserEmailAddress());
-			     s.append(" \" and User id : \"");
-			     s.append(tcSessionData.getUserId());
-			     s.append("\" for the Site Id: \"");
-				 s.append(tcSessionData.getContextId());
-				 s.append("\"");
-				M_log.error(s.toString());
 				response.getWriter().print(resource.getString("gd.permission.error.six"));
+				String content="Error: unable to remove Google Folder permissions, as the folder was not retrieved from Google Drive for Instructor email address: \"";
+				helperLogMessages(tcSessionData, content,null);
 				return; // Quick return to simplify code
 			}
-			
+
 			HashMap<String,HashMap<String, String>> roster = getRoster(request,tcSessionData);
-            Set<String> rosterEmailAddressKey = roster.keySet();
-            rosterSize = rosterEmailAddressKey.size();
-            for (String emailAddress : rosterEmailAddressKey) {
-                if (!getIsEmpty(emailAddress)
-                        && !handler.getIsInstructor(emailAddress)) {
-                	M_log.debug("Removal of permission call to google for user: "+emailAddress);
-                       PermissionId permissionIDOfEachPersonWithGoogleAccount = handler.getDrive().permissions().getIdForEmail(emailAddress).execute();
-                        if (handler.removePermission(permissionIDOfEachPersonWithGoogleAccount.getId())) {
-                            numberOfPermissionsRemoved++;
-                        }
-                }
-            }
-            if(numberOfPermissionsRemoved==(rosterSize-1)) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().print(SUCCESS);
-                }
-            else {
-                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                        response.getWriter().print(resource.getString("gd.permission.error.six"));
-                        StringBuilder s=new StringBuilder();
-                        s.append(" Some of google permissions removal failed for the class roster to shared folder of Instructor with User Id: \"" );
-                        s.append(tcSessionData.getUserId());
-                        s.append("\" and Email Address: \"");
-                        s.append(tcSessionData.getUserEmailAddress());
-                        s.append("\" for the Site Id: \"");
-                        s.append(tcSessionData.getContextId());
-                        s.append("\"");
-                        M_log.error(s.toString());
-                    
-                }
+			M_log.debug("Roster Size: "+roster.size());
+			//not running permission call for single person since the owner permission can't be removed
+			if(roster.size()!=1) {
+				new RemovePermissionHandler(handler,roster,tcSessionData).start();
+				M_log.info("In the Removal of permission call after starting a new thread and giving usefull message to user. SiteId: "+tcSessionData.getContextId()+ " UserId: "+tcSessionData.getUserId());
+			}
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.getWriter().print(resource.getString("gd.removal.permission.warn.prompt"));
 		} catch (Exception err) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(resource.getString("gd.permission.error.six"));
-			StringBuilder s=new StringBuilder();
-			s.append(" Removal of google permissions Failed for the class roster to shared folder of Instructor with User Id: \"" );
-			s.append(tcSessionData.getUserId());
-			s.append("\" and Email Address: \"");
-			s.append(tcSessionData.getUserEmailAddress());
-			s.append("\" for the Site Id: \"");
-			s.append(tcSessionData.getContextId());
-			s.append("\"");
-			M_log.error(s.toString(),err);
+			String content="Removal of google permissions Failed for the class roster to shared folder of Instructor with email address: \"";
+			helperLogMessages(tcSessionData, content,err);
 		}
-		 M_log.debug("Number of permissions REMOVED Successfully: "+numberOfPermissionsRemoved+" / "+(rosterSize-1));
+	}
+
+	/**
+	 * Creating a new class to run the google remove permission call on separate thread
+	 * since huge roster size take long time to modify permission
+	 * @author pushyami
+	 *
+	 */
+	
+	public class RemovePermissionHandler extends Thread{
+		private FolderPermissionsHandler handler;
+		private TcSessionData tcSessionData;
+		// making a copy of this roster to avoid getting a ConcurrentException error when iterating through it later
+		private HashMap<String, HashMap<String, String>> roster_copy=new HashMap<String, HashMap<String, String>>(); 
+		public RemovePermissionHandler(FolderPermissionsHandler handler, HashMap<String,HashMap<String, String>> roster,TcSessionData tcSessionData) {
+			HashMap<String, HashMap<String, String>> tmp=new HashMap<String, HashMap<String, String>>(roster); 
+			tmp.keySet().removeAll(roster_copy.keySet());
+			roster_copy.putAll(tmp);
+			this.handler=handler;
+			this.tcSessionData=tcSessionData;
+		}
+		public void run() {
+			try {
+				M_log.info("Starting of Removal of Permission call on seperate thread for siteId: "+tcSessionData.getContextId()+" UserId: "+tcSessionData.getUserId());
+				removePermissionCallToGoogleOnSeperateThread(handler,roster_copy,tcSessionData);
+				M_log.info("Ending of Removal of Permission call on seperate thread for siteId: "+tcSessionData.getContextId()+ " UserId: "+tcSessionData.getUserId());
+			} catch (Exception e) {
+				removeSiteIdFromMap(tcSessionData);
+				String content="Removal of google permissions Failed for the class roster to shared folder of Instructor with Email Id: \"";
+				helperLogMessages(tcSessionData, content,e);
+			}
+		}
+	}
+	private void removeSiteIdFromMap(TcSessionData tcSessionData) {
+		duplicateChecker.remove(tcSessionData.getContextId());
+		M_log.debug("The duplicateCheckerHashMap after removal of SiteId: "+duplicateChecker.toString());
+	}
+	/**
+	 * Actual permission call to google running on a separate thread. We have HashMap that is holding the SiteId and Time stamp. As of 11/04/14 Google take 5 minute 
+	 * to remove permission for Roster size =200. While iterating through the Roster list we are checking  if the time has passed 60 minutes since the start, then we will
+	 * terminate the thread. Once the removal of permission call is complete we remove the siteId from the HashMap to allow further requests.
+	 * 
+	 * @param handler
+	 * @param rosterEmailAddressKey
+	 * @throws Exception
+	 */
+	private void removePermissionCallToGoogleOnSeperateThread(
+			FolderPermissionsHandler handler, HashMap<String, HashMap<String, String>> roster,TcSessionData tcSessionData) throws Exception {
+		long start = System.currentTimeMillis();
+		long end = start + SIXTY_MINUTES_IN_MILLI_SEC; //60 * 60 seconds * 1000 ms/sec
+		M_log.debug("The duplicateCheckerHashMap while unshare: "+duplicateChecker.toString());
+		int numberOfPermissionsRemoved=0;
+		int rosterSize = roster.size();
+		for ( Entry<String, HashMap<String, String>> entry : roster.entrySet()) {
+			String emailAddress = entry.getKey();
+			if(System.currentTimeMillis() > end) {
+				String content="The Google call Removal of permission for the roster size: \""+rosterSize+"\" took more than 60 minutes, this is unusual. The Email Id: \"";
+				helperLogMessages(tcSessionData, content,null);
+				break;
+			}
+			if (!getIsEmpty(emailAddress) && !handler.getIsInstructor(emailAddress)) {
+				StringBuilder s=new StringBuilder();
+				s.append("Removal of permission call to google for user: ");
+				s.append(emailAddress);
+				s.append(" in site :");
+				s.append(tcSessionData.getContextId());
+				M_log.debug(s.toString());
+				PermissionId permissionIDOfEachPersonWithGoogleAccount = handler.getDrive().permissions().getIdForEmail(emailAddress).execute();
+				if (handler.removePermission(permissionIDOfEachPersonWithGoogleAccount.getId())) {
+					numberOfPermissionsRemoved++;
+				}
+			}
+
+		}
+		removeSiteIdFromMap(tcSessionData);
+		M_log.info("Number of permissions REMOVED Successfully to site:"+tcSessionData.getContextId()+" is " +numberOfPermissionsRemoved+" / "+(rosterSize-1));
 	}
 
 	/**
@@ -1109,28 +1233,30 @@ public class GoogleLtiServlet extends HttpServlet {
 			result = false;
 		}
 		if (getIsEmpty(request.getParameter(PARAM_ACCESS_TOKEN))) {
-			StringBuilder s =new StringBuilder();
-		     s.append("Error: unable to handle permissions, as no Access Token was included in the request for User email address: \"");
-		     s.append(tcSessionData.getUserEmailAddress());
-		     s.append(" \" and User id : \"");
-		     s.append(tcSessionData.getUserId());
-		     s.append("\" for the Site Id: \"");
-			 s.append(tcSessionData.getContextId());
-			M_log.error(s.toString());
+			String content="Error: unable to handle permissions, as no Access Token was included in the request for User email address: \"";
+			helperLogMessages(tcSessionData,content,null);
 			result = false;
 		}
 		if (getIsEmpty(PARAM_FILE_ID)) {
-			StringBuilder s =new StringBuilder();
-		     s.append("Error: unable to handle permissions, as no file ID was included in the request for User email address: \"");
-		     s.append(tcSessionData.getUserEmailAddress());
-		     s.append(" \" and User id : \"");
-		     s.append(tcSessionData.getUserId());
-		     s.append("\" for the Site Id: \"");
-			 s.append(tcSessionData.getContextId());
-			M_log.error(s.toString());
+			String content="Error: unable to handle permissions, as no file ID was included in the request for User email address: \"";
+			helperLogMessages(tcSessionData,content,null);
 			result = false;
 		}
 		return result;
+	}
+
+	private void helperLogMessages(TcSessionData tcSessionData,String content, Exception e) {
+		StringBuilder s =new StringBuilder();
+		s.append(content);
+		s.append(tcSessionData.getUserEmailAddress());
+		s.append(" \" and User id : \"");
+		s.append(tcSessionData.getUserId());
+		s.append("\" for the Site Id: \"");
+		s.append(tcSessionData.getContextId());
+		if(e!=null)
+			M_log.error(s.toString(),e);
+		else
+			M_log.error(s.toString());
 	}
 
 	private GoogleCredential getGoogleCredential(HttpServletRequest request) {
@@ -1260,7 +1386,7 @@ public class GoogleLtiServlet extends HttpServlet {
 
 		private Permission insertPermission(String userEmailAddress,String role,
 				boolean sendNotificationEmails) {
-			M_log.debug("Inserting permission call to google for user: "+userEmailAddress);
+			M_log.debug("and actual insert call to google");
 			Permission result = null;
 			try {
 				Permission newPermission = new Permission();
