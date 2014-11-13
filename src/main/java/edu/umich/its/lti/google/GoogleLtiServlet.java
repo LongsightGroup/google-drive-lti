@@ -1112,8 +1112,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				s.append(" in site :");
 				s.append(tcSessionData.getContextId());
 				M_log.debug(s.toString());
-				PermissionId permissionIDOfEachPersonWithGoogleAccount = handler.getDrive().permissions().getIdForEmail(emailAddress).execute();
-				if (handler.removePermission(permissionIDOfEachPersonWithGoogleAccount.getId())) {
+				if (handler.removePermission(emailAddress)) {
 					numberOfPermissionsRemoved++;
 				}
 			}
@@ -1409,34 +1408,36 @@ public class GoogleLtiServlet extends HttpServlet {
 				sb.append("\" on file \"");
 				sb.append(getFileId());
 				sb.append("\"");
-				M_log.warn(sb.toString());
-				err.printStackTrace();
+				M_log.error(sb.toString(),err);
 			}
 			return result;
 		}
 
-		private boolean removePermission(String permissionId) {
+		private boolean removePermission(String emailAddress) {
 			M_log.debug("and actual removal call to google");
 			boolean result = false;
 			try {
-				getDrive().permissions().delete(getFileId(), permissionId)
-				.execute();
-				// No errors indicates this operation succeeded
+				PermissionId permissionIdOfEachPersonWithGoogleAccount = getDrive().permissions().getIdForEmail(emailAddress).execute();
+				if(permissionIdOfEachPersonWithGoogleAccount!=null) {
+				String permissionId = permissionIdOfEachPersonWithGoogleAccount.getId();
+				getDrive().permissions().delete(getFileId(), permissionId).execute();
 				result = true;
+				}else {
+					M_log.debug("could not get the permission id");
+				}
+				// No errors indicates this operation succeeded
 			} catch (Exception err) {
 				StringBuilder sb = new StringBuilder();
-				sb.append("Failed to remove permission ");
-				sb.append(permissionId);
-				sb.append(" for user \"");
-				sb.append(getLink().getUserEmailAddress());
+				sb.append("Failed to remove permission for user: \"");
+				sb.append(emailAddress);
 				sb.append("\" on file \"");
 				sb.append(getFileId());
 				sb.append("\"");
-				M_log.warn(sb.toString());
-				err.printStackTrace();
+				M_log.error(sb.toString(),err);
 			}
 			return result;
 		}
+		
 
 		// Public accessory methods ---------------------------------
 
