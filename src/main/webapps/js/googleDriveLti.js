@@ -410,6 +410,25 @@ function checkBackButtonHit(){
 				}
 	});
 }
+
+function checkBackButtonHitFromSharingView(){
+	$.ajax({
+		url:getPageUrl(),
+		type:'GET',
+		cache:false,
+		data:getUpdateLtiParams(
+				"",
+				"checkBackButton",
+				false),
+				success:function(data){
+					if ($.trim(data) === 'NOSUCCESS') {
+						openPage('LinkFolder');
+					}
+
+				}
+	});
+}
+
 /**
  * This case help to determines if the  404 error occurs while showing a shared folder is due to user 
  * don't has permission or shared folder has been deleted from the google drive interface. 

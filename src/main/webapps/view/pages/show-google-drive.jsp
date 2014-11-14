@@ -90,6 +90,9 @@
 			} else {
 				$('#par2').show();
 			}
+			if(getIsInstructor()){
+				checkBackButtonHitFromSharingView();
+			}
 		}
 	});
 </script>

@@ -503,11 +503,14 @@ public class GoogleLtiServlet extends HttpServlet {
 	}
 
 	/**
-	 * If the instructor hit back button in the browser from the shared view
+	 * If the instructor hit back button in the browser from the shared/sharing view
 	 * this checks to see if the settings service value stored in session has any thing in it. If it
-	 * does then it will redirect to the Shared view. This check here eliminate
-	 * a potential bug as instructor should only go back to the create and
-	 * shared view is by unlinking the folder and not hitting back button.
+	 * does then it will redirect to the respective view. This check here eliminates
+	 * 2 potential bug 1) instructor should only go back to the create and
+	 * shared view is by unlinking the folder and not hitting back button. 2) also After unsharing 
+	 * once in the sharing view by hitting back button takes back to shared view and when they click
+	 * unshare has potential harm that "duplicatechecker" Map get added with the 
+	 * an entry and never get removed.
 	 * 
 	 * @param request
 	 * @param response
