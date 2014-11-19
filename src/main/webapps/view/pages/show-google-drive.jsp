@@ -84,9 +84,7 @@
 
 			if (sharedFolderIds && sharedFolderIds.length > 0) {
 				$('#par1').show();
-				initializeFileTree('#fileTree', {
-					'folderId' : sharedFolderIds[0]
-				});
+				showLinkedGoogleFolder(sharedFolderIds);
 			} else {
 				$('#par2').show();
 			}

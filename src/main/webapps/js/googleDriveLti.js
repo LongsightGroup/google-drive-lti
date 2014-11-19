@@ -64,6 +64,29 @@ bootbox.setDefaults({
 var fileTree = null;
 var fileTreeDiv = null;
 var fileTreeSearchTimeout = false;
+/**
+ * For the Shared folder to the site we are first checking if the file is trashed are not
+ * then we will initialize the Jstree.  
+ * 
+ * @param folderId
+ */
+function showLinkedGoogleFolder(folderId) {
+	getDriveFile(getGoogleAccessToken(), folderId, function(data) {
+		if (!data.labels.trashed) {
+			initializeFileTree('#fileTree', {
+				'folderId' : folderId[0]
+			});
+		} else {
+			handleUnlinkingFolder(folderId);
+		}
+
+	}, function(data, textStatus, jqXHR) {
+		if (data.status === 404) {
+			checkSharedFolderDeletionStatus(folderId);
+		}
+	});
+
+}
 
 /**
  * 
