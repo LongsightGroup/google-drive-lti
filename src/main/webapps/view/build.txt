@@ -1,1 +1,1 @@
-Build.txt for automation build scripts placement
+build.txt to be filled in by build scripts

@@ -49,6 +49,15 @@ h4.modal-title {
 	border: 0;
 }
 
+#versionText {
+    font-size: x-small;
+    color: #a0a0a0;
+}
+
+#appInfo {
+    display: none;
+}
+
 .jstree-children:before,.jstree-node:before {
     /* clearfix for jsTree's elements*/ 
     content: " ";
