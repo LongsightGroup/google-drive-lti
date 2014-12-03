@@ -56,6 +56,41 @@ if(accessToken!=null){
 <script src="js/utils.js" type="text/javascript"></script>
 <script src="js/google-drive-utils.js" type="text/javascript"></script>
 <script src="js/googleDriveLti.js" type="text/javascript"></script>
+<script type="text/javascript">
+	$('document').ready(
+			function() {
+				//$aboutInfo = $('#aboutInfo');
+				$aboutInfo = $('<div>');
+
+				displayContentOrError = function(response, status, xhr) {
+					if (status == 'error') {
+						var errorMessage = 'Unable to display due to error. ('
+								+ xhr.status + ' ' + xhr.statusText + ')';
+						$aboutInfo.html(errorMessage);
+					}
+				}
+
+				$aboutInfo.load('about.html', displayContentOrError);
+
+				$('a#aboutLink').click(function() {
+					bootbox.alert({
+						message: $aboutInfo.html(),
+						buttons: {
+							ok: {
+								label: applicationProperties['gd.button.ok']
+							}
+						}
+					});
+					return false;
+				});
+
+				$('a#helpLink').click(function() {
+					window.open('view/pages/help/help.html', 'gdriveHelp');
+					return false;
+				});
+			});
+</script>
+
 </head>
 <body>
 	<div class="navbar navbar-inverse">
@@ -81,8 +116,8 @@ if (username != null) {
 %>
 					</p>
 					<ul class="nav">
-						<li><a href="view/pages/help/about.html" target="GDLHelp"><%=applicationProperties.get("gd.header3.about") %></a></li>
-						<li><a href="view/pages/help/help.html" target="GDLHelp"><%=applicationProperties.get("gd.header4.help") %></a></li>
+						<li><a href="#" id="aboutLink"><%=applicationProperties.get("gd.header3.about") %></a></li>
+						<li><a href="#" id="helpLink"><%=applicationProperties.get("gd.header4.help") %></a></li>
 					</ul>
 				</div>
 			</div>
