@@ -5,8 +5,13 @@ This is an LTI 1.2+ compliant tool that integrates Google Drive with an LMS such
 
 This tool allows an instructor to associate a Google Drive folder with a Sakai site, which grants everyone in that site's roster read-only access to the folder and it's contents. Once granted, this access is valid both from within the GDrive tool as well as from the Googie Drive UI itself.
 
+[ REQUIREMENTS ]
+================
+* Google Apps for Education instance
+* LTI 1.0 compatible LMS
+* Java/Tomcat hosting environment
 
-         
+
 [ SETUP ]
 =========
 1. svn co https://source.sakaiproject.org/contrib/umich/lti-utils/tags/<find-latest-version> lti-utils
@@ -77,6 +82,22 @@ This tool allows an instructor to associate a Google Drive folder with a Sakai s
 1. cd lti-utils; mvn install
 2. cd google-drive-lti; mvn install
 3. cp target/google-drive-lti.war $TOMCAT/webapps
+4. Optional: Set up a script to populate src/main/webapps/build.txt with information about the current build (SVN revision, build time, etc.).
+    If using Jenkins to build the application, the following script placed in the "Execute Shell" part of the "Pre Steps" section would do
+    the job:
+    
+    cd src/main/webapps
+    if [ -f "build.txt" ]; then
+      echo "build.txt found."
+      rm build.txt
+      echo "Existing build.txt file removed."
+    else
+      echo "No existing build.txt file found."
+    fi
+    touch build.txt
+
+    echo "$JOB_NAME | Build: $BUILD_NUMBER | $SVN_URL | $SVN_REVISION | $BUILD_ID" >> build.txt
+
 
 PLEASE REMEMBER TO REVERT THE BELOW CHANGE BEFORE CHECKING IN TO SVN
 HINT: For local development in pom.xml add the <plugin> tag under the <plugins> tag, this will automatically deploy to tomcat. while deploy the project use this build command "mvn clean install sakai:deploy -Dmaven.tomcat.home=$TOMCAT_HOME".
