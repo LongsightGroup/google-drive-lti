@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>About GDrive</title>
+<script type="text/javascript"
+    src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script type="text/javascript">
+	$('document').ready(
+			function() {
+				$appInfo = $('#appInfo');
+
+				displayContentOrError = function(response, status, xhr) {
+					if (status == 'error') {
+						var errorMessage = 'Unable to display due to error. ('
+								+ xhr.status + ' ' + xhr.statusText + ')';
+						$appInfo.html(errorMessage);
+					}
+
+					$appInfo.show();
+				}
+
+				$appInfo.load('build.txt', displayContentOrError);
+			});
+</script>
+</head>
+<body class="notAModalBody">
+    <h4>About GDrive</h4>
+    <p>GDrive is an LTI Tool Provider for Google Drive</p>
+    <p>Developed by the University of Michigan ITS Teaching &
+        Learning Team</p>
+    <p class="smallGrayVersion">
+        Version: <span id="appInfo">Application information
+            here...</span>
+    </p>
+</body>
+</html>

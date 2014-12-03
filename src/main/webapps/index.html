@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; Charset=UTF-8">
+<title>GDrive: An LTI for Google Drive</title>
+<link href="css/google-drive-lti.css" type="text/css" rel="stylesheet"
+    media="all" />
+<link href="bootstrap/css/bootstrap.min.css" type="text/css"
+    rel="stylesheet" media="all">
+<link href="bootstrap/css/bootstrap-responsive.css" type="text/css"
+    rel="stylesheet" media="all" />
+<script type="text/javascript"
+    src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script>
+	$(document).ready(
+			function() {
+				$("#localeDateTime").html(new Date().toLocaleString());
+
+				$appInfo = $('#appInfo');
+
+				displayContentOrError = function(response, status, xhr) {
+					if (status == 'error') {
+						var errorMessage = 'Unable to display due to error. ('
+								+ xhr.status + ' ' + xhr.statusText + ')';
+						$appInfo.html(errorMessage);
+					}
+
+					$appInfo.show();
+				}
+
+				$appInfo.load('build.txt', displayContentOrError);
+
+			});
+</script>
+</head>
+<body class="container">
+    <div class="page-header">
+        <h1>GDrive: An LTI Tool Provider for Google Drive</h1>
+    </div>
+    <p>
+        As of <span id="localeDateTime">the time this page was
+            loaded</span>:
+    </p>
+    <div id="versionContainer" class="alert alert-info">
+        <p id="versionText">
+            Version: <span id="appInfo">Application information
+                here...</span>
+        </p>
+    </div>
+</body>
+</html>
