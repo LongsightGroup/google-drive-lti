@@ -24,7 +24,7 @@
     <url-pattern>/service/*</url-pattern>
   </servlet-mapping>
   
-  
+  <!-- TODO: Rename this servlet "googleapi" to reflect its purpose. -->
   <servlet>
     <servlet-name>googledrivelti</servlet-name>
     <servlet-class>org.mitre.dsmiley.httpproxy.ProxyServlet</servlet-class>
@@ -46,6 +46,7 @@
     </init-param>
   </servlet>
 
+  <!-- TODO: Rename this mapping (both parts) "googleapi" to reflect its purpose. -->
   <servlet-mapping>
     <servlet-name>googledrivelti</servlet-name>
     <url-pattern>/googledrivelti/*</url-pattern>

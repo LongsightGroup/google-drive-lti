@@ -12,6 +12,10 @@ googleDriveLti.lti.key=
 #googleDriveLti.lti.launchUrl=
 googleDriveLti.google.sharing.limit.size=
 # Set context based on whether or not app deployed as ROOT webapp application
+# TODO: Rename this property and the servlet to reflect their purposes.
+# This property is the context of the servlet that uses a proxy to communicate
+# with Google's API.  Therefore, this property should be named "googleApi.context"
+# and the servlet should be renamed (in web.xml) "googleapi".
 #googleDriveLti.context=google-drive-lti/googledrivelti
 #googleDriveLti.context=googledrivelti
 googleDriveLti.context=
