@@ -1,0 +1,5 @@
+-C src/main
+bundle
+resources
+java/edu/umich/its/google/oauth/googleServiceProps.properties.template
+
