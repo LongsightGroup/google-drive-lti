@@ -113,7 +113,10 @@ HINT: For local development in pom.xml add the <plugin> tag under the <plugins> 
             </configuration>
 </plugin>
 
+5. Optional logging: Create or update the log4j.properties as follows to enable application logging:
 
+#log4j.logger.edu.umich=INFO
+log4j.logger.edu.umich=DEBUG
 
 [Configuring Google-Drive-LTI in Sakai ]
 ========================================
