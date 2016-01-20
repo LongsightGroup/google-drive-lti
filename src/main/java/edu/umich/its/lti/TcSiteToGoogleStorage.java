@@ -141,7 +141,7 @@ public class TcSiteToGoogleStorage {
 		String[] fields = line.split(",");
 		if (fields.length != 4) {
 			throw new IllegalArgumentException(
-					"Data line storing link of TC Site to Google Folder is invalid: "
+					"Data line storing link of TC Site to Google Folder is invalid. This could also mean settings service option is not enabled in the LTI options: "
 							+ line);
 		}
 		result.setSiteId(decodeComma(fields[0]));

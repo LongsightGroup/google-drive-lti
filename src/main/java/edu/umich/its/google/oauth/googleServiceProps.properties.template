@@ -1,16 +1,16 @@
 # This can be used as properties file for GoogleServiceAccounts.  If property
 # for this is setup, that file will be used instead of this one.
 # Property for setting path to properties file: googleServicePropsPath
-googleDriveLti.service.account.client.id=
-googleDriveLti.service.account.email.address=
-googleDriveLti.service.account.private.key.file.classpath=true
-googleDriveLti.service.account.private.key.file=
-googleDriveLti.service.account.scopes=https://www.googleapis.com/auth/drive
-googleDriveLti.lti.secret=
-googleDriveLti.lti.key=
+127.0.0.1.service.account.client.id=
+127.0.0.1.service.account.email.address=
+127.0.0.1.service.account.private.key.file.classpath=true
+127.0.0.1.service.account.private.key.file=
+127.0.0.1.service.account.scopes=https://www.googleapis.com/auth/drive
+127.0.0.1.lti.secret=
+127.0.0.1.lti.key=
 # optionally set launchURL if HttpServletRequest.getRequestURL() not reliable
-#googleDriveLti.lti.launchUrl=
-googleDriveLti.google.sharing.limit.size=
+#127.0.0.1.lti.launchUrl=
+127.0.0.1.google.sharing.limit.size=
 # Set context based on whether or not app deployed as ROOT webapp application
 # TODO: Rename this property and the servlet to reflect their purposes.
 # This property is the context of the servlet that uses a proxy to communicate
@@ -18,4 +18,4 @@ googleDriveLti.google.sharing.limit.size=
 # and the servlet should be renamed (in web.xml) "googleapi".
 #googleDriveLti.context=google-drive-lti/googledrivelti
 #googleDriveLti.context=googledrivelti
-googleDriveLti.context=
+127.0.0.1.context=
