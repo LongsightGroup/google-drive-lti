@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -71,46 +73,35 @@ public class GoogleServiceAccount {
 		initProperties();
 	}
 
+	private static PropertiesConfiguration config;
+
 	static private void initProperties() {
 		String propertiesFilePath = System
 				.getProperty(SYSTEM_PROPERTY_FILE_PATH);
-
-		InputStream in = null;
+		File in = null;
 		try {
 			// loads the file from the tomcat directory
+
 			if (!isEmpty(propertiesFilePath)) {
-				in = new FileInputStream(propertiesFilePath);
+				in = new File(propertiesFilePath);
 			} else {
 				// loads the file from inside of the war
 				String packagePath = GoogleServiceAccount.class.getPackage()
 						.getName().replace(".", File.separator);
-				in = GoogleServiceAccount.class.getClassLoader()
-						.getResourceAsStream(
+				in = new File(GoogleServiceAccount.class.getClassLoader()
+						.getResource(
 								packagePath + File.separator
-								+ SYSTEM_PROPERTY_FILE_DEFAULT_NAME);
-				if (in == null) {
-					StringBuilder sb = new StringBuilder();
-					sb.append("GoogleServiceAccount Properties resource \"");
-					sb.append(SYSTEM_PROPERTY_FILE_DEFAULT_NAME);
-					sb.append("\" not located.");
-					M_log.error(sb.toString());
-				}
+								+ SYSTEM_PROPERTY_FILE_DEFAULT_NAME).toURI());
 			}
 			if (in != null) {
-				System.getProperties().load(in);
+				config = new PropertiesConfiguration(in);
+				config.setReloadingStrategy(new FileChangedReloadingStrategy());
 			}
 		} catch (Exception err) {
 			M_log.error(
 					"Failed to load system properties(googleServiceProps.properties) for GoogleServiceAccount",
 					err);
 		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (Exception err) {
-					M_log.error("Failed to close the InputStream");
-				}
-			}
 		}
 	}
 
@@ -149,7 +140,10 @@ public class GoogleServiceAccount {
 	 *            Prefix for properties, critical to keep properties separate
 	 *            for each service account.
 	 */
-	public GoogleServiceAccount(String propertiesPrefix) {
+	public GoogleServiceAccount(String requestUrl, String propertiesPrefix) {
+		if (M_log.isDebugEnabled()) {
+			M_log.debug("Creating a new GoogleServiceAccount class with requestUrl" + requestUrl + " and propertiesPrefix "+propertiesPrefix);
+		}
 		setPropertiesPrefix(propertiesPrefix);
 	}
 
