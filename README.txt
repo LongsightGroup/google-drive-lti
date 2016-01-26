@@ -14,9 +14,9 @@ This tool allows an instructor to associate a Google Drive folder with a Sakai s
 
 [ SETUP ]
 =========
-1. svn co https://source.sakaiproject.org/contrib/umich/lti-utils/tags/<find-latest-version> lti-utils
+1. git clone https://github.com/tl-its-umich-edu/lti-utils
 
-2. svn co https://source.sakaiproject.org/contrib/umich/google/google-drive-lti/tags/<find-latest-version> google-drive-lti
+2. git clone https://github.com/LongsightGroup/google-drive-lti
 
 3. Create a google service account specific to your institution as described at https://code.google.com/apis/console/. Create a public/private key and download the private key file (p12 file).
 
