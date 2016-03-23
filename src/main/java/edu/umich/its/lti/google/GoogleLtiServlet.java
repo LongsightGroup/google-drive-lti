@@ -165,7 +165,6 @@ public class GoogleLtiServlet extends HttpServlet {
 	private static final Log M_log = LogFactory.getLog(GoogleLtiServlet.class);
 
 	private static final String SESSION_ATTR_TC_DATA = "TcSessionData";
-	private static final String GOOGLE_SERVICE_ACCOUNT_PROPS_PREFIX = "googleDriveLti";
 	private static final String EXPECTED_LTI_MESSAGE_TYPE = "basic-lti-launch-request";
 	private static final String EXPECTED_LTI_VERSION = "LTI-1p0";
 	private static final String JSP_VAR_GOOGLE_DRIVE_CONFIG_JSON = "GoogleDriveConfigJson";
@@ -313,7 +312,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				}
 				List<String> roster = RosterClientUtils.getRoster(tcSessionData);
 				int googleSharingLimit = 0;
-				String googleSharingLimitString = getGoogleServiceAccount().getGoogleSharingLimit();
+				String googleSharingLimitString = getGoogleServiceAccount(request.getRemoteHost()).getGoogleSharingLimit();
 				if(googleSharingLimitString==null||(googleSharingLimitString.isEmpty())) {
 					doError(request, response,
 							resource.getString("gd.launch.error.msg.google.sharing.limit.missing"));
@@ -540,9 +539,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	private TcSessionData lockInSession(HttpServletRequest request) {
 		// Store TC data in session.
 		TcSessionData result = null;
-		String ltiSecret = getGoogleServiceAccount().getLtiSecret();
-		String ltiKey = getGoogleServiceAccount().getLtiKey();
-		String ltiUrl = getGoogleServiceAccount().getLtiUrl();
+		String ltiSecret = getGoogleServiceAccount(request.getRemoteHost()).getLtiSecret();
+		String ltiKey = getGoogleServiceAccount(request.getRemoteHost()).getLtiKey();
+		String ltiUrl = getGoogleServiceAccount(request.getRemoteHost()).getLtiUrl();
 		String ltiKeyFromLaunch = request.getParameter("oauth_consumer_key");
 		if((ltiKey.equals(ltiKeyFromLaunch))) {
 			OauthCredentials oauthCredentials = new OauthCredentials(ltiKey,ltiSecret,ltiUrl);
@@ -632,7 +631,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		// 2 - verify signature
 		result = RequestSignatureUtils.verifySignature(request,
 				request.getParameter("oauth_consumer_key"),
-				getGoogleServiceAccount().getLtiSecret(),getGoogleServiceAccount().getLtiUrl());
+				getGoogleServiceAccount(request.getRemoteHost()).getLtiSecret(),getGoogleServiceAccount(request.getRemoteHost()).getLtiUrl());
 		if (!result) {
 			doError(request, response, "Request signature is invalid.");
 		}
@@ -944,7 +943,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			// useful for code modifying a single student's/ or other instructor 
 			//permissions in roster
 			googleCredential = GoogleSecurity.authorize(
-					getGoogleServiceAccount(), instructorEmailAddress);
+					getGoogleServiceAccount(request.getRemoteHost()), instructorEmailAddress);
 		}
 		Drive drive = GoogleSecurity.getGoogleDrive(googleCredential);
 		result = new FolderPermissionsHandler(link, drive, fileId);
@@ -978,7 +977,7 @@ public class GoogleLtiServlet extends HttpServlet {
 		String userEmailAddress = tcSessionData.getUserEmailAddress();
 		String ownerOfTheFileEmailAddress=null;
 		GoogleCredential credential = GoogleSecurity.authorize(
-				getGoogleServiceAccount(), userEmailAddress);
+				getGoogleServiceAccount(request.getRemoteHost()), userEmailAddress);
 		Drive drive = GoogleSecurity.getGoogleDrive(credential);
 		try {
 			PermissionList list = drive.permissions().list(fileId).execute();
@@ -1145,7 +1144,7 @@ public class GoogleLtiServlet extends HttpServlet {
 			return;
 		}
 		// Throws exception for bad email and other reasons.  Should we catch it?
-		GoogleAccessToken accessToken =  GoogleSecurity.getGoogleAccessTokenWithTimeStamp(getGoogleServiceAccount(), userEmailAddress);
+		GoogleAccessToken accessToken =  GoogleSecurity.getGoogleAccessTokenWithTimeStamp(getGoogleServiceAccount(request.getRemoteHost()), userEmailAddress);
 		request.getSession().setAttribute(ACCESS_TOKEN_IN_SESSION, accessToken);
 		if(accessToken==null) {
 			StringBuilder s=new StringBuilder();
@@ -1206,7 +1205,7 @@ public class GoogleLtiServlet extends HttpServlet {
 				M_log.error("Error: When retriving the accessToken from the Session");
 			}
 		}else {
-	     accessToken = GoogleSecurity.getGoogleAccessToken(getGoogleServiceAccount(), ownerEmailAddress);
+	     accessToken = GoogleSecurity.getGoogleAccessToken(getGoogleServiceAccount(request.getRemoteHost()), ownerEmailAddress);
 		}
 		if (accessToken != null) {
 			response.getWriter().print(accessToken);
@@ -1222,8 +1221,9 @@ public class GoogleLtiServlet extends HttpServlet {
 	
 	
 
-	private GoogleServiceAccount getGoogleServiceAccount() {
-		return new GoogleServiceAccount(GOOGLE_SERVICE_ACCOUNT_PROPS_PREFIX);
+	private GoogleServiceAccount getGoogleServiceAccount(String remoteHost) {
+		M_log.info("Remote host is "+remoteHost);
+		return new GoogleServiceAccount(remoteHost);
 	}
 
 	private boolean validatePermissionsRequiredParams(
@@ -1332,7 +1332,7 @@ public class GoogleLtiServlet extends HttpServlet {
             request.setAttribute("contextLabel",tcSessionData.getContextLabel());
 
 			request.setAttribute("contextUrl",
-					getGoogleServiceAccount().getContextURL());
+					getGoogleServiceAccount(request.getRemoteHost()).getContextURL());
 			if(request.getMethod().equals("POST")) {
 				getGoogleAccessToken(request, response, tcSessionData);
 			}

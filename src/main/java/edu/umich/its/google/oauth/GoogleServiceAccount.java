@@ -140,9 +140,9 @@ public class GoogleServiceAccount {
 	 *            Prefix for properties, critical to keep properties separate
 	 *            for each service account.
 	 */
-	public GoogleServiceAccount(String requestUrl, String propertiesPrefix) {
+	public GoogleServiceAccount(String propertiesPrefix) {
 		if (M_log.isDebugEnabled()) {
-			M_log.debug("Creating a new GoogleServiceAccount class with requestUrl" + requestUrl + " and propertiesPrefix "+propertiesPrefix);
+			M_log.debug("Creating a new GoogleServiceAccount class with propertiesPrefix "+propertiesPrefix);
 		}
 		setPropertiesPrefix(propertiesPrefix);
 	}
@@ -313,8 +313,7 @@ public class GoogleServiceAccount {
 	 * this service account, using Boolean.parseBoolean(), defaulting in false.
 	 */
 	private boolean getBooleanProperty(String suffix) {
-		String result = System.getProperty(getPropertiesPrefix() + suffix);
-		return (result == null) ? false : Boolean.parseBoolean(result);
+		return config.getBoolean(getPropertiesPrefix() + suffix);
 	}
 
 	/**
@@ -322,7 +321,7 @@ public class GoogleServiceAccount {
 	 * service account.
 	 */
 	private String getStringProperty(String suffix) {
-		return System.getProperty(getPropertiesPrefix() + suffix);
+		return config.getString(getPropertiesPrefix() + suffix);
 	}
 
 	public String getGoogleSharingLimit() {
